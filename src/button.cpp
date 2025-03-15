@@ -1,5 +1,5 @@
-#include "button.h"
-#include "TextBox.h"
+#include "../include/button.h"
+#include "../include/TextBox.h"
 
 void display_title(const char *Title, int lastSlideID) {
     TextBox title;
