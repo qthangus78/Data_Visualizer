@@ -1,8 +1,18 @@
-#include "../include/GlobalVar.h"
-#include <raylib.h>
+#include "GlobalVar.h"
+
 //--------------------------------
 // Khai báo biến toàn cục
 //--------------------------------
+
+const int screenWidth = 1000;
+const int screenHeight = 700;
+const int FPS = 60;
+int currentSlideID = 0;
+Vector2 mouse;
+bool WindowClose = 0;
+Font customFont;
+
+
 namespace color {
     Color buttonColor        = BLUE;
     Color buttonColorHovered = {204, 119, 34, 255};
@@ -21,11 +31,3 @@ namespace buttonVar {
 }
 Edge EArrow = {100.0f, 3.0f, 20.0f};
 Vector2 startLinkedListPos = {50,180};
-
-const int screenWidth = 1000;
-const int screenHeight = 700;
-const int FPS = 60;
-int currentSlideID = 0;
-Vector2 mouse;
-bool WindowClose = 0;
-Font customFont;

@@ -1,19 +1,10 @@
-#include "../include/startScreen.h"
-#include "../include/menuScreen.h"
-#include "../include/settingScreen.h"
-#include "../include/SLL_display.h"
-#include "../include/Heap_display.h"
-#include "../include/AVLTree_display.h"
-#include "../include/ShortestP_display.h"
-
-const int screenWidth = 1000;
-const int screenHeight = 700;
-const int FPS = 60;
-int currentSlideID = 0;
-Vector2 mouse;
-bool WindowClose = 0;
-Font customFont;
-
+#include "startScreen.h"
+#include "menuScreen.h"
+#include "settingScreen.h"
+#include "SLL_display.h"
+#include "Heap_display.h"
+#include "AVLTree_display.h"
+#include "ShortestP_display.h"
 
 int main() {       
     SetConfigFlags(FLAG_MSAA_4X_HINT);
