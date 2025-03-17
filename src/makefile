@@ -20,8 +20,8 @@ $(OUT): $(SRC)
 	$(CXX) $(CXXFLAGS) $(SRC) -o $(OUT) $(LDFLAGS); ./$(OUT); rm -f $(OUT)
 
 # Run and delete after execution
-execute: $(OUT)
-	./$(OUT) && rm -f $(OUT)
+compile: $(SRC)
+	$(CXX) $(CXXFLAGS) $(SRC) -o $(OUT) $(LDFLAGS);
 
 # Clean target
 clean:
