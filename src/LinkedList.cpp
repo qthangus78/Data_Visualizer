@@ -1,5 +1,5 @@
-#include "LinkedList.h"
-#include "GlobalVar.h"
+#include "../include/LinkedList.h"
+#include "../include/GlobalVar.h"
 #include <raylib.h>
 #include <cmath>
 #include <string>
@@ -69,9 +69,9 @@ void fileInputAl(ListNode*& root, ListNode*& tail, std::ifstream& fin){
     }
 }
 //--------------------------------
-// Screen
+// SSL
 //--------------------------------
-Screen::Screen()
+SSL::SSL()
  : root(nullptr), existVal(nullptr), mcurrent(nullptr), tail(nullptr)
 {
     // Tạo các state
@@ -81,10 +81,9 @@ Screen::Screen()
     mFind      = new Find(this);
     mClear = new Clear(this);
     mcurrent   = mNotInMode;
-    moupos = GetMousePosition();
 }
 
-Screen::~Screen(){
+SSL::~SSL(){
     // xóa state
     delete mNotInMode;
     delete mInsert;
@@ -95,34 +94,33 @@ Screen::~Screen(){
     delMemAl(root);
 }
 
-void Screen::setState(IState* state) { mcurrent = state; }
-IState* Screen::getnotInMode() { return mNotInMode; }
-IState* Screen::getInsert()    { return mInsert; }
-IState* Screen::getDel()       { return mDelete; }
-IState* Screen::getFind()      { return mFind; }
-IState* Screen::getClear()     {return mClear;}
+void SSL::setState(IState* state) { mcurrent = state; }
+IState* SSL::getnotInMode() { return mNotInMode; }
+IState* SSL::getInsert()    { return mInsert; }
+IState* SSL::getDel()       { return mDelete; }
+IState* SSL::getFind()      { return mFind; }
+IState* SSL::getClear()     {return mClear;}
 
-ListNode* Screen::getRoot() { return root; }
-ListNode* Screen::getTail() {return tail;}
-ListNode* Screen::getprevTail() {return prevtail;}
-void Screen::setprevTail(ListNode* APrev) {prevtail = APrev;}
-void Screen::setRoot(ListNode* tmp) { root = tmp; }
-void Screen::setExistVal(ListNode* tmp){ existVal = tmp; }
-ListNode* Screen::getExistVal(){ return existVal; }
-Vector2 Screen::getPosEnd() {return posEnd;}
-void Screen::setPosEnd(Vector2 APos) {posEnd = APos;}
+ListNode* SSL::getRoot() { return root; }
+ListNode* SSL::getTail() {return tail;}
+ListNode* SSL::getprevTail() {return prevtail;}
+void SSL::setprevTail(ListNode* APrev) {prevtail = APrev;}
+void SSL::setRoot(ListNode* tmp) { root = tmp; }
+void SSL::setExistVal(ListNode* tmp){ existVal = tmp; }
+ListNode* SSL::getExistVal(){ return existVal; }
+Vector2 SSL::getPosEnd() {return posEnd;}
+void SSL::setPosEnd(Vector2 APos) {posEnd = APos;}
 
-void Screen::insertList(int x){ insertAl(root,tail,x); }
-bool Screen::delList(int x){ return delAl(root,tail,x); }
-ListNode* Screen::findList(int x){ return findAl(root, x); }
-void Screen::delAllList() {delMemAl(root); }
-void Screen::fileInput(std::ifstream& fin) {fileInputAl(root,tail,fin);}
+void SSL::insertList(int x){ insertAl(root,tail,x); }
+bool SSL::delList(int x){ return delAl(root,tail,x); }
+ListNode* SSL::findList(int x){ return findAl(root, x); }
+void SSL::delAllList() {delMemAl(root); }
+void SSL::fileInput(std::ifstream& fin) {fileInputAl(root,tail,fin);}
 
-void Screen::draw(){
+void SSL::draw(){
     if(mcurrent) mcurrent->draw();
 }
-void Screen::handle(){
-    moupos = GetMousePosition();
+void SSL::handle(){;
     if(mcurrent) mcurrent->handle();
 }
 //--------------------------------
@@ -130,88 +128,95 @@ void Screen::handle(){
 //--------------------------------
 //Vẽ Node
 void drawNode(Vector2 pos, const std::string& text, float radius){
-    DrawCircleV(pos, radius, color::nodeNotInMode); 
-    Font font = GetFontDefault();
-    Vector2 textSize = MeasureTextEx(font, text.c_str(), 23, 2);
-    DrawTextEx(font, text.c_str(),
-                   {pos.x - textSize.x / 2, pos.y - textSize.y / 2},
-                   22, 2, BLACK);
+    DrawCircleV(pos, radius, color::nodeNotInMode);
+    Vector2 textSize = MeasureTextEx(customFont, text.c_str(), 23, 2);
+    DrawTextEx(customFont, text.c_str(),{pos.x - textSize.x / 2, pos.y - textSize.y / 2}, 22, 2, BLACK);
 }
 //Vẽ mũi tên
-void drawArrow(Vector2 start, Vector2 end, Color edgeRender){
-    DrawLineEx(start, end, EArrow.thickness, edgeRender);
-    float angle = atan2f(end.y - start.y, end.x - start.x);
-    Vector2 left = {
-        end.x - EArrow.arrowsize * cosf(angle - PI/6),
-        end.y - EArrow.arrowsize * sinf(angle - PI/6)
-    };
-    Vector2 right = {
-        end.x - EArrow.arrowsize * cosf(angle + PI/6),
-        end.y - EArrow.arrowsize * sinf(angle + PI/6)
-    };
-    DrawTriangle(end, left, right, edgeRender);
+Vector2 Vector2Subtract(Vector2 v1, Vector2 v2) {
+    return (Vector2){ v1.x - v2.x, v1.y - v2.y };
+}
+float Vector2Length(Vector2 v) {
+    return sqrtf(v.x * v.x + v.y * v.y);
+}
+Vector2 Vector2Add(Vector2 v1, Vector2 v2) {
+    return (Vector2){ v1.x + v2.x, v1.y + v2.y };
+}
+Vector2 Vector2Scale(Vector2 v, float scale) {
+    return (Vector2){ v.x * scale, v.y * scale };
+}
+void drawArrow(Vector2 start, Vector2 end, Color color) {
+    Vector2 V = Vector2Subtract(end, start);
+    float length = Vector2Length(V);
+    if (length == 0) return;
+    Vector2 V_unit = Vector2Scale(V, 1.0f / length);
+    Vector2 V_perp = (Vector2){ -V_unit.y, V_unit.x };
+    float a = 10.0f;
+    float b = 5.0f;  
+    Vector2 temp1 = Vector2Scale(V_unit, -a);     
+    Vector2 temp2 = Vector2Scale(V_perp, b);          
+    Vector2 P1 = Vector2Add(end, Vector2Add(temp1, temp2));
+    Vector2 P2 = Vector2Add(end, Vector2Subtract(temp1, temp2));
+    DrawLineEx(start, end, EArrow.thickness, color);
+    DrawLineEx(end, P1, EArrow.thickness, color);
+    DrawLineEx(end, P2, EArrow.thickness, color);
 }
 
 void drawLinkedList(ListNode* root) {
     std::vector<ShadedData> shadedPos;
     Vector2 posStart = startLinkedListPos;
-    const int rightMargin = 50;
+    const int rightMargin = 60;
     const int lineHeight = 100;
     int numLine = 0;
-    
     while(root) {
-        // Nếu vị trí dự kiến cho node kế tiếp vượt quá giới hạn màn hình,
-        if(posStart.x + 2 * EArrow.length + 35 > GetScreenWidth() - rightMargin)
+        if(posStart.x + 2 * EArrow.length + 33 > GetScreenWidth() - rightMargin)
             shadedPos.push_back({ posStart, root });
         Vector2 prev = posStart;
         Vector2 cur  = { posStart.x + EArrow.length, posStart.y };
-        // Nếu cur vượt quá giới hạn màn hình, chuyển sang dòng mới
         if(cur.x > GetScreenWidth() - rightMargin) {
             numLine++;
             cur = { startLinkedListPos.x, startLinkedListPos.y + lineHeight * numLine };
         }
-        if(root->next) {
+        if(root->next && cur.x > prev.x) {
             drawArrow(prev, cur, color::edgeNotInMode);
         }
-        // Vẽ node với dữ liệu của nó
+        if(root->next && cur.x < prev.x){
+            drawArrow2Node(prev,cur,color::edgeNotInMode);
+        }
         std::string dataStr = std::to_string(root->data);
-        drawNode(prev, dataStr, 35);
-        // Nếu đây là node cuối, vẽ mũi tên nối tới "NULL"
+        drawNode(prev, dataStr, 33);
         if(!root->next) {
             if(cur.x < prev.x) {
                 drawArrow(prev, cur, color::edgeNotInMode);
-                drawNode(prev, dataStr, 35);
-                DrawText("NULL", cur.x - 10, cur.y + 13, 25, BLUE);
+                drawNode(prev, dataStr, 33);
+                DrawTextEx(customFont,"NULL", {cur.x - 10, cur.y + 13},25,2,BLUE);
             } else {
-                drawArrow({ prev.x + 35, prev.y }, cur, color::edgeNotInMode);
-                DrawText("NULL", cur.x + 5, cur.y - 13, 25, BLUE);
+                drawArrow({ prev.x + 33, prev.y }, cur, color::edgeNotInMode);
+                DrawTextEx(customFont,"NULL", {cur.x + 5, cur.y - 13}, 25, 2, BLUE);
             }
         }
-        // Cập nhật vị trí cho node kế tiếp
         if(cur.x > posStart.x)
-            posStart = { cur.x + 35, cur.y };
+            posStart = { cur.x + 33, cur.y };
         else
             posStart = cur; 
         root = root->next;
     }
-    // Vẽ lại các node lưu trong shadedPos
     for(const auto& u : shadedPos) {
         std::string textShaded = std::to_string(u.node->data);
-        drawNode(u.pos, textShaded, 35);
+        drawNode(u.pos, textShaded, 33);
     }
 }
 
 void drawPartofLinkedList(ListNode* root, ListNode* EndPart) {
     std::vector<ShadedData> shadedPos;
     Vector2 posStart = startLinkedListPos;
-    const int rightMargin = 50;
+    const int rightMargin = 60;
     const int lineHeight = 100;
     int numLine = 0;
-    
     while(root) {
         if(root == EndPart)
             return;
-        if(posStart.x + 2 * EArrow.length + 35 > GetScreenWidth() - rightMargin)
+        if(posStart.x + 2 * EArrow.length + 33 > GetScreenWidth() - rightMargin)
             shadedPos.push_back({ posStart, root });
         Vector2 prev = posStart;
         Vector2 cur  = { posStart.x + EArrow.length, posStart.y };
@@ -219,104 +224,93 @@ void drawPartofLinkedList(ListNode* root, ListNode* EndPart) {
             numLine++;
             cur = { startLinkedListPos.x, startLinkedListPos.y + lineHeight * numLine };
         }
-        // Vẽ mũi tên nối các node nếu có node kế và không phải EndPart
-        if(root->next && root->next != EndPart) {
+        if(root->next && cur.x > prev.x && root->next!=EndPart) {
             drawArrow(prev, cur, color::edgeRendered);
         }
-        // Vẽ node (với viền được vẽ bằng DrawCircleV)
-        DrawCircleV(prev, 39, color::nodeRendered);
+        if(root->next && cur.x < prev.x && root->next!=EndPart){
+            drawArrow2Node(prev,cur,color::edgeRendered);
+        }
+        DrawCircleV(prev, 34, color::nodeRendered);
         std::string dataStr = std::to_string(root->data);
-        drawNode(prev, dataStr, 34);
+        drawNode(prev, dataStr, 30);
         if(cur.x > posStart.x)
-            posStart = { cur.x + 35, cur.y };
+            posStart = { cur.x + 33, cur.y };
         else
             posStart = cur;
         root = root->next;
     }
     // Vẽ lại các node trong shadedPos
     for(const auto& u : shadedPos) {
-        DrawCircleV(u.pos, 39, color::nodeRendered);
+        DrawCircleV(u.pos, 34, color::nodeRendered);
         std::string text = std::to_string(u.node->data);
-        drawNode(u.pos, text, 34);
+        drawNode(u.pos, text, 30);
     }
 }
-
-void drawPartofLinkedListNotColor(ListNode* root, ListNode* EndPart, Screen* s) {
+void drawPartofLinkedListNotColor(ListNode* root, ListNode* EndPart, SSL* s) {
     std::vector<ShadedData> shadedPos;
     Vector2 posStart = startLinkedListPos;
-    const int rightMargin = 50;
+    const int rightMargin = 60;
     const int lineHeight = 100;
     int numLine = 0;
     while (root) {
         if (root == EndPart)
             return;
-        // Nếu vị trí dự kiến cho node kế tiếp vượt quá giới hạn màn hình,
-        if (posStart.x + 2 * EArrow.length + 35 > GetScreenWidth() - rightMargin)
+        if (posStart.x + 2 * EArrow.length + 33 > GetScreenWidth() - rightMargin)
             shadedPos.push_back({ posStart, root });
         Vector2 prev = posStart;
         Vector2 cur = { posStart.x + EArrow.length, posStart.y };
-        if (cur.x > GetScreenWidth() - 50) {
+        if (cur.x > GetScreenWidth() - rightMargin) {
             numLine++;
             cur = { startLinkedListPos.x, startLinkedListPos.y + lineHeight * numLine };
         }
-        // Vẽ mũi tên nếu có node kế tiếp
-        if (root->next && root->next!=EndPart) {
+        if(root->next && cur.x > prev.x && root->next!=EndPart) {
             drawArrow(prev, cur, color::edgeNotInMode);
         }
-        // Vẽ node với dữ liệu của nó
+        if(root->next && cur.x < prev.x && root->next!=EndPart){
+            drawArrow2Node(prev,cur,color::edgeNotInMode);
+        }
         std::string str = std::to_string(root->data);
-        drawNode(prev, str, 35);
+        drawNode(prev, str, 33);
         if (root->next == EndPart) {
             s->setPosEnd(posStart);
             s->setprevTail(root);
         }
         if (cur.x > posStart.x)
-            posStart = { cur.x + 35, cur.y };
+            posStart = { cur.x + 33, cur.y };
         else 
             posStart = cur;
-        // Chuyển sang node kế tiếp
         root = root->next;
     }
     // Sau khi duyệt xong danh sách, vẽ lại các node lưu trong shadedPos
     for (const auto &u : shadedPos) {
         std::string textShaded = std::to_string(u.node->data);
-        drawNode(u.pos, textShaded, 35);
+        drawNode(u.pos, textShaded, 33);
     }
 }
 // Vẽ 3 nút Insert, Delete, Find
 void drawButtons(){
     // Nút Insert
     DrawRectangleRounded(buttonVar::buttonIns.rect, 0.3f, 30, buttonVar::buttonIns.buCol);
-    DrawText(buttonVar::buttonIns.text.c_str(),
-             buttonVar::buttonIns.rect.x+15,
-             buttonVar::buttonIns.rect.y+7, 22, WHITE);
+    DrawTextEx(customFont,buttonVar::buttonIns.text.c_str(),{buttonVar::buttonIns.rect.x+15,buttonVar::buttonIns.rect.y+7}, 22, 2, WHITE);
     // Nút Delete
     DrawRectangleRounded(buttonVar::buttonDel.rect, 0.3f, 30, buttonVar::buttonDel.buCol);
-    DrawText(buttonVar::buttonDel.text.c_str(),
-             buttonVar::buttonDel.rect.x+15,
-             buttonVar::buttonDel.rect.y+7, 22, WHITE);
+    DrawTextEx(customFont,buttonVar::buttonDel.text.c_str(), {buttonVar::buttonDel.rect.x+15, buttonVar::buttonDel.rect.y+7}, 22, 2, WHITE);
     // Nút Find
     DrawRectangleRounded(buttonVar::buttonF.rect, 0.3f, 30, buttonVar::buttonF.buCol);
-    DrawText(buttonVar::buttonF.text.c_str(),
-             buttonVar::buttonF.rect.x+15,
-             buttonVar::buttonF.rect.y+7, 22, WHITE);
+    DrawTextEx(customFont,buttonVar::buttonF.text.c_str(),{buttonVar::buttonF.rect.x+15,buttonVar::buttonF.rect.y+7}, 22, 2, WHITE);
     //Nút Clear
     DrawRectangleRounded(buttonVar::buttonClear.rect, 0.3f, 30, buttonVar::buttonClear.buCol);
-    DrawText(buttonVar::buttonClear.text.c_str(),
-            buttonVar::buttonClear.rect.x+17,
-            buttonVar::buttonClear.rect.y+7, 22, WHITE);
-
+    DrawTextEx(customFont,buttonVar::buttonClear.text.c_str(), {buttonVar::buttonClear.rect.x+17,buttonVar::buttonClear.rect.y+7}, 22, 2, WHITE);
 }
 // Xử lý hover 3 nút
 void handleButtonsHover(){
-    Vector2 mousePos = GetMousePosition();
-    if(CheckCollisionPointRec(mousePos, buttonVar::buttonIns.rect))
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect))
         buttonVar::buttonIns.buCol     = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mousePos, buttonVar::buttonDel.rect))
+    else if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect))
         buttonVar::buttonDel.buCol     = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mousePos, buttonVar::buttonF.rect))
+    else if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect))
         buttonVar::buttonF.buCol       = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mousePos, buttonVar::buttonClear.rect))
+    else if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))
         buttonVar::buttonClear.buCol   = color::buttonColorHovered;
     else {
         buttonVar::buttonIns.buCol   = color::buttonColor;
@@ -326,23 +320,22 @@ void handleButtonsHover(){
     }
 }
 // Xử lý click 3 nút
-void handleButtonsClick(Screen* screen){
-    Vector2 mousePos = screen->getMouse();
-    if(CheckCollisionPointRec(mousePos, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        screen->setState(screen->getInsert());
-        screen->setExistVal(screen->getRoot());
+void handleButtonsClick(SSL* SSL){
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+        SSL->setState(SSL->getInsert());
+        SSL->setExistVal(SSL->getRoot());
     }
-    if(CheckCollisionPointRec(mousePos, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        screen->setState(screen->getDel());
-        screen->setExistVal(screen->getRoot());
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+        SSL->setState(SSL->getDel());
+        SSL->setExistVal(SSL->getRoot());
     }
-    if(CheckCollisionPointRec(mousePos, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        screen->setState(screen->getFind());
-        screen->setExistVal(screen->getRoot());
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+        SSL->setState(SSL->getFind());
+        SSL->setExistVal(SSL->getRoot());
     }
-    if(CheckCollisionPointRec(mousePos, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        screen->setState(screen->getClear());
-        screen->setExistVal(screen->getRoot());
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+        SSL->setState(SSL->getClear());
+        SSL->setExistVal(SSL->getRoot());
     }
 }
 // Vẽ blinking lines trong input
@@ -350,25 +343,34 @@ void drawBlinkingLines(const std::string& text, Rectangle rect, int& frameCounte
     frameCounter++;
     if(frameCounter < 30) {
         // Tính x hiển thị con trỏ
-        Font font = GetFontDefault();
-        int width = MeasureTextEx(font, text.c_str(), rect.height-10, 1).x;
+        int width = MeasureTextEx(customFont, text.c_str(), rect.height-10, 1).x;
         float cursorX = rect.x + width + 7;
         DrawLine(cursorX, rect.y + 2, cursorX, rect.y + rect.height - 2, BLACK);
     }
     if(frameCounter >= 60) frameCounter = 0;
 }
 void drawTextIn(const std::string& text, Rectangle rect, int& frameCounter){
-    Font font = GetFontDefault();
     float fontsize = button::sizeH - 10;
     float spacing = 1.0f;
     Vector2 pos = { rect.x + 5, rect.y + 5 };
     std::string str = text;
-    Vector2 widthText = MeasureTextEx(font, str.c_str(), fontsize, spacing);
+    Vector2 widthText = MeasureTextEx(customFont, str.c_str(), fontsize, spacing);
     // Cắt ký tự từ đầu nếu chuỗi quá dài
     while (widthText.x > rect.width-5 && !str.empty()) {
     str.erase(str.begin());  
-    widthText = MeasureTextEx(font, str.c_str(), fontsize, spacing);
+    widthText = MeasureTextEx(customFont, str.c_str(), fontsize, spacing);
     }
-    DrawTextEx(font, str.c_str(), pos, fontsize, spacing, BLACK);
+    DrawTextEx(customFont, str.c_str(), pos, fontsize, spacing, BLACK);
     drawBlinkingLines(str, rect, frameCounter);
+}
+
+void drawArrow2Node(Vector2 start, Vector2 end, Color edgeRender) {
+    Vector2 direct = Vector2Subtract(end, start);
+    float length = Vector2Length(direct);
+    if (length == 0) return;
+    Vector2 endPos = {
+        end.x - (33 * direct.x / length),
+        end.y - (33 * direct.y / length)
+    };
+    drawArrow(start, endPos, edgeRender);
 }

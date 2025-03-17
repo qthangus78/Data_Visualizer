@@ -29,6 +29,5 @@ namespace buttonVar {
     button buttonF     = {{50.0f, 560.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
     button buttonClear = {{50.0f, 620.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
 }
-Edge EArrow = {100.0f, 5.0f, 20.0f};
-
+Edge EArrow = {100.0f, 3.0f, 20.0f};
 Vector2 startLinkedListPos = {50,180};

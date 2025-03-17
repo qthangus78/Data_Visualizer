@@ -17,7 +17,7 @@ OUT = run
 all: $(OUT)
 
 $(OUT): $(SRC)
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(OUT) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(SRC) -o $(OUT) $(LDFLAGS); ./$(OUT); rm -f $(OUT)
 
 # Run and delete after execution
 execute: $(OUT)
