@@ -166,26 +166,37 @@ void Insert::draw() {
 void Insert::handle(){
     handleButtonsHover();
     handleInputFile();
-    // Xử lý click 3 nút + clear text
     if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getnotInMode());
         textIn.clear();
+        InsertProcess = false;
+        currentAnimatingNode = nullptr;
+        posTail = {800,50};
         mSSL->setExistVal(mSSL->getRoot());
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getDel());
         textIn.clear();
+        InsertProcess = false;
+        currentAnimatingNode = nullptr;
+        posTail = {800,50};
         mSSL->setExistVal(mSSL->getRoot());
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getFind());
         textIn.clear();
+        InsertProcess = false;
+        currentAnimatingNode = nullptr;
+        posTail = {800,50};
         mSSL->setExistVal(mSSL->getRoot());
         
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getClear());
         textIn.clear();
+        InsertProcess = false;
+        currentAnimatingNode = nullptr;
+        posTail = {800,50};
         mSSL->setExistVal(mSSL->getRoot());
     }
     // Nhập số
@@ -342,24 +353,32 @@ void Find::handle(){
         mSSL->setState(mSSL->getInsert());
         textIn.clear();
         mSSL->setExistVal(mSSL->getRoot());
+        FindProcess = false;
+        currentAnimatingNode = nullptr;
         shadedPos = {0,0};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getDel());
         textIn.clear();
         mSSL->setExistVal(mSSL->getRoot());
+        FindProcess = false;
+        currentAnimatingNode = nullptr;
         shadedPos = {0,0};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getnotInMode());
         textIn.clear();
         mSSL->setExistVal(mSSL->getRoot());
+        FindProcess = false;
+        currentAnimatingNode = nullptr;
         shadedPos = {0,0};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getClear());
         textIn.clear();
         mSSL->setExistVal(mSSL->getRoot());
+        FindProcess = false;
+        currentAnimatingNode = nullptr;
         shadedPos = {0,0};
     }
     // Nhập số
