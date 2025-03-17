@@ -1,10 +1,10 @@
-#include "../include/startScreen.h"
-#include "../include/menuScreen.h"
-#include "../include/settingScreen.h"
-#include "../include/SLL_display.h"
-#include "../include/Heap_display.h"
-#include "../include/AVLTree_display.h"
-#include "../include/ShortestP_display.h"
+#include "startScreen.h"
+#include "menuScreen.h"
+#include "settingScreen.h"
+#include "SLL_display.h"
+#include "Heap_display.h"
+#include "AVLTree_display.h"
+#include "ShortestP_display.h"
 
 const int screenWidth = 1000;
 const int screenHeight = 700;

@@ -2,7 +2,7 @@
 CXX = clang++
 
 # Compiler flags
-CXXFLAGS = -std=c++20 -I/opt/homebrew/include
+CXXFLAGS = -std=c++20 -I/opt/homebrew/include -I../include
 
 # Linker flags
 LDFLAGS = -L/opt/homebrew/lib -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio
