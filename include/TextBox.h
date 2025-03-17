@@ -1,5 +1,5 @@
 #pragma once 
-#include "Global.h"
+#include "GlobalVar.h"
 
 struct TextBox {
     Color rectColor = BLACK; /// need input
