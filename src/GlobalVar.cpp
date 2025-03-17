@@ -1,4 +1,4 @@
-#include "GlobalVar.h"
+#include "../include/GlobalVar.h"
 #include <raylib.h>
 //--------------------------------
 // Khai báo biến toàn cục
@@ -19,6 +19,13 @@ namespace buttonVar {
     button buttonF     = {{50.0f, 560.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
     button buttonClear = {{50.0f, 620.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
 }
-Edge EArrow = {100.0f, 5.0f, 20.0f};
-
+Edge EArrow = {100.0f, 3.0f, 20.0f};
 Vector2 startLinkedListPos = {50,180};
+
+const int screenWidth = 1000;
+const int screenHeight = 700;
+const int FPS = 60;
+int currentSlideID = 0;
+Vector2 mouse;
+bool WindowClose = 0;
+Font customFont;

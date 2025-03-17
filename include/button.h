@@ -1,5 +1,5 @@
 #pragma once 
-#include "Global.h"
+#include "GlobalVar.h"
 
 struct myTexture {
     Texture2D texture;  

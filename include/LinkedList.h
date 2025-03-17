@@ -17,7 +17,7 @@ void delMemAl(ListNode*& root);
 // Forward Declarations
 //--------------------------------
 class IState;
-class Screen;
+class SSL;
 
 //--------------------------------
 // Interface State
@@ -30,11 +30,10 @@ public:
 };
 
 //--------------------------------
-// Screen
+// SSL
 //--------------------------------
-class Screen {
+class SSL {
 private:
-    Vector2 moupos;
     ListNode* root;   
     ListNode* tail;
     ListNode* prevtail;
@@ -48,10 +47,9 @@ private:
     IState* mClear;
 
 public:
-    Screen();
-    ~Screen();
+    SSL();
+    ~SSL();
     // getter/setter
-    Vector2 getMouse() { return moupos; }
     ListNode* getRoot();
     ListNode* getTail();
     ListNode* getprevTail();
@@ -83,16 +81,16 @@ public:
 //--------------------------------
 class notInMode : public IState {
 private:
-    Screen* mscreen;
+    SSL* mSSL;
 public:
-    notInMode(Screen* s) : mscreen(s) {}
+    notInMode(SSL* s) : mSSL(s) {}
     void draw() override;
     void handle() override;
 };
 //--------------------------------
 class Insert : public IState {
 private:
-    Screen* mscreen;
+    SSL* mSSL;
     int frameCounter;
     int framecntInsert;
     std::string textIn;
@@ -102,7 +100,7 @@ private:
     ListNode* currentAnimatingNode;
     Vector2 posTail;
 public:
-    Insert(Screen* s);
+    Insert(SSL* s);
     void drawInputFile();
     void handleInputFile();
     void insertAnimation(ListNode*& tmp,Vector2& posTail, int deltax, int deltay);
@@ -112,19 +110,19 @@ public:
 //--------------------------------
 class Delete : public IState {
 private:
-    Screen* mscreen;
+    SSL* mSSL;
     int frameCounter;
     std::string textIn;
     bool existVal;
 public:
-    Delete(Screen* s);
+    Delete(SSL* s);
     void draw() override;
     void handle() override;
 };
 //--------------------------------
 class Find : public IState {
 private:
-    Screen* mscreen;
+    SSL* mSSL;
     int frameCounter;
     int framecntFind;
     bool FindProcess;
@@ -132,16 +130,16 @@ private:
     ListNode* currentAnimatingNode;
     std::string textIn;
 public:
-    Find(Screen* s);
+    Find(SSL* s);
     void findAnimation(ListNode*& root);
     void draw() override;
     void handle() override;
 };
 class Clear : public IState{
 private:
-    Screen* mscreen;
+    SSL* mSSL;
 public:
-    Clear(Screen* s);
+    Clear(SSL* s);
     void draw() override;
     void handle() override;
 };
@@ -152,9 +150,14 @@ void drawNode(Vector2 pos, const std::string& text, float radius);
 void drawArrow(Vector2 start, Vector2 end, Color edgeRender);
 void drawLinkedList(ListNode* root);
 void drawPartofLinkedList(ListNode* root, ListNode* EndPart);
-void drawPartofLinkedListNotColor(ListNode* root, ListNode* EndPart, Screen* s);
+void drawPartofLinkedListNotColor(ListNode* root, ListNode* EndPart, SSL* s);
 void drawButtons();
-void handleButtonsClick(Screen* screen);
+void handleButtonsClick(SSL* SSL);
 void handleButtonsHover();
 void drawBlinkingLines(const std::string& text, Rectangle rect, int& frameCounter);
 void drawTextIn(const std::string& text, Rectangle rect, int& frameCounter);
+Vector2 Vector2Subtract(Vector2 v1, Vector2 v2);
+float Vector2Length(Vector2 v);
+Vector2 Vector2Add(Vector2 v1, Vector2 v2);
+Vector2 Vector2Scale(Vector2 v, float scale);
+void drawArrow2Node(Vector2 start, Vector2 end, Color edgeRender);
