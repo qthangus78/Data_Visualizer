@@ -11,6 +11,9 @@ extern int currentSlideID;
 extern Vector2 mouse;
 extern bool WindowClose;
 extern Font customFont;
+
+
+//--------------------------------
 // Cấu trúc button
 //--------------------------------
 struct button {
@@ -64,4 +67,3 @@ struct ShadedData {
     Vector2 pos;
     ListNode* node;
 };
-//--------------------------------
