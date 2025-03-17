@@ -1,8 +1,18 @@
 #include "GlobalVar.h"
-#include <raylib.h>
+
 //--------------------------------
 // Khai báo biến toàn cục
 //--------------------------------
+
+const int screenWidth = 1000;
+const int screenHeight = 700;
+const int FPS = 60;
+int currentSlideID = 0;
+Vector2 mouse;
+bool WindowClose = 0;
+Font customFont;
+
+
 namespace color {
     Color buttonColor        = BLUE;
     Color buttonColorHovered = {204, 119, 34, 255};

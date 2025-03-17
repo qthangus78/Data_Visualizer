@@ -6,15 +6,6 @@
 #include "AVLTree_display.h"
 #include "ShortestP_display.h"
 
-const int screenWidth = 1000;
-const int screenHeight = 700;
-const int FPS = 60;
-int currentSlideID = 0;
-Vector2 mouse;
-bool WindowClose = 0;
-Font customFont;
-
-
 int main() {       
     InitWindow(screenWidth, screenHeight, "Data Visualizer");
     SetTargetFPS(FPS);

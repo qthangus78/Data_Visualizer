@@ -1,5 +1,5 @@
 #pragma once
-#include "Global.h"
+#include "GlobalVar.h"
 #include "TextBox.h"
 
 namespace startScreen {
