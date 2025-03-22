@@ -1,10 +1,11 @@
 #pragma once
 #include "GlobalVar.h"
 #include "TextBox.h"
+#include "graph.h"
+#include "button.h"
 
 namespace ShortestP_display {
-    void Display() {
-        ClearBackground({192, 245, 242, 100});
-        display_title("Shortest Path", 1);
-    }
+    extern graph* G;
+
+    void Display();
 }

@@ -7,6 +7,7 @@
 #include "ShortestP_display.h"
 
 int main() {       
+    srand(time(0));
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(screenWidth, screenHeight, "Data Visualizer");
     SetTargetFPS(FPS);
