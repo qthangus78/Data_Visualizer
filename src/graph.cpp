@@ -1,5 +1,4 @@
 #include "graph.h"
-#include <random>
 
 float magnitude(Vector2 V) {
     return sqrtf(V.x * V.x + V.y * V.y);
@@ -22,15 +21,19 @@ graph::edge::edge(int _u, int _v, int _w) {
     w = _w;
 }
 
-graph::graph(int _numNode) {
+graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
     numNode = _numNode;
     numEdge = 0;
     Nodes.resize(numNode + 1, node());
     Adjacent_list.resize(numNode + 1);
 
+    // Set graph properties
+    isDirected = _isDirected;
+    isWeighted = _isWeighted;
+
     // Dynamically scale IdealEdgeLength based on global screen size and number of nodes
-    IdealEdgeLength = sqrtf(screenWidth * screenHeight / (float)numNode) * 0.75f;
-    // Scale Crep based on number of nodes
+    IdealEdgeLength = sqrtf(screenWidth * screenHeight / (float)numNode) * 0.5f;
+    // Scale Crep more aggressively based on number of nodes
     Crep = numNode * numNode * 10.0f;
 }
 
@@ -39,8 +42,12 @@ int graph::edge::other(int x) {
 }
 
 void graph::AddEdge(int u, int v, int w) {
+    // Add edge from u to v
     Adjacent_list[u].push_back(Edges.size());
-    Adjacent_list[v].push_back(Edges.size());
+    // For undirected graph, also add edge from v to u
+    if (!isDirected) {
+        Adjacent_list[v].push_back(Edges.size());
+    }
     Edges.push_back(edge(u, v, w));
     ++numEdge;
 }
@@ -92,6 +99,7 @@ Vector2 graph::CenteringForce(int u) {
 }
 
 void graph::BalanceGraph() {
+    if (convergent) return;
     // if (convergent || iteration >= numIteration) return;
 
     // Traverse all nodes
@@ -141,7 +149,7 @@ void graph::BalanceGraph() {
     currentVeclocity *= CoolingFactor;
 
     // Increase iteration
-    ++iteration;
+    // ++iteration;
 
     // Check for convergence
     if (totalForce < epsilon) {
@@ -186,21 +194,42 @@ void graph::Draw() {
     for (const auto& edge : Edges) {
         int u = edge.u;
         int v = edge.v;
-        DrawLineV(Nodes[u].Pos, Nodes[v].Pos, BLACK);
 
-        // Calculate midpoint of the edge for placing the weight
-        Vector2 midPoint = {
-            (Nodes[u].Pos.x + Nodes[v].Pos.x) / 2.0f,
-            (Nodes[u].Pos.y + Nodes[v].Pos.y) / 2.0f
-        };
+        if (isDirected) {
+            // Draw an arrow from u to v
+            Vector2 start = Nodes[u].Pos;
+            Vector2 end = Nodes[v].Pos;
+            // Adjust the end position to stop at the edge of the node
+            Vector2 direction = {end.x - start.x, end.y - start.y};
+            float dist = magnitude(direction);
+            if (dist > 0) {
+                direction = {direction.x / dist, direction.y / dist};
+                end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
+                DrawLineEx(start, end, 1.5f, BLACK);
+                // Draw arrowhead
+                Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
+                Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
+                DrawLineEx(end, arrow1, 1.5f, BLACK);
+                DrawLineEx(end, arrow2, 1.5f, BLACK);
+            }
+        } else {
+            // Draw a simple line for undirected graph
+            DrawLineV(Nodes[u].Pos, Nodes[v].Pos, BLACK);
+        }
 
-        const char* weightText = TextFormat("%d", edge.w);
-        // Scale the font size for edge weight text based on nodeRadius
-        float weightFontSize = nodeRadius * 1.2f;  // Adjust the scaling factor as needed
-        Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
-        DrawTextEx(customFont, weightText,
-                   {midPoint.x - textSize.x / 2, midPoint.y - textSize.y / 2},
-                   weightFontSize, 1.0f, RED);
+        // Draw edge weight if the graph is weighted
+        if (isWeighted) {
+            Vector2 midPoint = {
+                (Nodes[u].Pos.x + Nodes[v].Pos.x) / 2.0f,
+                (Nodes[u].Pos.y + Nodes[v].Pos.y) / 2.0f
+            };
+            const char* weightText = TextFormat("%d", edge.w);
+            float weightFontSize = nodeRadius * 1.2f;
+            Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
+            DrawTextEx(customFont, weightText,
+                       {midPoint.x - textSize.x / 2, midPoint.y - textSize.y / 2},
+                       weightFontSize, 1.0f, RED);
+        }
     }
 
     // Draw nodes and their values
@@ -223,35 +252,34 @@ void graph::Draw() {
 std::random_device rd;
 std::mt19937 gen(rd());
 
-graph* GenerateRandomGraph() {
-    int numNode = 5 + (gen() % 10);  
-    graph* myGraph = new graph(numNode);
+graph* GenerateRandomGraph(int numNodes, bool isDirected, bool isWeighted) {
+    graph* myGraph = new graph(numNodes, isDirected, isWeighted);
 
     // Initialize nodes with random positions
     std::uniform_real_distribution<float> disX(myGraph->nodeRadius, screenWidth - myGraph->nodeRadius);
     std::uniform_real_distribution<float> disY(myGraph->nodeRadius, screenHeight - myGraph->nodeRadius);
-    for (int i = 1; i <= numNode; ++i) {
+    for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].val = i;
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
 
     // Create a cycle to ensure connectivity
-    for (int i = 1; i <= numNode; ++i) {
+    for (int i = 1; i <= numNodes; ++i) {
         int u = i;
-        int v = (i % numNode) + 1;  // Connects 1-2, 2-3, ..., numNode-1
-        // Assign a random weight between 1 and 10
-        std::uniform_int_distribution<int> disWeight(1, 10);
-        myGraph->AddEdge(u, v, disWeight(gen));
+        int v = (i % numNodes) + 1;  
+        int weight = isWeighted ? (1 + (gen() % 10)) : 1;  // Random weight between 1 and 10 if weighted
+        myGraph->AddEdge(u, v, weight);
     }
 
-    // Add random edges with probability 0.1
+    // Add random edges with probability 0.05
     std::uniform_real_distribution<float> disProb(0.0f, 1.0f);
-    std::uniform_int_distribution<int> disWeight(1, 10);
-    for (int u = 1; u <= numNode; ++u) {
-        for (int v = u + 1; v <= numNode; ++v) {
-            if (v == (u % numNode) + 1) continue;  // Skip cycle edges
-            if (disProb(gen) < 0.1f) {
-                myGraph->AddEdge(u, v, disWeight(gen));
+    for (int u = 1; u <= numNodes; ++u) {
+        for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
+            if (u == v) continue;
+            if (v == (u % numNodes) + 1) continue;  // Skip cycle edges
+            if (disProb(gen) < 0.05f) {
+                int weight = isWeighted ? (1 + (gen() % 10)) : 1;
+                myGraph->AddEdge(u, v, weight);
             }
         }
     }

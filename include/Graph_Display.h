@@ -4,8 +4,9 @@
 #include "graph.h"
 #include "button.h"
 
-namespace ShortestP_display {
-    extern graph* G;
+void RunGraphVisualization(graph* G);
 
+namespace Graph_display {
+    extern graph* G;
     void Display();
 }

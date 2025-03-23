@@ -18,7 +18,7 @@ public:
         int other(int x);
     };
 
-    graph(int _numNode);
+    graph(int _numNode, bool _isDirected = false, bool _isWeighted = false);
 
     void AddEdge(int u, int v, int w);
     float EulerDist(int u, int v);
@@ -36,6 +36,10 @@ public:
     std::vector<node> Nodes;
     std::vector<std::vector<int>> Adjacent_list;
     std::vector<edge> Edges;
+
+    // Graph settings
+    bool isDirected;   // True for directed, false for undirected
+    bool isWeighted;   // True for weighted, false for unweighted
 
     // Eades algorithm parameters
     float Crep = 100.0f;
@@ -57,7 +61,7 @@ public:
     int selectedNode = -1;  // Index of the node being dragged (-1 if none)
 };
 
-graph* GenerateRandomGraph();
+graph* GenerateRandomGraph(int numNodes, bool isDirected, bool isWeighted);
 void initEadesFactor(graph* G);
 
 #endif

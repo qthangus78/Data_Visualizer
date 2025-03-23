@@ -4,7 +4,7 @@
 #include "SLL_display.h"
 #include "Heap_display.h"
 #include "AVLTree_display.h"
-#include "ShortestP_display.h"
+#include "Graph_Display.h"
 
 int main() {       
     srand(time(0));
@@ -42,7 +42,7 @@ int main() {
                 AVLTree_display::Display();
                 break;
             case 6:
-                ShortestP_display::Display();
+                Graph_display::Display();
                 break;
         }
 
