@@ -67,3 +67,4 @@ struct ShadedData {
     Vector2 pos;
     ListNode* node;
 };
+

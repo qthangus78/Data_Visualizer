@@ -1,8 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "raylib.h"
-#include "GlobalVar.h"
+#include "GlobalVar.h"  
 
 class graph {
 public:
@@ -23,39 +22,42 @@ public:
 
     void AddEdge(int u, int v, int w);
     float EulerDist(int u, int v);
+    float EulerDist(int u, Vector2 pos);
     Vector2 UnitVector(int u, int v);
     Vector2 RepulsiveForce(int u, int v);
     Vector2 SpringForce(int u, int v);
-    Vector2 CenteringForce(int u);  // New: Centering force
+    Vector2 CenteringForce(int u);
     void BalanceGraph();
     void Draw();
+    void HandleMouseInteraction();
 
     // Graph properties
     int numNode, numEdge;
-    vector<node> Nodes;
-    vector<std::vector<int>> Adjacent_list;
-    vector<edge> Edges;
+    std::vector<node> Nodes;
+    std::vector<std::vector<int>> Adjacent_list;
+    std::vector<edge> Edges;
 
     // Eades algorithm parameters
-    float Crep = 10.0f;          // Increased repulsion constant (C3)
-    float Cspring = 2.0f;        // Spring constant (C1)
-    float IdealEdgeLength = 50.0f;  // Will be scaled dynamically (C2)
-    float Ccenter = 0.001f;      // Centering force constant
-    float Veclocity = 0.1f;      // Initial velocity (C4)
+    float Crep = 100.0f;
+    float Cspring = 1.0f;
+    float IdealEdgeLength = 50.0f;
+    float Ccenter = 0.001f;
+    float Veclocity = 0.1f;
     float currentVeclocity = Veclocity;
-    float CoolingFactor = 0.98f; // Slower cooling for more spreading
-    float epsilon = 0.005f;      // Stricter convergence criterion
+    float CoolingFactor = 0.98f;
+    float epsilon = 0.005f;
     int iteration = 0;
-    int numIteration = 200;      // More iterations for better distribution
+    int numIteration = 200;
     bool convergent = false;
 
     // Visualization parameters
-    float nodeRadius = 10.0f;
-    // float screenWidth = 1000.0f;
-    // float screenHeight = 700.0f;
+    float nodeRadius = 15.0f;
+
+    // Mouse interaction
+    int selectedNode = -1;  // Index of the node being dragged (-1 if none)
 };
 
 graph* GenerateRandomGraph();
-void initGraph(graph* G);
+void initEadesFactor(graph* G);
 
 #endif

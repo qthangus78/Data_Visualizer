@@ -11,11 +11,11 @@ void TextBox::ScaleProcess() {
         scale = isHovered ? scaleRate : 1.0f;
 
         current_fontSize = isHovered ? 1.0f * fontSize * scale : fontSize;
-        int textWidth = MeasureText(text, fontSize);
+        Vector2 textSize = MeasureTextEx(customFont, text, fontSize, 1.5f);
 
         // adjust rect.width
-        if (rect.width <= textWidth + 20) 
-            rect.width = textWidth + 20;
+        if (rect.width <= textSize.x + 20) 
+            rect.width = textSize.x + 20;
         
         scaledRect = { 
             rect.x - (rect.width * (scale - 1.0f)) / 2, 
@@ -26,8 +26,8 @@ void TextBox::ScaleProcess() {
 
         
         textPos = {
-            scaledRect.x + (scaledRect.width - textWidth) / 2,
-            scaledRect.y + (scaledRect.height - fontSize) / 2
+            scaledRect.x + (scaledRect.width - textSize.x) / 2,
+            scaledRect.y + (scaledRect.height - textSize.y) / 2
         };
 }
 
