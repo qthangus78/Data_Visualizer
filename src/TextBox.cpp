@@ -11,7 +11,7 @@ void TextBox::ScaleProcess() {
         scale = isHovered ? scaleRate : 1.0f;
 
         current_fontSize = isHovered ? 1.0f * fontSize * scale : fontSize;
-        Vector2 textSize = MeasureTextEx(customFont, text, fontSize, 1.5f);
+        Vector2 textSize = MeasureTextEx(customFont, text, current_fontSize, 1.5f);
 
         // adjust rect.width
         if (rect.width <= textSize.x + 20) 
@@ -31,8 +31,44 @@ void TextBox::ScaleProcess() {
         };
 }
 
-void TextBox::Draw_TextBox() {
-    ScaleProcess();
+void TextBox::MakeHover() {
+    current_fontSize = 1.0f * fontSize * scaleRate; 
+    Vector2 textSize = MeasureTextEx(customFont, text, current_fontSize, 1.5f);
+
+    // adjust rect.width
+    if (rect.width <= textSize.x + 20) 
+        rect.width = textSize.x + 20;
+    
+    scaledRect = { 
+        rect.x - (rect.width * (scaleRate - 1.0f)) / 2, 
+        rect.y - (rect.height * (scaleRate - 1.0f)) / 2,
+        rect.width * scaleRate,
+        rect.height * scaleRate
+    };
+
+    
+    textPos = {
+        scaledRect.x + (scaledRect.width - textSize.x) / 2,
+        scaledRect.y + (scaledRect.height - textSize.y) / 2
+    };
+}
+
+void TextBox::Draw_TextBox(bool makeHover) {
+    if (makeHover) MakeHover();
+    else ScaleProcess();
+
     DrawRectangleRounded(scaledRect, roundness, numSegment, rectColor);
-    DrawTextEx(customFont, text, {textPos.x , textPos.y}, current_fontSize, 1.5, textColor);
+    DrawTextEx(customFont, text, {textPos.x , textPos.y}, current_fontSize, 1.5f, textColor);
+}
+
+void TextBox::Draw_BlinkingLine() {
+    if (strlen(text) == 0) {
+        Vector2 textSize = MeasureTextEx(customFont, "a", current_fontSize, 1.5f);
+        DrawLine(scaledRect.x + scaledRect.width / 2, scaledRect.y + scaledRect.height / 2 - textSize.y / 2, 
+                 scaledRect.x + scaledRect.width / 2, scaledRect.y + scaledRect.height / 2 + textSize.y / 2, 
+                 BLACK);
+        return;
+    }
+    Vector2 textSize = MeasureTextEx(customFont, text, current_fontSize, 1.5f);
+    DrawLine(textPos.x + textSize.x, textPos.y, textPos.x + textSize.x, textPos.y + textSize.y, BLACK);
 }

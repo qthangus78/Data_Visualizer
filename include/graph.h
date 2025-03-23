@@ -63,5 +63,5 @@ public:
 
 graph* GenerateRandomGraph(int numNodes, bool isDirected, bool isWeighted);
 void initEadesFactor(graph* G);
-
+void RunGraphVisualization(graph* G);
 #endif

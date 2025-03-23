@@ -18,5 +18,7 @@ struct TextBox {
     float scaleRate = 1.0f;
 
     void ScaleProcess();
-    void Draw_TextBox();
+    void MakeHover();
+    void Draw_TextBox(bool makeHover = 0);
+    void Draw_BlinkingLine();
 };

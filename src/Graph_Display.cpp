@@ -1,30 +1,54 @@
 #include "Graph_Display.h"
 
-void RunGraphVisualization(graph* G) {
-    if (!G) return;
-    initEadesFactor(G);
-    G->HandleMouseInteraction();
-    G->BalanceGraph();
-    G->Draw();
-
-    // Display info
-    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {10, 40}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {10, 70}, 20, 1.0f, DARKGRAY);
-    if (G->convergent) {
-        DrawText("Converged!", 10, 100, 20, GREEN);
-    }
-}
-
 namespace Graph_display {
     graph* G = nullptr;
+    Graph_Menu Gmenu;
+
+    void Handle(Graph_Menu menu, graph* &Graphs) {
+        if (Graphs != nullptr) return;
+
+        if (menu.confirmPressed && menu.selectedOption == Graph_Menu::CREATE) {
+            int numNodes = 0;
+            if (menu.randomSelected) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                numNodes = 10 + (gen() % 10);
+            } else {
+                try {
+                    numNodes = std::stoi(menu.nodesInput);
+                } catch (...) {
+                    numNodes = 10;
+                }
+            }
+            Graphs = GenerateRandomGraph(numNodes, menu.isDirected, menu.isWeighted);
+        }
+    }
 
     void Display() {
         ClearBackground({192, 245, 242, 100});
         display_title("Graphs", 1);
 
-        if (!G) {
-            G = GenerateRandomGraph(10, 1, 1);
-        }
+        Gmenu.Handle();
+        Handle(Gmenu, G);
+        Gmenu.Draw();
         RunGraphVisualization(G);
     }
 }
+
+// if (confirmPressed && selectedOption == CREATE) {
+    //     int numNodes = 0;
+    //     if (randomSelected) {
+    //         std::random_device rd;
+    //         std::mt19937 gen(rd());
+    //         numNodes = 10 + (gen() % 10);
+    //     } else {
+    //         try {
+    //             numNodes = std::stoi(nodesInput);
+    //         } catch (...) {
+    //             numNodes = 10;
+    //         }
+    //     }
+
+    //     // // Generate the graph with the selected settings
+    //     graph* G = GenerateRandomGraph(numNodes, isDirected, isWeighted);
+    //     RunGraphVisualization(G);

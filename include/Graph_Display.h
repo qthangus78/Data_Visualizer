@@ -3,10 +3,12 @@
 #include "TextBox.h"
 #include "graph.h"
 #include "button.h"
-
-void RunGraphVisualization(graph* G);
+#include "Graph_Menu.h"
 
 namespace Graph_display {
     extern graph* G;
+    extern Graph_Menu Gmenu;
+
+    void Handle(Graph_Menu menu, graph* &Graphs);
     void Display();
 }
