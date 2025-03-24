@@ -43,27 +43,47 @@ void Graph_Menu::MoveMenuBoxes(float deltaX, float deltaY) {
 
 }
 
-void Graph_Menu::ChooseGraphType() {
+void Graph_Menu::ChooseGraphType(graph* &G) {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         isDirected = false;
+        if (G != nullptr) {
+            G -> isDirected = isDirected;
+        }
     }
     if (CheckCollisionPointRec(mouse, directedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (selectedOption == MST_KRUSKAL) return; /// MST must be undirected
         isDirected = true;
+        if (G != nullptr) {
+            G -> isDirected = isDirected;
+        }
     }
     if (CheckCollisionPointRec(mouse, unweightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (selectedOption == MST_KRUSKAL) return; /// MST must be weighted
         isWeighted = false;
+        if (G != nullptr) {
+            G -> isWeighted = isWeighted;
+        }
     }
     if (CheckCollisionPointRec(mouse, weightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         isWeighted = true;
+        if (G != nullptr) {
+            G -> isWeighted = isWeighted;
+        }
     }
 }
 
-void Graph_Menu::ChooseAlgorithms() {
+void Graph_Menu::ChooseAlgorithms(graph* &G) {
     if (CheckCollisionPointRec(mouse, createBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = CREATE;
     }
     if (CheckCollisionPointRec(mouse, mstBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MST_KRUSKAL;
+        isDirected = false;
+        isWeighted = true;
+        if (G != nullptr) {
+            G -> isDirected = isDirected;
+            G -> isWeighted = isWeighted;
+        }
     }
     if (CheckCollisionPointRec(mouse, dijkstraBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = DIJKSTRA;
@@ -99,6 +119,13 @@ void Graph_Menu::Handle_Input() {
         confirmPressed = true;
     }
 
+    float deltaTime = GetFrameTime();
+    cursorBlinkTimer += deltaTime;
+    if (cursorBlinkTimer >= cursorBlinkInterval) {
+        showCursor = !showCursor; // Toggle cursor visibility
+        cursorBlinkTimer = 0.0f;
+    }
+
     // Handle text input
     int key = GetKeyPressed();
     if (key >= '0' && key <= '9') {
@@ -109,25 +136,56 @@ void Graph_Menu::Handle_Input() {
             edgesInput += (char)key;
         }
     }
+    
+    /// Hanle holding BACKSPACE
+    if (IsKeyDown(KEY_BACKSPACE)) {
+        if (!backspaceHeld) {
+            // First press of Backspace
+            backspaceHeld = true;
+            backspaceTimer = 0.0f;
+            initialBackspaceDelayPassed = false;
 
-    if (nodesBoxActive && IsKeyPressed(KEY_BACKSPACE) && !nodesInput.empty()) {
-        nodesInput.pop_back();
+            // Delete one character immediately on first press
+            if (nodesBoxActive && !nodesInput.empty()) {
+                nodesInput.pop_back();
+            }
+            if (edgesBoxActive && !edgesInput.empty()) {
+                edgesInput.pop_back();
+            }
+        }
+
+        // Update timer while holding Backspace
+        backspaceTimer += deltaTime;
+
+        // Check if initial delay has passed
+        if (!initialBackspaceDelayPassed && backspaceTimer >= initialBackspaceDelay) {
+            initialBackspaceDelayPassed = true;
+            backspaceTimer = 0.0f; // Reset timer for repeat delay
+        }
+
+        // Continuous deletion after initial delay
+        if (initialBackspaceDelayPassed && backspaceTimer >= repeatBackspaceDelay) {
+            if (nodesBoxActive && !nodesInput.empty()) {
+                nodesInput.pop_back();
+            }
+            if (edgesBoxActive && !edgesInput.empty()) {
+                edgesInput.pop_back();
+            }
+            backspaceTimer = 0.0f; // Reset timer for next deletion
+        }
+    } 
+    else {
+        // Reset Backspace state when key is released
+        backspaceHeld = false;
+        initialBackspaceDelayPassed = false;
+        backspaceTimer = 0.0f;
     }
-    if (edgesBoxActive && IsKeyPressed(KEY_BACKSPACE) && !edgesInput.empty()) {
-        edgesInput.pop_back();
-    }
+
 
     // Update the text of the nodesBox and edgesBox
     nodesBox.text = nodesInput.c_str();
     edgesBox.text = edgesInput.c_str();
 
-
-    float deltaTime = GetFrameTime();
-    cursorBlinkTimer += deltaTime;
-    if (cursorBlinkTimer >= cursorBlinkInterval) {
-        showCursor = !showCursor; // Toggle cursor visibility
-        cursorBlinkTimer = 0.0f;
-    }
 }
 
 void Graph_Menu::GetInput(int &numNodes, int &numEdges) {
@@ -168,40 +226,23 @@ void Graph_Menu::ClearInputBoxes() {
     edgesBox.text = "";
 }
 
-void Graph_Menu::Handle() {
-    ChooseGraphType();
-    ChooseAlgorithms();
-    Handle_Input();
-}
-
 void Graph_Menu::MakeGraph(graph* &Graphs) {
     if (!confirmPressed) return;
+    int numNodes = 0, numEdges = 0;
+    GetInput(numNodes, numEdges);
+    ClearInputBoxes();
 
-    // if (selectedOption == CREATE) {
-        int numNodes = 0, numEdges = 0;
-        GetInput(numNodes, numEdges);
-        ClearInputBoxes();
-
-        if (Graphs) delete Graphs;
-        Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
-    // }
-
-    // if (selectedOption == MST_KRUSKAL) {
-    //     // Create new graph
-    //     int numNodes = 0, numEdges = 0;
-    //     GetInput(numNodes, numEdges);
-    //     ClearInputBoxes();
-
-    //     if (Graphs) delete Graphs;
-    //     Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
-    //     return;
-    // }
-
-
-    // if (selectedOption == DIJKSTRA) {
-    //     return;
-    // }
+    if (Graphs) delete Graphs;
+    Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
 }
+
+void Graph_Menu::Handle(graph* &G) {
+    ChooseGraphType(G);
+    ChooseAlgorithms(G);
+    Handle_Input();
+    if (confirmPressed) MakeGraph(G);
+}
+
 
 void Graph_Menu::Draw() {
     // Upper box background

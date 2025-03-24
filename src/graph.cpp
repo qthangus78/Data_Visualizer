@@ -34,7 +34,7 @@ graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
     // Dynamically scale IdealEdgeLength based on DisplayScreen size and number of nodes
     IdealEdgeLength = sqrtf(DisplayScreen.width * DisplayScreen.height / (float)numNode) * 0.5f;
     // Scale Crep more aggressively based on number of nodes
-    Crep = numNode * numNode * 10.0f;
+    Crep = numNode * numNode * 10.f;
 }
 
 int graph::edge::other(int x) {
@@ -243,9 +243,23 @@ void graph::DrawEdge(const edge& edge, bool special) {
         const char* weightText = TextFormat("%d", edge.w);
         float weightFontSize = nodeRadius * 1.2f;
         Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
-        DrawTextEx(customFont, weightText,
-                   {midPoint.x - textSize.x / 2, midPoint.y - textSize.y / 2},
-                   weightFontSize * (special ? 1.5f : 1.0f), 1.0f, special ? Color{172, 23, 84, 255} : Color{165, 91, 75, 255});
+
+        // Offset the text perpendicular to the edge to avoid overlapping
+        Vector2 perpendicular = {-direction.y, direction.x};  // Rotate 90 degrees counterclockwise
+        if (perpendicular.y > 0) {
+            perpendicular.x *= -1.0f;
+            perpendicular.y *= -1.0f;
+        }
+        float offset = 10.0f * (special ? 1.2f : 1.0f);  // Distance from the edge
+        Vector2 textPos = {
+            midPoint.x + perpendicular.x * offset - textSize.x / 2.0f,
+            midPoint.y + perpendicular.y * offset - textSize.y / 2.0f
+        };
+
+        Color NormalColor = {165, 91, 75, 255};
+        Color SpecialColor = {163, 29, 29, 255};
+        
+        DrawTextEx(customFont, weightText, textPos, weightFontSize * (special ? 1.2f : 1.0f), 1.0f, special ? SpecialColor : NormalColor);
     }
 }
 
@@ -358,7 +372,7 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
             if (edgeExists) continue;
 
             // Add the edge
-            int weight = isWeighted ? (1 + (gen() % 10)) : 1;
+            int weight = 1 + (gen() % (numNodes + numEdges));
             myGraph->AddEdge(u, v, weight);
             edgesAdded++;
         }
@@ -376,7 +390,6 @@ void initEadesFactor(graph* G) {
 
 void RunGraphVisualization(graph* G) {
     if (!G) return;
-    initEadesFactor(G);
     G->HandleMouseInteraction();
     G->BalanceGraph();
     G->Draw();
@@ -388,7 +401,6 @@ void RunGraphVisualization(graph* G) {
 
 void RunGraphVisualization_MST(graph* G) {
     if (!G) return;
-    initEadesFactor(G);
     G->HandleMouseInteraction();
     G->BalanceGraph();
     G->DrawMST();
@@ -396,6 +408,10 @@ void RunGraphVisualization_MST(graph* G) {
     // Display info
     DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
     DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+}
+ 
+void RunGraphVisualization_DIJKSTRA(graph* G) {
+    // non-complete
 }
 
 int* par = NULL;

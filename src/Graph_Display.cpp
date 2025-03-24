@@ -8,10 +8,9 @@ namespace Graph_display {
     void Display() {
         ClearBackground({192, 245, 242, 100});
         display_title("Graphs", 1);
-        DrawRectangleRec(GraphDisplayScreen, {238, 241, 218, 255}); // rgb(238, 241, 218)
+        DrawRectangleRec(GraphDisplayScreen, {238, 241, 218, 255}); // rgb(51, 145, 154)
 
-        Gmenu.Handle();
-        Gmenu.MakeGraph(G);
+        Gmenu.Handle(G);
         Gmenu.Draw();
 
         if (G && Gmenu.selectedOption == Graph_Menu::CREATE) {
@@ -19,8 +18,6 @@ namespace Graph_display {
         }
         if (G && Gmenu.selectedOption == Graph_Menu::MST_KRUSKAL) {
             RunGraphVisualization_MST(G);
-            // vector<int> tmp = getMST(G);
-            // for (int i : tmp) cout << i << ' '; cout << endl;
         }
 
     }

@@ -54,6 +54,13 @@ struct Graph_Menu {
     const float cursorBlinkInterval = 0.3f; // Blink every 0.5 seconds
     bool showCursor = true;
 
+    // Backspace hold-to-delete variables
+    float backspaceTimer = 0.0f;
+    const float initialBackspaceDelay = 0.5f; // Initial delay before continuous deletion
+    const float repeatBackspaceDelay = 0.05f; // Delay between deletions when holding
+    bool backspaceHeld = false;
+    bool initialBackspaceDelayPassed = false;
+
     // Constructor
     Graph_Menu() {
         // Initialize positions based on screenHeight
@@ -176,12 +183,12 @@ struct Graph_Menu {
     }
 
     void MoveMenuBoxes(float deltaX = 0.0f, float deltaY = 0.0f);
-    void ChooseGraphType();
-    void ChooseAlgorithms();
+    void ChooseGraphType(graph* &G);
+    void ChooseAlgorithms(graph* &G);
     void Handle_Input();
     void GetInput(int &numNodes, int &numEdges);
     void ClearInputBoxes();
-    void Handle();
+    void Handle(graph* &G);
     void Draw();
 
     void MakeGraph(graph* &Graphs);

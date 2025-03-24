@@ -46,12 +46,12 @@ public:
 
     // Eades algorithm parameters
     float Crep = 100.0f;
-    float Cspring = 1.0f;
+    float Cspring = 1.5f;
     float IdealEdgeLength = 50.0f;
     float Ccenter = 0.005f;
     float Veclocity = 0.89f;
     float currentVeclocity = Veclocity;
-    float CoolingFactor = 0.98f;
+    float CoolingFactor = 0.95f;
     float epsilon = 0.01f;
     int iteration = 0;
     int numIteration = 200;
@@ -69,5 +69,6 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
 void initEadesFactor(graph* G);
 void RunGraphVisualization(graph* G);
 void RunGraphVisualization_MST(graph* G);
+void RunGraphVisualization_DIJKSTRA(graph* G);
 std::vector<int> getMST(graph *G);
 #endif
