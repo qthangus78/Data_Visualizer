@@ -178,7 +178,9 @@ struct Graph_Menu {
     void MoveMenuBoxes(float deltaX = 0.0f, float deltaY = 0.0f);
     void ChooseGraphType();
     void ChooseAlgorithms();
-    void Handle_Create();
+    void Handle_Input();
     void Handle();
     void Draw();
+
+    void MakeGraph(graph* &Graphs);
 };

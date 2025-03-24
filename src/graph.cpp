@@ -31,8 +31,8 @@ graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
     isDirected = _isDirected;
     isWeighted = _isWeighted;
 
-    // Dynamically scale IdealEdgeLength based on global screen size and number of nodes
-    IdealEdgeLength = sqrtf(screenWidth * screenHeight / (float)numNode) * 0.5f;
+    // Dynamically scale IdealEdgeLength based on DisplayScreen size and number of nodes
+    IdealEdgeLength = sqrtf(DisplayScreen.width * DisplayScreen.height / (float)numNode) * 0.5f;
     // Scale Crep more aggressively based on number of nodes
     Crep = numNode * numNode * 10.0f;
 }
@@ -91,7 +91,11 @@ Vector2 graph::SpringForce(int u, int v) {
 }
 
 Vector2 graph::CenteringForce(int u) {
-    Vector2 center = {screenWidth / 2.0f, screenHeight / 2.0f};
+    // Center of the DisplayScreen rectangle
+    Vector2 center = {
+        DisplayScreen.x + DisplayScreen.width / 2.0f,
+        DisplayScreen.y + DisplayScreen.height / 2.0f
+    };
     Vector2 direction = {center.x - Nodes[u].Pos.x, center.y - Nodes[u].Pos.y};
     float dist = magnitude(direction);
     if (dist == 0.0f) return {0.0f, 0.0f};
@@ -100,7 +104,6 @@ Vector2 graph::CenteringForce(int u) {
 
 void graph::BalanceGraph() {
     if (convergent) return;
-    // if (convergent || iteration >= numIteration) return;
 
     // Traverse all nodes
     for (int u = 1; u <= numNode; ++u) {
@@ -141,15 +144,17 @@ void graph::BalanceGraph() {
         totalForce += magnitude(Nodes[u].Forces);
         Nodes[u].Pos.x += Nodes[u].Forces.x * currentVeclocity;
         Nodes[u].Pos.y += Nodes[u].Forces.y * currentVeclocity;
-        Clamp(Nodes[u].Pos.x, nodeRadius, screenWidth - nodeRadius);
-        Clamp(Nodes[u].Pos.y, nodeRadius, screenHeight - nodeRadius);
+
+        // Clamp node positions to stay within DisplayScreen
+        Clamp(Nodes[u].Pos.x, DisplayScreen.x + nodeRadius, DisplayScreen.x + DisplayScreen.width - nodeRadius);
+        Clamp(Nodes[u].Pos.y, DisplayScreen.y + nodeRadius, DisplayScreen.y + DisplayScreen.height - nodeRadius);
     }
 
     // Apply cooling factor
     currentVeclocity *= CoolingFactor;
 
-    // Increase iteration
     // ++iteration;
+    // cout << "iteration: " << iteration << endl;
 
     // Check for convergence
     if (totalForce < epsilon) {
@@ -158,13 +163,14 @@ void graph::BalanceGraph() {
 }
 
 void graph::HandleMouseInteraction() {
-    Vector2 mousePos = GetMousePosition();
+    // Update global mouse position
+    mouse = GetMousePosition();
 
     // Check for mouse button down to select a node
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         selectedNode = -1;  // Reset selection
         for (int u = 1; u <= numNode; ++u) {
-            float dist = EulerDist(u, mousePos);
+            float dist = EulerDist(u, mouse);
             if (dist <= nodeRadius) {
                 selectedNode = u;
                 break;
@@ -174,10 +180,12 @@ void graph::HandleMouseInteraction() {
 
     // Update the position of the selected node while the mouse button is held
     if (selectedNode != -1 && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        Nodes[selectedNode].Pos = mousePos;
-        // Keep the node within bounds
-        Clamp(Nodes[selectedNode].Pos.x, nodeRadius, screenWidth - nodeRadius);
-        Clamp(Nodes[selectedNode].Pos.y, nodeRadius, screenHeight - nodeRadius);
+        Nodes[selectedNode].Pos = mouse;
+
+        // Keep the node within DisplayScreen bounds
+        Clamp(Nodes[selectedNode].Pos.x, DisplayScreen.x + nodeRadius, DisplayScreen.x + DisplayScreen.width - nodeRadius);
+        Clamp(Nodes[selectedNode].Pos.y, DisplayScreen.y + nodeRadius, DisplayScreen.y + DisplayScreen.height - nodeRadius);
+
         // Reset forces to prevent jittering while dragging
         Nodes[selectedNode].Forces = {0.0f, 0.0f};
         initEadesFactor(this);
@@ -190,21 +198,34 @@ void graph::HandleMouseInteraction() {
 }
 
 void graph::Draw() {
+    // Draw a border around the DisplayScreen for clarity
+    // DrawRectangleLinesEx(DisplayScreen, 2.0f, BLACK);
+
     // Draw edges and their weights
     for (const auto& edge : Edges) {
         int u = edge.u;
         int v = edge.v;
 
+        // Only draw the edge if both nodes are within the DisplayScreen
+        bool uVisible = CheckCollisionPointRec(Nodes[u].Pos, DisplayScreen);
+        bool vVisible = CheckCollisionPointRec(Nodes[v].Pos, DisplayScreen);
+        if (!uVisible || !vVisible) continue;  // Skip if either node is outside
+
+        Vector2 start = Nodes[u].Pos;
+        Vector2 end = Nodes[v].Pos;
+
+        // Adjust start and end points to stop at the edge of the nodes
+        Vector2 direction = {end.x - start.x, end.y - start.y};
+        float dist = magnitude(direction);
+        if (dist > 0) {
+            direction = {direction.x / dist, direction.y / dist};
+            start = {start.x + direction.x * nodeRadius, start.y + direction.y * nodeRadius};
+            end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
+        }
+
         if (isDirected) {
             // Draw an arrow from u to v
-            Vector2 start = Nodes[u].Pos;
-            Vector2 end = Nodes[v].Pos;
-            // Adjust the end position to stop at the edge of the node
-            Vector2 direction = {end.x - start.x, end.y - start.y};
-            float dist = magnitude(direction);
             if (dist > 0) {
-                direction = {direction.x / dist, direction.y / dist};
-                end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
                 DrawLineEx(start, end, 1.0f, BLACK);
                 // Draw arrowhead
                 Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
@@ -214,15 +235,16 @@ void graph::Draw() {
             }
         } else {
             // Draw a simple line for undirected graph
-            DrawLineV(Nodes[u].Pos, Nodes[v].Pos, BLACK);
+            DrawLineEx(start, end, 1.0f, BLACK);
         }
 
         // Draw edge weight if the graph is weighted
         if (isWeighted) {
             Vector2 midPoint = {
-                (Nodes[u].Pos.x + Nodes[v].Pos.x) / 2.0f,
-                (Nodes[u].Pos.y + Nodes[v].Pos.y) / 2.0f
+                (start.x + end.x) / 2.0f,
+                (start.y + end.y) / 2.0f
             };
+            // Since both nodes are within DisplayScreen, the midpoint will also be within bounds
             const char* weightText = TextFormat("%d", edge.w);
             float weightFontSize = nodeRadius * 1.2f;
             Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
@@ -234,14 +256,20 @@ void graph::Draw() {
 
     // Draw nodes and their values
     for (int u = 1; u <= numNode; ++u) {
+        // Verify that the node is within the DisplayScreen (should always be true due to clamping)
+        if (!CheckCollisionPointRec(Nodes[u].Pos, DisplayScreen)) {
+            // This should never happen due to clamping, but log for debugging
+            printf("Node %d is outside DisplayScreen: (%.2f, %.2f)\n", u, Nodes[u].Pos.x, Nodes[u].Pos.y);
+            continue;
+        }
+
         // Highlight the selected node
         Color nodeColor = (u == selectedNode) ? GREEN : BLUE;
         DrawCircleV(Nodes[u].Pos, nodeRadius, nodeColor);
 
         // Draw the node value using the custom font
         const char* nodeText = TextFormat("%d", Nodes[u].val);
-        // Scale the font size for node text based on nodeRadius
-        float nodeFontSize = nodeRadius * 1.2f;  // Adjust the scaling factor as needed
+        float nodeFontSize = nodeRadius * 1.2f;
         Vector2 textSize = MeasureTextEx(customFont, nodeText, nodeFontSize, 1.0f);
         DrawTextEx(customFont, nodeText,
                    {Nodes[u].Pos.x - textSize.x / 2, Nodes[u].Pos.y - textSize.y / 2},
@@ -252,35 +280,71 @@ void graph::Draw() {
 std::random_device rd;
 std::mt19937 gen(rd());
 
-graph* GenerateRandomGraph(int numNodes, bool isDirected, bool isWeighted) {
+graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
+    if (numNodes < 0) return nullptr;
+    if (numEdges < 0) return nullptr;
+    // Calculate maximum possible edges
+    int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
+    // Minimum edges is now 0 since connectivity is not required
+    int minEdges = 0;
+
+    if (numEdges < minEdges) {
+        printf("Number of edges cannot be negative. Setting numEdges to a random value.\n");
+        numEdges = gen() % numNodes;
+    }
+    if (numEdges > maxEdges) {
+        printf("Number of edges (%d) exceeds maximum possible edges (%d). Setting numEdges to %d.\n", numEdges, maxEdges, maxEdges);
+        numEdges = maxEdges;
+    }
+
     graph* myGraph = new graph(numNodes, isDirected, isWeighted);
 
-    // Initialize nodes with random positions
-    std::uniform_real_distribution<float> disX(myGraph->nodeRadius, screenWidth - myGraph->nodeRadius);
-    std::uniform_real_distribution<float> disY(myGraph->nodeRadius, screenHeight - myGraph->nodeRadius);
+    // Initialize nodes with random positions within the DisplayScreen
+    std::uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
+                                               myGraph->DisplayScreen.x + myGraph->DisplayScreen.width - myGraph->nodeRadius);
+    std::uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
+                                               myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].val = i;
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
 
-    // Create a cycle to ensure connectivity
-    for (int i = 1; i <= numNodes; ++i) {
-        int u = i;
-        int v = (i % numNodes) + 1;  
-        int weight = isWeighted ? (1 + (gen() % 10)) : 1;  // Random weight between 1 and 10 if weighted
-        myGraph->AddEdge(u, v, weight);
-    }
-
-    // Add random edges with probability 0.05
-    std::uniform_real_distribution<float> disProb(0.0f, 1.0f);
-    for (int u = 1; u <= numNodes; ++u) {
-        for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
-            if (u == v) continue;
-            if (v == (u % numNodes) + 1) continue;  // Skip cycle edges
-            if (disProb(gen) < 0.05f) {
-                int weight = isWeighted ? (1 + (gen() % 10)) : 1;
-                myGraph->AddEdge(u, v, weight);
+    // Add exactly numEdges edges
+    if (numEdges > 0) {
+        // Create a list of all possible edges (excluding self-loops)
+        std::vector<std::pair<int, int>> possibleEdges;
+        for (int u = 1; u <= numNodes; ++u) {
+            for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
+                if (u == v) continue;  // No self-loops
+                possibleEdges.push_back({u, v});
             }
+        }
+
+        // Shuffle the list of possible edges
+        std::shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
+
+        // Add edges until we reach the desired number
+        int edgesAdded = 0;
+        for (const auto& edge : possibleEdges) {
+            if (edgesAdded >= numEdges) break;
+            int u = edge.first;
+            int v = edge.second;
+
+            // Check if the edge already exists (to avoid duplicates)
+            bool edgeExists = false;
+            for (const int &EdgeID : myGraph->Adjacent_list[u]) {
+                int otherNode = myGraph->Edges[EdgeID].other(u);
+                if (otherNode == v) {
+                    edgeExists = true;
+                    break;
+                }
+            }
+            if (edgeExists) continue;
+
+            // Add the edge
+            int weight = isWeighted ? (1 + (gen() % 10)) : 1;
+            myGraph->AddEdge(u, v, weight);
+            edgesAdded++;
         }
     }
 
@@ -302,9 +366,6 @@ void RunGraphVisualization(graph* G) {
     G->Draw();
 
     // Display info
-    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {10, 40}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {10, 70}, 20, 1.0f, DARKGRAY);
-    if (G->convergent) {
-        DrawText("Converged!", 10, 100, 20, GREEN);
-    }
+    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }

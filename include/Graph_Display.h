@@ -9,6 +9,5 @@ namespace Graph_display {
     extern graph* G;
     extern Graph_Menu Gmenu;
 
-    void Handle(Graph_Menu &menu, graph* &Graphs);
     void Display();
 }

@@ -70,76 +70,118 @@ void Graph_Menu::ChooseAlgorithms() {
     }
 }
 
-void Graph_Menu::Handle_Create() {
-    if (selectedOption == CREATE) {
-        // Handle textbox activation
-        if (CheckCollisionPointRec(mouse, nodesBox.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            nodesBoxActive = true;
-            edgesBoxActive = false;
-            randomSelected = false;
+void Graph_Menu::Handle_Input() {
+    // Handle textbox activation
+    if (CheckCollisionPointRec(mouse, nodesBox.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        nodesBoxActive = true;
+        edgesBoxActive = false;
+        randomSelected = false;
 
-            cursorBlinkTimer = 0.0f; // Reset cursor blink
-            showCursor = true;
-        }
-        if (CheckCollisionPointRec(mouse, edgesBox.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            edgesBoxActive = true;
-            nodesBoxActive = false;
-            randomSelected = false;
+        cursorBlinkTimer = 0.0f; // Reset cursor blink
+        showCursor = true;
+    }
+    if (CheckCollisionPointRec(mouse, edgesBox.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        edgesBoxActive = true;
+        nodesBoxActive = false;
+        randomSelected = false;
 
-            cursorBlinkTimer = 0.0f; // Reset cursor blink
-            showCursor = true;
-        }
-        if (CheckCollisionPointRec(mouse, randomBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            randomSelected = true;
-            nodesInput = "Random";
-            edgesInput = "Random";
-            nodesBoxActive = false;
-            edgesBoxActive = false;
-        }
-        if (CheckCollisionPointRec(mouse, confirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            confirmPressed = true;
-        }
+        cursorBlinkTimer = 0.0f; // Reset cursor blink
+        showCursor = true;
+    }
+    if (CheckCollisionPointRec(mouse, randomBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        randomSelected = true;
+        nodesInput = "Random";
+        edgesInput = "Random";
+        nodesBoxActive = false;
+        edgesBoxActive = false;
+    }
+    if (CheckCollisionPointRec(mouse, confirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        confirmPressed = true;
+    }
 
-        // Handle text input
-        int key = GetKeyPressed();
-        if (key >= '0' && key <= '9') {
-            if (nodesBoxActive && nodesInput.size() <= 4) {
-                nodesInput += (char)key;
-            }
-            if (edgesBoxActive && edgesInput.size() <= 4) {
-                edgesInput += (char)key;
-            }
+    // Handle text input
+    int key = GetKeyPressed();
+    if (key >= '0' && key <= '9') {
+        if (nodesBoxActive && nodesInput.size() <= 4) {
+            nodesInput += (char)key;
         }
-
-        if (nodesBoxActive && IsKeyPressed(KEY_BACKSPACE) && !nodesInput.empty()) {
-            nodesInput.pop_back();
+        if (edgesBoxActive && edgesInput.size() <= 4) {
+            edgesInput += (char)key;
         }
-        if (edgesBoxActive && IsKeyPressed(KEY_BACKSPACE) && !edgesInput.empty()) {
-            edgesInput.pop_back();
-        }
+    }
 
-        // Update the text of the nodesBox and edgesBox
-        nodesBox.text = nodesInput.c_str();
-        edgesBox.text = edgesInput.c_str();
+    if (nodesBoxActive && IsKeyPressed(KEY_BACKSPACE) && !nodesInput.empty()) {
+        nodesInput.pop_back();
+    }
+    if (edgesBoxActive && IsKeyPressed(KEY_BACKSPACE) && !edgesInput.empty()) {
+        edgesInput.pop_back();
+    }
+
+    // Update the text of the nodesBox and edgesBox
+    nodesBox.text = nodesInput.c_str();
+    edgesBox.text = edgesInput.c_str();
 
 
-        float deltaTime = GetFrameTime();
-        cursorBlinkTimer += deltaTime;
-        if (cursorBlinkTimer >= cursorBlinkInterval) {
-            showCursor = !showCursor; // Toggle cursor visibility
-            cursorBlinkTimer = 0.0f;
-        }
+    float deltaTime = GetFrameTime();
+    cursorBlinkTimer += deltaTime;
+    if (cursorBlinkTimer >= cursorBlinkInterval) {
+        showCursor = !showCursor; // Toggle cursor visibility
+        cursorBlinkTimer = 0.0f;
     }
 }
 
 void Graph_Menu::Handle() {
     ChooseGraphType();
     ChooseAlgorithms();
-    Handle_Create();
+    Handle_Input();
+}
+
+void Graph_Menu::MakeGraph(graph* &Graphs) {
+    if (!confirmPressed) return;
+    
+    if (selectedOption == CREATE) {
+        int numNodes = 0;
+        int numEdges = 0;
+        if (randomSelected) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            numNodes = 10 + (gen() % 10);
+
+            int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
+            numEdges = numNodes + (gen() % (maxEdges - numNodes + 1));
+
+        } else {
+            try {
+                numNodes = std::stoi(nodesInput);
+            } catch (...) {
+                numNodes = 10;
+            }
+
+            try {
+                numEdges = std::stoi(edgesInput);
+            } catch (...) {
+                // If edges input is invalid, set a default number of edges (e.g., 2 * numNodes)
+                numEdges = 2 * numNodes;
+            }
+        }
+        if (Graphs) delete Graphs;
+        Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
+
+        confirmPressed = false;
+        nodesInput = "";
+        edgesInput = "";
+        randomSelected = false;
+        nodesBoxActive = false;
+        edgesBoxActive = false;
+        selectedOption = Graph_Menu::CREATE;
+
+        // Reset textbox texts
+        nodesBox.text = "";
+        edgesBox.text = "";
+    }
 }
 
 void Graph_Menu::Draw() {
-    // MoveMenuBoxes(-15.0f, +15.0f);
     // Upper box background
     upperBoxBackground.Draw_TextBox();
 
@@ -183,6 +225,4 @@ void Graph_Menu::Draw() {
     randomBtn.Draw_TextBox();
 
     confirmBtn.Draw_TextBox();
-
-    // MoveMenuBoxes(+15.0f, -15.0f);
 }

@@ -43,13 +43,13 @@ public:
 
     // Eades algorithm parameters
     float Crep = 100.0f;
-    float Cspring = 2.0f;
+    float Cspring = 1.0f;
     float IdealEdgeLength = 50.0f;
-    float Ccenter = 0.001f;
-    float Veclocity = 0.1f;
+    float Ccenter = 0.005f;
+    float Veclocity = 0.89f;
     float currentVeclocity = Veclocity;
     float CoolingFactor = 0.98f;
-    float epsilon = 0.005f;
+    float epsilon = 0.01f;
     int iteration = 0;
     int numIteration = 200;
     bool convergent = false;
@@ -63,7 +63,7 @@ public:
     Rectangle DisplayScreen = {350, 60, 650, 600};
 };
 
-graph* GenerateRandomGraph(int numNodes, bool isDirected, bool isWeighted);
+graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
 void initEadesFactor(graph* G);
 void RunGraphVisualization(graph* G);
 #endif
