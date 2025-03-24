@@ -43,7 +43,7 @@ public:
 
     // Eades algorithm parameters
     float Crep = 100.0f;
-    float Cspring = 1.0f;
+    float Cspring = 2.0f;
     float IdealEdgeLength = 50.0f;
     float Ccenter = 0.001f;
     float Veclocity = 0.1f;
@@ -59,6 +59,8 @@ public:
 
     // Mouse interaction
     int selectedNode = -1;  // Index of the node being dragged (-1 if none)
+    
+    Rectangle DisplayScreen = {350, 60, 650, 600};
 };
 
 graph* GenerateRandomGraph(int numNodes, bool isDirected, bool isWeighted);

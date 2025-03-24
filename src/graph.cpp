@@ -205,12 +205,12 @@ void graph::Draw() {
             if (dist > 0) {
                 direction = {direction.x / dist, direction.y / dist};
                 end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
-                DrawLineEx(start, end, 1.5f, BLACK);
+                DrawLineEx(start, end, 1.0f, BLACK);
                 // Draw arrowhead
                 Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
                 Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
-                DrawLineEx(end, arrow1, 1.5f, BLACK);
-                DrawLineEx(end, arrow2, 1.5f, BLACK);
+                DrawLineEx(end, arrow1, 1.0f, BLACK);
+                DrawLineEx(end, arrow2, 1.0f, BLACK);
             }
         } else {
             // Draw a simple line for undirected graph

@@ -14,7 +14,7 @@ namespace startMenuScreen {
         Singly_LinkedList.text = "Singly Linked List";
         Heap.text = "Heap";
         AVLTree.text = "AVL Tree";
-        Shortest_path.text = "Shortest Path";
+        Shortest_path.text = "Graphs";
 
         
         Singly_LinkedList.rect.x = AVLTree.rect.x = screenWidth / 20;

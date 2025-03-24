@@ -1,5 +1,48 @@
 #include "Graph_Menu.h"
 
+void Graph_Menu::MoveMenuBoxes(float deltaX, float deltaY) {
+    upperBoxBackground.rect.x += deltaX;
+    undirectedBtn.rect.x += deltaX;
+    directedBtn.rect.x += deltaX;
+    unweightedBtn.rect.x += deltaX;
+    weightedBtn.rect.x += deltaX;
+    
+    lowerBoxBackground.rect.x += deltaX;
+    createBtn.rect.x += deltaX;
+    mstBtn.rect.x += deltaX;
+    dijkstraBtn.rect.x += deltaX;
+
+    // Lower box: Right column (es for "Create" option)
+    nodesLabel.rect.x += deltaX;  // Label for "Nodes"
+    nodesBox.rect.x += deltaX;    // Input box for nodes
+    edgesLabel.rect.x += deltaX;  // Label for "Edges"
+    edgesBox.rect.x += deltaX;    // Input box for edges
+    randomBtn.rect.x += deltaX;
+    confirmBtn.rect.x += deltaX;
+
+
+
+    upperBoxBackground.rect.y += deltaY;
+    undirectedBtn.rect.y += deltaY;
+    directedBtn.rect.y += deltaY;
+    unweightedBtn.rect.y += deltaY;
+    weightedBtn.rect.y += deltaY;
+    
+    lowerBoxBackground.rect.y += deltaY;
+    createBtn.rect.y += deltaY;
+    mstBtn.rect.y += deltaY;
+    dijkstraBtn.rect.y += deltaY;
+
+    // Lower box: Right column (es for "Create" option)
+    nodesLabel.rect.y += deltaY;  // Label for "Nodes"
+    nodesBox.rect.y += deltaY;    // Input box for nodes
+    edgesLabel.rect.y += deltaY;  // Label for "Edges"
+    edgesBox.rect.y += deltaY;    // Input box for edges
+    randomBtn.rect.y += deltaY;
+    confirmBtn.rect.y += deltaY;
+
+}
+
 void Graph_Menu::ChooseGraphType() {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         isDirected = false;
@@ -96,6 +139,7 @@ void Graph_Menu::Handle() {
 }
 
 void Graph_Menu::Draw() {
+    // MoveMenuBoxes(-15.0f, +15.0f);
     // Upper box background
     upperBoxBackground.Draw_TextBox();
 
@@ -139,4 +183,6 @@ void Graph_Menu::Draw() {
     randomBtn.Draw_TextBox();
 
     confirmBtn.Draw_TextBox();
+
+    // MoveMenuBoxes(+15.0f, -15.0f);
 }
