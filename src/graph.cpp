@@ -221,16 +221,16 @@ void graph::DrawEdge(const edge& edge, bool special) {
     if (isDirected) {
         // Draw an arrow from u to v
         if (dist > 0) {
-            DrawLineEx(start, end, special ? 1.5f : 1.0f, special ? RED : BLACK);
+            DrawLineEx(start, end, special ? 2.0f : 1.0f, special ? RED : BLACK);
             // Draw arrowhead
             Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
             Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
-            DrawLineEx(end, arrow1, special ? 1.5f : 1.0f, special ? RED : BLACK);
-            DrawLineEx(end, arrow2, special ? 1.5f : 1.0f, special ? RED : BLACK);
+            DrawLineEx(end, arrow1, special ? 2.0f : 1.0f, special ? RED : BLACK);
+            DrawLineEx(end, arrow2, special ? 2.0f : 1.0f, special ? RED : BLACK);
         }
     } else {
         // Draw a simple line for undirected graph
-        DrawLineEx(start, end, special ? 1.5f : 1.0f, special ? RED : BLACK);
+        DrawLineEx(start, end, special ? 2.0f : 1.0f, special ? RED : BLACK);
     }
 
     // Draw edge weight if the graph is weighted
@@ -245,7 +245,7 @@ void graph::DrawEdge(const edge& edge, bool special) {
         Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
         DrawTextEx(customFont, weightText,
                    {midPoint.x - textSize.x / 2, midPoint.y - textSize.y / 2},
-                   weightFontSize, special ? 1.5f : 1.0f, special ? YELLOW : RED);
+                   weightFontSize * (special ? 1.5f : 1.0f), 1.0f, special ? Color{172, 23, 84, 255} : Color{165, 91, 75, 255});
     }
 }
 
@@ -276,15 +276,18 @@ void graph::Draw() {
 }
 
 void graph::DrawMST() {
-    for (const auto& edge : Edges) {
-        DrawEdge(edge);
+    vector<int> MST_edges = getMST(this);
+    for (int i = 0; i < Edges.size(); ++i) {
+        bool special = 0;
+        for (int id : MST_edges) {
+            if (i == id) {
+                special = 1;
+                break;
+            }
+        }
+        DrawEdge(Edges[i], special);
     }
 
-    vector<int> MST_edges = getMST(this);
-    for (int id : MST_edges)    
-        DrawEdge(this -> Edges[id], 1);
-
-    // Draw nodes and their values
     for (int u = 1; u <= numNode; ++u) {
         DrawNode(u);
     }
