@@ -197,83 +197,96 @@ void graph::HandleMouseInteraction() {
     }
 }
 
-void graph::Draw() {
-    // Draw a border around the DisplayScreen for clarity
-    // DrawRectangleLinesEx(DisplayScreen, 2.0f, BLACK);
+void graph::DrawEdge(const edge& edge, bool special) {
+    int u = edge.u;
+    int v = edge.v;
 
+    // Only draw the edge if both nodes are within the DisplayScreen
+    bool uVisible = CheckCollisionPointRec(Nodes[u].Pos, DisplayScreen);
+    bool vVisible = CheckCollisionPointRec(Nodes[v].Pos, DisplayScreen);
+    if (!uVisible || !vVisible) return;  // Skip if either node is outside
+
+    Vector2 start = Nodes[u].Pos;
+    Vector2 end = Nodes[v].Pos;
+
+    // Adjust start and end points to stop at the edge of the nodes
+    Vector2 direction = {end.x - start.x, end.y - start.y};
+    float dist = magnitude(direction);
+    if (dist > 0) {
+        direction = {direction.x / dist, direction.y / dist};
+        start = {start.x + direction.x * nodeRadius, start.y + direction.y * nodeRadius};
+        end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
+    }
+
+    if (isDirected) {
+        // Draw an arrow from u to v
+        if (dist > 0) {
+            DrawLineEx(start, end, special ? 1.5f : 1.0f, special ? RED : BLACK);
+            // Draw arrowhead
+            Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
+            Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
+            DrawLineEx(end, arrow1, special ? 1.5f : 1.0f, special ? RED : BLACK);
+            DrawLineEx(end, arrow2, special ? 1.5f : 1.0f, special ? RED : BLACK);
+        }
+    } else {
+        // Draw a simple line for undirected graph
+        DrawLineEx(start, end, special ? 1.5f : 1.0f, special ? RED : BLACK);
+    }
+
+    // Draw edge weight if the graph is weighted
+    if (isWeighted) {
+        Vector2 midPoint = {
+            (start.x + end.x) / 2.0f,
+            (start.y + end.y) / 2.0f
+        };
+        // Since both nodes are within DisplayScreen, the midpoint will also be within bounds
+        const char* weightText = TextFormat("%d", edge.w);
+        float weightFontSize = nodeRadius * 1.2f;
+        Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
+        DrawTextEx(customFont, weightText,
+                   {midPoint.x - textSize.x / 2, midPoint.y - textSize.y / 2},
+                   weightFontSize, special ? 1.5f : 1.0f, special ? YELLOW : RED);
+    }
+}
+
+void graph::DrawNode(int u) {
+     // Highlight the selected node
+    Color nodeColor = (u == selectedNode) ? GREEN : BLUE;
+    DrawCircleV(Nodes[u].Pos, nodeRadius, nodeColor);
+
+    // Draw the node value using the custom font
+    const char* nodeText = TextFormat("%d", Nodes[u].val);
+    float nodeFontSize = nodeRadius * 1.2f;
+    Vector2 textSize = MeasureTextEx(customFont, nodeText, nodeFontSize, 1.0f);
+    DrawTextEx(customFont, nodeText,
+                {Nodes[u].Pos.x - textSize.x / 2, Nodes[u].Pos.y - textSize.y / 2},
+                nodeFontSize, 1.0f, WHITE);
+}
+
+void graph::Draw() {
     // Draw edges and their weights
     for (const auto& edge : Edges) {
-        int u = edge.u;
-        int v = edge.v;
-
-        // Only draw the edge if both nodes are within the DisplayScreen
-        bool uVisible = CheckCollisionPointRec(Nodes[u].Pos, DisplayScreen);
-        bool vVisible = CheckCollisionPointRec(Nodes[v].Pos, DisplayScreen);
-        if (!uVisible || !vVisible) continue;  // Skip if either node is outside
-
-        Vector2 start = Nodes[u].Pos;
-        Vector2 end = Nodes[v].Pos;
-
-        // Adjust start and end points to stop at the edge of the nodes
-        Vector2 direction = {end.x - start.x, end.y - start.y};
-        float dist = magnitude(direction);
-        if (dist > 0) {
-            direction = {direction.x / dist, direction.y / dist};
-            start = {start.x + direction.x * nodeRadius, start.y + direction.y * nodeRadius};
-            end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
-        }
-
-        if (isDirected) {
-            // Draw an arrow from u to v
-            if (dist > 0) {
-                DrawLineEx(start, end, 1.0f, BLACK);
-                // Draw arrowhead
-                Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
-                Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
-                DrawLineEx(end, arrow1, 1.0f, BLACK);
-                DrawLineEx(end, arrow2, 1.0f, BLACK);
-            }
-        } else {
-            // Draw a simple line for undirected graph
-            DrawLineEx(start, end, 1.0f, BLACK);
-        }
-
-        // Draw edge weight if the graph is weighted
-        if (isWeighted) {
-            Vector2 midPoint = {
-                (start.x + end.x) / 2.0f,
-                (start.y + end.y) / 2.0f
-            };
-            // Since both nodes are within DisplayScreen, the midpoint will also be within bounds
-            const char* weightText = TextFormat("%d", edge.w);
-            float weightFontSize = nodeRadius * 1.2f;
-            Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
-            DrawTextEx(customFont, weightText,
-                       {midPoint.x - textSize.x / 2, midPoint.y - textSize.y / 2},
-                       weightFontSize, 1.0f, RED);
-        }
+        DrawEdge(edge);
     }
 
     // Draw nodes and their values
     for (int u = 1; u <= numNode; ++u) {
-        // Verify that the node is within the DisplayScreen (should always be true due to clamping)
-        if (!CheckCollisionPointRec(Nodes[u].Pos, DisplayScreen)) {
-            // This should never happen due to clamping, but log for debugging
-            printf("Node %d is outside DisplayScreen: (%.2f, %.2f)\n", u, Nodes[u].Pos.x, Nodes[u].Pos.y);
-            continue;
-        }
+        DrawNode(u);
+    }
+}
 
-        // Highlight the selected node
-        Color nodeColor = (u == selectedNode) ? GREEN : BLUE;
-        DrawCircleV(Nodes[u].Pos, nodeRadius, nodeColor);
+void graph::DrawMST() {
+    for (const auto& edge : Edges) {
+        DrawEdge(edge);
+    }
 
-        // Draw the node value using the custom font
-        const char* nodeText = TextFormat("%d", Nodes[u].val);
-        float nodeFontSize = nodeRadius * 1.2f;
-        Vector2 textSize = MeasureTextEx(customFont, nodeText, nodeFontSize, 1.0f);
-        DrawTextEx(customFont, nodeText,
-                   {Nodes[u].Pos.x - textSize.x / 2, Nodes[u].Pos.y - textSize.y / 2},
-                   nodeFontSize, 1.0f, WHITE);
+    vector<int> MST_edges = getMST(this);
+    for (int id : MST_edges)    
+        DrawEdge(this -> Edges[id], 1);
+
+    // Draw nodes and their values
+    for (int u = 1; u <= numNode; ++u) {
+        DrawNode(u);
     }
 }
 
@@ -369,3 +382,54 @@ void RunGraphVisualization(graph* G) {
     DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
     DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }
+
+void RunGraphVisualization_MST(graph* G) {
+    if (!G) return;
+    initEadesFactor(G);
+    G->HandleMouseInteraction();
+    G->BalanceGraph();
+    G->DrawMST();
+
+    // Display info
+    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+}
+
+int* par = NULL;
+int root(int x, int* par) {
+    if (par[x] < 0) return x;
+    return par[x] = root(par[x], par); 
+}
+
+bool unite(int u, int v, int* par) {
+    u = root(u, par);
+    v = root(v, par);
+    if (u == v) return 0;
+    if (-par[u] < -par[v]) swap(u, v);
+    par[u] += par[v];
+    par[v] = u;
+    return 1;
+}
+
+std::vector<int> getMST(graph *G) {
+    if (!G) return vector<int>();
+
+    par = new int [G->numNode + 1];
+    for (int i = 1; i <= G->numNode; ++i) par[i] = -1;
+
+    vector<int> MST_Edges;
+    vector<int> edgesList;
+    for (int i = 0; i < G -> Edges.size(); ++i) edgesList.push_back(i);
+    sort(edgesList.begin(), edgesList.end(), [&](const int &id1, const int &id2){
+        return G -> Edges[id1].w < G -> Edges[id2].w;
+    });
+
+    for (const int &id : edgesList) {
+        int u = G -> Edges[id].u;
+        int v = G -> Edges[id].v;
+        if (unite(u, v, par))
+            MST_Edges.push_back(id);
+    }
+    delete [] par;
+    return MST_Edges;
+}   

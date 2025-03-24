@@ -179,6 +179,8 @@ struct Graph_Menu {
     void ChooseGraphType();
     void ChooseAlgorithms();
     void Handle_Input();
+    void GetInput(int &numNodes, int &numEdges);
+    void ClearInputBoxes();
     void Handle();
     void Draw();
 

@@ -28,7 +28,10 @@ public:
     Vector2 SpringForce(int u, int v);
     Vector2 CenteringForce(int u);
     void BalanceGraph();
+    void DrawEdge(const edge& edge, bool special = 0);
+    void DrawNode(int u); 
     void Draw();
+    void DrawMST();
     void HandleMouseInteraction();
 
     // Graph properties
@@ -59,11 +62,12 @@ public:
 
     // Mouse interaction
     int selectedNode = -1;  // Index of the node being dragged (-1 if none)
-    
     Rectangle DisplayScreen = {350, 60, 650, 600};
 };
 
 graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
 void initEadesFactor(graph* G);
 void RunGraphVisualization(graph* G);
+void RunGraphVisualization_MST(graph* G);
+std::vector<int> getMST(graph *G);
 #endif

@@ -130,6 +130,44 @@ void Graph_Menu::Handle_Input() {
     }
 }
 
+void Graph_Menu::GetInput(int &numNodes, int &numEdges) {
+    if (randomSelected) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        numNodes = 10 + (gen() % 10);
+
+        int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
+        numEdges = numNodes + (gen() % (maxEdges - numNodes + 1));
+
+    } else {
+        try {
+            numNodes = std::stoi(nodesInput);
+        } catch (...) {
+            numNodes = 10;
+        }
+
+        try {
+            numEdges = std::stoi(edgesInput);
+        } catch (...) {
+            // If edges input is invalid, set a default number of edges (e.g., 2 * numNodes)
+            numEdges = 2 * numNodes;
+        }
+    }
+}
+
+void Graph_Menu::ClearInputBoxes() {
+    confirmPressed = false;
+    nodesInput = "";
+    edgesInput = "";
+    randomSelected = false;
+    nodesBoxActive = false;
+    edgesBoxActive = false;
+
+    // Reset textbox texts
+    nodesBox.text = "";
+    edgesBox.text = "";
+}
+
 void Graph_Menu::Handle() {
     ChooseGraphType();
     ChooseAlgorithms();
@@ -138,47 +176,31 @@ void Graph_Menu::Handle() {
 
 void Graph_Menu::MakeGraph(graph* &Graphs) {
     if (!confirmPressed) return;
-    
-    if (selectedOption == CREATE) {
-        int numNodes = 0;
-        int numEdges = 0;
-        if (randomSelected) {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            numNodes = 10 + (gen() % 10);
 
-            int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
-            numEdges = numNodes + (gen() % (maxEdges - numNodes + 1));
+    // if (selectedOption == CREATE) {
+        int numNodes = 0, numEdges = 0;
+        GetInput(numNodes, numEdges);
+        ClearInputBoxes();
 
-        } else {
-            try {
-                numNodes = std::stoi(nodesInput);
-            } catch (...) {
-                numNodes = 10;
-            }
-
-            try {
-                numEdges = std::stoi(edgesInput);
-            } catch (...) {
-                // If edges input is invalid, set a default number of edges (e.g., 2 * numNodes)
-                numEdges = 2 * numNodes;
-            }
-        }
         if (Graphs) delete Graphs;
         Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
+    // }
 
-        confirmPressed = false;
-        nodesInput = "";
-        edgesInput = "";
-        randomSelected = false;
-        nodesBoxActive = false;
-        edgesBoxActive = false;
-        selectedOption = Graph_Menu::CREATE;
+    // if (selectedOption == MST_KRUSKAL) {
+    //     // Create new graph
+    //     int numNodes = 0, numEdges = 0;
+    //     GetInput(numNodes, numEdges);
+    //     ClearInputBoxes();
 
-        // Reset textbox texts
-        nodesBox.text = "";
-        edgesBox.text = "";
-    }
+    //     if (Graphs) delete Graphs;
+    //     Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
+    //     return;
+    // }
+
+
+    // if (selectedOption == DIJKSTRA) {
+    //     return;
+    // }
 }
 
 void Graph_Menu::Draw() {

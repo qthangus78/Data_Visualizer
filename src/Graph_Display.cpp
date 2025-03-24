@@ -12,10 +12,16 @@ namespace Graph_display {
 
         Gmenu.Handle();
         Gmenu.MakeGraph(G);
-
-
-        /// Draw
         Gmenu.Draw();
-        RunGraphVisualization(G);
+
+        if (G && Gmenu.selectedOption == Graph_Menu::CREATE) {
+            RunGraphVisualization(G);
+        }
+        if (G && Gmenu.selectedOption == Graph_Menu::MST_KRUSKAL) {
+            RunGraphVisualization_MST(G);
+            // vector<int> tmp = getMST(G);
+            // for (int i : tmp) cout << i << ' '; cout << endl;
+        }
+
     }
 }
