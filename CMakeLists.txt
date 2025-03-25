@@ -5,14 +5,19 @@ ${PROJECT_SOURCE_DIR}/include/raylib/lib/raylib.dll
 ${PROJECT_SOURCE_DIR}/include/raylib/lib/libraylibdll.a)
 
 include_directories(include/raylib/include)
+include_directories(include/SLL)
+include_directories(include/Heap)
 include_directories(include)
 add_executable(${PROJECT_NAME} 
+src/SLL/SLL_display.cpp
+src/SLL/LinkedListAnimation.cpp
+src/SLL/LinkedList.cpp
+src/Heap/Heap_display.cpp
+src/Heap/Heap.cpp
+src/Heap/HeapAnimation.cpp
 src/main.cpp
-src/SLL_display.cpp
-src/tinyfiledialogs.cpp
-src/LinkedListAnimation.cpp
-src/LinkedList.cpp
 src/GlobalVar.cpp
+src/tinyfiledialogs.cpp
 src/button.cpp
 )
 

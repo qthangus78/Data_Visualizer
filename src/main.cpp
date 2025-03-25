@@ -13,9 +13,12 @@ int main() {
 
     customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
     SSL SSL;
-
     SLL_display::sslInstance = &SSL; 
 
+    MinHeap minHeap;
+    Heap_display::heapInstance = &minHeap;
+    minHeap.tree = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();
         mouse = GetMousePosition();

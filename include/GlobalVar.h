@@ -63,7 +63,10 @@ struct ListNode {
     ListNode* next;
     ListNode(int x);
 };
+
 struct ShadedData {
     Vector2 pos;
     ListNode* node;
 };
+
+
