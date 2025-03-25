@@ -25,6 +25,7 @@ graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
     numNode = _numNode;
     numEdge = 0;
     Nodes.resize(numNode + 1, node());
+    for (int i = 1; i <= numNode; ++i) Nodes[i].val = i;
     Adjacent_list.resize(numNode + 1);
 
     // Set graph properties
@@ -34,7 +35,7 @@ graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
     // Dynamically scale IdealEdgeLength based on DisplayScreen size and number of nodes
     IdealEdgeLength = sqrtf(DisplayScreen.width * DisplayScreen.height / (float)numNode) * 0.5f;
     // Scale Crep more aggressively based on number of nodes
-    Crep = numNode * numNode * 10.f;
+    Crep = numNode * numNode * 10.0f;
 }
 
 int graph::edge::other(int x) {
@@ -103,7 +104,7 @@ Vector2 graph::CenteringForce(int u) {
 }
 
 void graph::BalanceGraph() {
-    if (convergent) return;
+    if (iteration >= numIteration || convergent) return;
 
     // Traverse all nodes
     for (int u = 1; u <= numNode; ++u) {
@@ -153,7 +154,7 @@ void graph::BalanceGraph() {
     // Apply cooling factor
     currentVeclocity *= CoolingFactor;
 
-    // ++iteration;
+    ++iteration;
     // cout << "iteration: " << iteration << endl;
 
     // Check for convergence
@@ -225,8 +226,8 @@ void graph::DrawEdge(const edge& edge, bool special) {
             // Draw arrowhead
             Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
             Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
-            DrawLineEx(end, arrow1, special ? 2.0f : 1.0f, special ? RED : BLACK);
-            DrawLineEx(end, arrow2, special ? 2.0f : 1.0f, special ? RED : BLACK);
+            DrawLineEx(end, arrow1, special ? 2.0f : 1.2f, special ? RED : BLACK);
+            DrawLineEx(end, arrow2, special ? 2.0f : 1.2f, special ? RED : BLACK);
         }
     } else {
         // Draw a simple line for undirected graph
@@ -256,8 +257,8 @@ void graph::DrawEdge(const edge& edge, bool special) {
             midPoint.y + perpendicular.y * offset - textSize.y / 2.0f
         };
 
-        Color NormalColor = {165, 91, 75, 255};
-        Color SpecialColor = {163, 29, 29, 255};
+        Color NormalColor = {138, 178, 166, 255};
+        Color SpecialColor = {165, 91, 75, 255}; //rgb(138, 178, 166)
         
         DrawTextEx(customFont, weightText, textPos, weightFontSize * (special ? 1.2f : 1.0f), 1.0f, special ? SpecialColor : NormalColor);
     }
@@ -265,7 +266,7 @@ void graph::DrawEdge(const edge& edge, bool special) {
 
 void graph::DrawNode(int u) {
      // Highlight the selected node
-    Color nodeColor = (u == selectedNode) ? GREEN : BLUE;
+    Color nodeColor = (u == selectedNode) ? Color{172, 211, 168, 255} : Color{62, 63, 91, 255};
     DrawCircleV(Nodes[u].Pos, nodeRadius, nodeColor);
 
     // Draw the node value using the custom font
@@ -335,7 +336,6 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
     std::uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
                                                myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
     for (int i = 1; i <= numNodes; ++i) {
-        myGraph->Nodes[i].val = i;
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
 
@@ -377,6 +377,110 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
             edgesAdded++;
         }
     }
+
+    return myGraph;
+}
+
+graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
+    if (numNodes <= 0) return nullptr;
+    if (numEdges < 0) return nullptr;
+
+    // Calculate maximum possible edges
+    int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
+    // Minimum edges required for connectivity
+    int minEdges = numNodes - 1;
+
+    // Validate numEdges
+    if (numEdges < minEdges) {
+        numEdges = minEdges;
+    }
+    if (numEdges > maxEdges) {
+        numEdges = maxEdges;
+    }
+
+    graph* myGraph = new graph(numNodes, isDirected, isWeighted);
+
+    // Initialize nodes with random positions within the DisplayScreen
+    std::uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
+                                               myGraph->DisplayScreen.x + myGraph->DisplayScreen.width - myGraph->nodeRadius);
+    std::uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
+                                               myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
+    for (int i = 1; i <= numNodes; ++i) {
+        myGraph->Nodes[i].val = i;
+        myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
+    }
+
+    // Step 1: Generate a random spanning tree to ensure connectivity
+    std::vector<int> nodes(numNodes);
+    for (int i = 0; i < numNodes; ++i) {
+        nodes[i] = i + 1;  // Nodes are 1 to numNodes
+    }
+    std::shuffle(nodes.begin(), nodes.end(), gen);  // Randomize node order
+
+    // Use a simple method to build a spanning tree: connect each node to a previous node
+    std::vector<bool> inTree(numNodes + 1, false);
+    inTree[nodes[0]] = true;  // Start with the first node in the shuffled list
+    int edgesAdded = 0;
+
+    // Connect each node to a random node already in the tree
+    for (int i = 1; i < numNodes; ++i) {
+        int v = nodes[i];  // Node to add
+        // Choose a random node already in the tree to connect to
+        std::vector<int> treeNodes;
+        for (int j = 1; j <= numNodes; ++j) {
+            if (inTree[j]) treeNodes.push_back(j);
+        }
+        std::uniform_int_distribution<> dis(0, treeNodes.size() - 1);
+        int u = treeNodes[dis(gen)];  // Random node in the tree
+
+        // Add edge (u, v)
+        int weight = isWeighted ? (1 + (gen() % 10)) : 1;
+        myGraph->AddEdge(u, v, weight);
+        inTree[v] = true;
+        edgesAdded++;
+    }
+
+    // Step 2: Add remaining edges randomly
+    int remainingEdges = numEdges - edgesAdded;
+    if (remainingEdges > 0) {
+        // Create a list of all possible edges (excluding self-loops and existing edges)
+        std::vector<std::pair<int, int>> possibleEdges;
+        for (int u = 1; u <= numNodes; ++u) {
+            for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
+                if (u == v) continue;  // No self-loops
+                // Check if edge (u, v) already exists
+                bool edgeExists = false;
+                for (const int &EdgeID : myGraph->Adjacent_list[u]) {
+                    int otherNode = myGraph->Edges[EdgeID].other(u);
+                    if (otherNode == v) {
+                        edgeExists = true;
+                        break;
+                    }
+                }
+                if (!edgeExists) {
+                    possibleEdges.push_back({u, v});
+                }
+            }
+        }
+
+        // Shuffle the list of possible edges
+        std::shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
+
+        // Add remaining edges
+        for (const auto& edge : possibleEdges) {
+            if (remainingEdges <= 0) break;
+            int u = edge.first;
+            int v = edge.second;
+
+            // Add the edge
+            int weight = isWeighted ? (1 + (gen() % 10)) : 1;
+            myGraph->AddEdge(u, v, weight);
+            remainingEdges--;
+        }
+    }
+
+    // Initialize Eades factors after graph creation
+    initEadesFactor(myGraph);
 
     return myGraph;
 }
@@ -452,3 +556,35 @@ std::vector<int> getMST(graph *G) {
     delete [] par;
     return MST_Edges;
 }   
+
+void Handle_InputFile(const char* filePath, graph* &G) {
+    fstream fin(filePath);
+    if (!fin.is_open()) {
+        cout << "Cannot Open File";
+        return;
+    }
+    if (G) delete G;
+
+    int numNodes, numEdges;
+    fin >> numNodes >> numEdges;
+    G = new graph (numNodes, false, true);
+
+    // Initialize nodes with random positions within the DisplayScreen
+    std::uniform_real_distribution<float> disX(G->DisplayScreen.x + G->nodeRadius, 
+        G->DisplayScreen.x + G->DisplayScreen.width - G->nodeRadius);
+
+    std::uniform_real_distribution<float> disY(G->DisplayScreen.y + G->nodeRadius, 
+        G->DisplayScreen.y + G->DisplayScreen.height - G->nodeRadius);
+
+    for (int i = 1; i <= numNodes; ++i) {
+        G->Nodes[i].Pos = {disX(gen), disY(gen)};
+    }
+
+    for (int i = 1; i <= numEdges; ++i) {
+        int u, v, w;
+        fin >> u >> v >> w;
+        G -> AddEdge(u, v, w);    
+    }
+
+    fin.close();
+}

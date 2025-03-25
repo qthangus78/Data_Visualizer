@@ -1,47 +1,6 @@
 #include "Graph_Menu.h"
 
-void Graph_Menu::MoveMenuBoxes(float deltaX, float deltaY) {
-    upperBoxBackground.rect.x += deltaX;
-    undirectedBtn.rect.x += deltaX;
-    directedBtn.rect.x += deltaX;
-    unweightedBtn.rect.x += deltaX;
-    weightedBtn.rect.x += deltaX;
-    
-    lowerBoxBackground.rect.x += deltaX;
-    createBtn.rect.x += deltaX;
-    mstBtn.rect.x += deltaX;
-    dijkstraBtn.rect.x += deltaX;
-
-    // Lower box: Right column (es for "Create" option)
-    nodesLabel.rect.x += deltaX;  // Label for "Nodes"
-    nodesBox.rect.x += deltaX;    // Input box for nodes
-    edgesLabel.rect.x += deltaX;  // Label for "Edges"
-    edgesBox.rect.x += deltaX;    // Input box for edges
-    randomBtn.rect.x += deltaX;
-    confirmBtn.rect.x += deltaX;
-
-
-
-    upperBoxBackground.rect.y += deltaY;
-    undirectedBtn.rect.y += deltaY;
-    directedBtn.rect.y += deltaY;
-    unweightedBtn.rect.y += deltaY;
-    weightedBtn.rect.y += deltaY;
-    
-    lowerBoxBackground.rect.y += deltaY;
-    createBtn.rect.y += deltaY;
-    mstBtn.rect.y += deltaY;
-    dijkstraBtn.rect.y += deltaY;
-
-    // Lower box: Right column (es for "Create" option)
-    nodesLabel.rect.y += deltaY;  // Label for "Nodes"
-    nodesBox.rect.y += deltaY;    // Input box for nodes
-    edgesLabel.rect.y += deltaY;  // Label for "Edges"
-    edgesBox.rect.y += deltaY;    // Input box for edges
-    randomBtn.rect.y += deltaY;
-    confirmBtn.rect.y += deltaY;
-
-}
+const char* RandomText = "Random";
 
 void Graph_Menu::ChooseGraphType(graph* &G) {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -92,31 +51,48 @@ void Graph_Menu::ChooseAlgorithms(graph* &G) {
 
 void Graph_Menu::Handle_Input() {
     // Handle textbox activation
-    if (CheckCollisionPointRec(mouse, nodesBox.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        nodesBoxActive = true;
-        edgesBoxActive = false;
-        randomSelected = false;
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (CheckCollisionPointRec(mouse, nodesBox.rect)) {
+            nodesBoxActive = true;
 
-        cursorBlinkTimer = 0.0f; // Reset cursor blink
-        showCursor = true;
-    }
-    if (CheckCollisionPointRec(mouse, edgesBox.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        edgesBoxActive = true;
-        nodesBoxActive = false;
-        randomSelected = false;
+            cursorBlinkTimer = 0.0f; // Reset cursor blink
+            showCursor = true;
 
-        cursorBlinkTimer = 0.0f; // Reset cursor blink
-        showCursor = true;
-    }
-    if (CheckCollisionPointRec(mouse, randomBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        randomSelected = true;
-        nodesInput = "Random";
-        edgesInput = "Random";
-        nodesBoxActive = false;
-        edgesBoxActive = false;
-    }
-    if (CheckCollisionPointRec(mouse, confirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        confirmPressed = true;
+            if (nodesBox.text == RandomText) {
+                nodesBox.text = ""; 
+            }
+        } 
+        else {
+            nodesBoxActive = false;
+        }
+
+        if (CheckCollisionPointRec(mouse, edgesBox.rect)) {
+            edgesBoxActive = true;
+
+            cursorBlinkTimer = 0.0f; // Reset cursor blink
+            showCursor = true;
+
+            if (edgesBox.text == RandomText) {
+                edgesBox.text = "";
+            }
+        }
+        else {
+            edgesBoxActive = false;
+        }
+
+        if (CheckCollisionPointRec(mouse, fileBtn.rect)) {
+            fileSelected = true;
+        }
+        else {
+            fileSelected = false;
+        }
+
+        if (CheckCollisionPointRec(mouse, confirmBtn.rect)) {
+            confirmPressed = true;
+        }
+        else {
+            confirmPressed = false;
+        }
     }
 
     float deltaTime = GetFrameTime();
@@ -183,33 +159,38 @@ void Graph_Menu::Handle_Input() {
 
 
     // Update the text of the nodesBox and edgesBox
-    nodesBox.text = nodesInput.c_str();
-    edgesBox.text = edgesInput.c_str();
+    if (nodesInput.empty() && !nodesBoxActive) {
+        nodesBox.text = RandomText;
+    }
+    else {
+        nodesBox.text = nodesInput.c_str();
+    }
 
+    if (edgesInput.empty() && !edgesBoxActive) {
+        edgesBox.text = RandomText;
+    }
+    else {
+        edgesBox.text = edgesInput.c_str();
+    }
 }
 
 void Graph_Menu::GetInput(int &numNodes, int &numEdges) {
-    if (randomSelected) {
+    try {
+        numNodes = std::stoi(nodesInput);
+    } catch (...) {
         std::random_device rd;
         std::mt19937 gen(rd());
-        numNodes = 10 + (gen() % 10);
+        numNodes = 5 + (gen() % 10);    
+    }
+
+    try {
+        numEdges = std::stoi(edgesInput);
+    } catch (...) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
 
         int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
-        numEdges = numNodes + (gen() % (maxEdges - numNodes + 1));
-
-    } else {
-        try {
-            numNodes = std::stoi(nodesInput);
-        } catch (...) {
-            numNodes = 10;
-        }
-
-        try {
-            numEdges = std::stoi(edgesInput);
-        } catch (...) {
-            // If edges input is invalid, set a default number of edges (e.g., 2 * numNodes)
-            numEdges = 2 * numNodes;
-        }
+        numEdges = gen() % maxEdges;
     }
 }
 
@@ -217,7 +198,7 @@ void Graph_Menu::ClearInputBoxes() {
     confirmPressed = false;
     nodesInput = "";
     edgesInput = "";
-    randomSelected = false;
+    fileSelected = false;
     nodesBoxActive = false;
     edgesBoxActive = false;
 
@@ -227,20 +208,30 @@ void Graph_Menu::ClearInputBoxes() {
 }
 
 void Graph_Menu::MakeGraph(graph* &Graphs) {
-    if (!confirmPressed) return;
+    // if (!confirmPressed) return;
     int numNodes = 0, numEdges = 0;
     GetInput(numNodes, numEdges);
     ClearInputBoxes();
 
     if (Graphs) delete Graphs;
-    Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
+    if (selectedOption == CREATE) Graphs = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
+    if (selectedOption == MST_KRUSKAL) Graphs = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
 }
+
 
 void Graph_Menu::Handle(graph* &G) {
     ChooseGraphType(G);
     ChooseAlgorithms(G);
-    Handle_Input();
-    if (confirmPressed) MakeGraph(G);
+
+    if (fileSelected) {
+        const char* filePath = tinyfd_openFileDialog("Select a File", "", 0, NULL, NULL, 0);
+        Handle_InputFile(filePath, G);
+        fileSelected = false;
+    } 
+    else {
+        Handle_Input();
+        if (confirmPressed) MakeGraph(G);
+    }
 }
 
 
@@ -284,8 +275,8 @@ void Graph_Menu::Draw() {
     edgesBox.Draw_TextBox();
     if (edgesBoxActive && showCursor) edgesBox.Draw_BlinkingLine();
 
-    randomBtn.rectColor = randomSelected ? LIGHTGRAY : BLACK;
-    randomBtn.Draw_TextBox();
+    fileBtn.rectColor = fileSelected ? LIGHTGRAY : BLACK;
+    fileBtn.Draw_TextBox();
 
     confirmBtn.Draw_TextBox();
 }

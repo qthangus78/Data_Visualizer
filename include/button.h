@@ -27,6 +27,6 @@ struct myTexture {
         DrawTexture(texture, x, y, currentColor);
     }
 };
-
+extern myTexture BackButton; 
 
 void display_title(const char *Title, int lastSlideID); 

@@ -1,6 +1,7 @@
 #include "button.h"
 #include "TextBox.h"
 
+myTexture BackButton;
 void display_title(const char *Title, int lastSlideID) {
     TextBox title;
     title.text = Title;
@@ -17,13 +18,9 @@ void display_title(const char *Title, int lastSlideID) {
     title.roundness = 5.0f;
     title.Draw_TextBox();
    
-
-    myTexture BackButton (
-        LoadTexture("../resources/images/back-normal.png"),    
-        title.rect.x - 40 - 10,
-        title.rect.y
-    );
-
+    BackButton.x = title.rect.x - 40 - 10;
+    BackButton.y = title.rect.y;
+  
     BackButton.Drawtexture();
     
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && BackButton.CheckMouseCollision()) {

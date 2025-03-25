@@ -66,9 +66,13 @@ public:
 };
 
 graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
+graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
 void initEadesFactor(graph* G);
 void RunGraphVisualization(graph* G);
 void RunGraphVisualization_MST(graph* G);
 void RunGraphVisualization_DIJKSTRA(graph* G);
 std::vector<int> getMST(graph *G);
+
+void Handle_InputFile(const char* filePath, graph* &G);
+
 #endif

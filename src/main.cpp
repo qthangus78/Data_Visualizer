@@ -13,6 +13,8 @@ int main() {
     SetTargetFPS(FPS);
 
     customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
+    BackButton.texture = LoadTexture("../resources/images/back-normal.png");
+    
     SSL SSL;
 
     SLL_display::sslInstance = &SSL; 

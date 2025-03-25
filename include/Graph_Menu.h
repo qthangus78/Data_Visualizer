@@ -3,6 +3,8 @@
 #include "graph.h"
 #include "TextBox.h"
 #include <string>
+#include "tinyfiledialogs.h"
+
 
 struct Graph_Menu {
     // Upper box: Directed/Undirected and Weighted/Unweighted toggles
@@ -17,7 +19,7 @@ struct Graph_Menu {
     // Textbox inputs for "Nodes" and "Edges"
     std::string nodesInput = "";
     std::string edgesInput = "";
-    bool randomSelected = false;
+    bool fileSelected = false;
 
     // Textbox states
     bool nodesBoxActive = false;
@@ -46,7 +48,7 @@ struct Graph_Menu {
     TextBox nodesBox;    // Input box for nodes
     TextBox edgesLabel;  // Label for "Edges"
     TextBox edgesBox;    // Input box for edges
-    TextBox randomBtn;
+    TextBox fileBtn;
     TextBox confirmBtn;
 
     // Blinking cursor variables
@@ -105,7 +107,7 @@ struct Graph_Menu {
         weightedBtn.scaleRate = 1.2f;
 
         // Lower box background
-        lowerBoxBackground.rect = {5, lowerBoxY - 20, 330, 180};
+        lowerBoxBackground.rect = {5, lowerBoxY - 20, 340, 180};
         lowerBoxBackground.rectColor = {32, 87, 129, 255};
         lowerBoxBackground.text = "";
         lowerBoxBackground.fontSize = 0;
@@ -137,7 +139,7 @@ struct Graph_Menu {
         // Lower box: Right column (Textboxes for "Create")
         nodesLabel.rect = {165, lowerBoxY - 20 + 10, 150, 15};  // Smaller height for label
         nodesLabel.rectColor = {79, 149, 157, 255};  // Same as background to blend in
-        nodesLabel.text = "Nodes";
+        nodesLabel.text = "Vertices";
         nodesLabel.textColor = BLACK;
         nodesLabel.fontSize = 15;
         nodesLabel.scaleRate = 1.0f;  // No scaling for labels
@@ -167,12 +169,12 @@ struct Graph_Menu {
         edgesBox.scaleRate = 1.0f;
         edgesBox.roundness = 0.0f;
 
-        randomBtn.rect = {165, lowerBoxY + 100 + 10, 70, 40};
-        randomBtn.rectColor = BLACK;
-        randomBtn.text = "Random";
-        randomBtn.textColor = WHITE;
-        randomBtn.fontSize = 15;
-        randomBtn.scaleRate = 1.1f;
+        fileBtn.rect = {155, lowerBoxY + 100 + 10, 70, 40};
+        fileBtn.rectColor = BLACK;
+        fileBtn.text = "Add File";
+        fileBtn.textColor = WHITE;
+        fileBtn.fontSize = 15;
+        fileBtn.scaleRate = 1.1f;
 
         confirmBtn.rect = {245, lowerBoxY + 100 + 10, 70, 40};
         confirmBtn.rectColor = BLACK;
@@ -182,7 +184,6 @@ struct Graph_Menu {
         confirmBtn.scaleRate = 1.1f;
     }
 
-    void MoveMenuBoxes(float deltaX = 0.0f, float deltaY = 0.0f);
     void ChooseGraphType(graph* &G);
     void ChooseAlgorithms(graph* &G);
     void Handle_Input();
@@ -193,3 +194,4 @@ struct Graph_Menu {
 
     void MakeGraph(graph* &Graphs);
 };
+

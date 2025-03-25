@@ -12,7 +12,6 @@ extern Vector2 mouse;
 extern bool WindowClose;
 extern Font customFont;
 
-
 //--------------------------------
 // Cấu trúc button
 //--------------------------------
