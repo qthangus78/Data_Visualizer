@@ -14,9 +14,10 @@ void TextBox::ScaleProcess() {
         Vector2 textSize = MeasureTextEx(customFont, text, current_fontSize, 1.5f);
 
         // adjust rect.width
-        if (rect.width <= textSize.x + 20) 
+        if (rect.width <= textSize.x + 20) {
             rect.width = textSize.x + 20;
-        
+        }
+
         scaledRect = { 
             rect.x - (rect.width * (scale - 1.0f)) / 2, 
             rect.y - (rect.height * (scale - 1.0f)) / 2,

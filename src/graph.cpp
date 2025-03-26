@@ -534,29 +534,6 @@ bool unite(int u, int v, int* par) {
     return 1;
 }
 
-std::vector<int> getMST(graph *G) {
-    if (!G) return vector<int>();
-
-    par = new int [G->numNode + 1];
-    for (int i = 1; i <= G->numNode; ++i) par[i] = -1;
-
-    vector<int> MST_Edges;
-    vector<int> edgesList;
-    for (int i = 0; i < G -> Edges.size(); ++i) edgesList.push_back(i);
-    sort(edgesList.begin(), edgesList.end(), [&](const int &id1, const int &id2){
-        return G -> Edges[id1].w < G -> Edges[id2].w;
-    });
-
-    for (const int &id : edgesList) {
-        int u = G -> Edges[id].u;
-        int v = G -> Edges[id].v;
-        if (unite(u, v, par))
-            MST_Edges.push_back(id);
-    }
-    delete [] par;
-    return MST_Edges;
-}   
-
 void Handle_InputFile(const char* filePath, graph* &G) {
     fstream fin(filePath);
     if (!fin.is_open()) {
@@ -587,4 +564,31 @@ void Handle_InputFile(const char* filePath, graph* &G) {
     }
 
     fin.close();
+}
+
+std::vector<int> getMST(graph *G) {
+    if (!G) return vector<int>();
+
+    par = new int [G->numNode + 1];
+    for (int i = 1; i <= G->numNode; ++i) par[i] = -1;
+
+    vector<int> MST_Edges;
+    vector<int> edgesList;
+    for (int i = 0; i < G -> Edges.size(); ++i) edgesList.push_back(i);
+    sort(edgesList.begin(), edgesList.end(), [&](const int &id1, const int &id2){
+        return G -> Edges[id1].w < G -> Edges[id2].w;
+    });
+
+    for (const int &id : edgesList) {
+        int u = G -> Edges[id].u;
+        int v = G -> Edges[id].v;
+        if (unite(u, v, par))
+            MST_Edges.push_back(id);
+    }
+    delete [] par;
+    return MST_Edges;
+}   
+
+std::vector<int> getDIJKSTRA(graph *G) {
+    
 }
