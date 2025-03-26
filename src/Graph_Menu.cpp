@@ -54,7 +54,7 @@ void Graph_Menu::Handle_Input() {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         // Nodes textbox
         if (CheckCollisionPointRec(mouse, nodesLabel.rect) 
-            || (nodesInput.size() > 0 && CheckCollisionPointRec(mouse, nodesBox.rect))) {
+            || ((nodesInput.size() > 0 || nodesBoxActive) && CheckCollisionPointRec(mouse, nodesBox.rect))) {
             nodesBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
@@ -67,7 +67,7 @@ void Graph_Menu::Handle_Input() {
 
         // Edges textbox
         if (CheckCollisionPointRec(mouse, edgesLabel.rect) 
-            || (edgesInput.size() > 0 && CheckCollisionPointRec(mouse, edgesBox.rect))) {
+            || ((edgesInput.size() > 0 || edgesBoxActive) && CheckCollisionPointRec(mouse, edgesBox.rect))) {
             edgesBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
@@ -80,7 +80,7 @@ void Graph_Menu::Handle_Input() {
 
         // Source textbox (only active when Dijkstra is selected)
         if (selectedOption == DIJKSTRA && (CheckCollisionPointRec(mouse, sourceLabel.rect)
-            || (sourceInput.size() > 0 && CheckCollisionPointRec(mouse, sourceBox.rect)))) {
+            || ((sourceInput.size() > 0 || sourceBoxActive) && CheckCollisionPointRec(mouse, sourceBox.rect)))) {
             sourceBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
@@ -93,7 +93,7 @@ void Graph_Menu::Handle_Input() {
 
         // Destination textbox (only active when Dijkstra is selected)
         if (selectedOption == DIJKSTRA && (CheckCollisionPointRec(mouse, destLabel.rect)
-            || (destInput.size() && CheckCollisionPointRec(mouse, destBox.rect))))  {
+            || ((destInput.size() || destBoxActive) && CheckCollisionPointRec(mouse, destBox.rect))))  {
             destBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
@@ -305,13 +305,13 @@ void Graph_Menu::Handle(graph* &G) {
     ChooseGraphType(G);
     ChooseAlgorithms(G);
 
+    Handle_Input();
     if (fileSelected) {
         const char* filePath = tinyfd_openFileDialog("Select a File", "", 0, NULL, NULL, 0);
         Handle_InputFile(filePath, G);
         fileSelected = false;
-    } else {
-        Handle_Input();
-        if (confirmPressed) MakeGraph(G);
+    } else if (confirmPressed) {
+        MakeGraph(G);
     }
 }
 

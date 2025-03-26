@@ -326,8 +326,8 @@ void graph::DrawDIJKSTRA(int src, int dest) {
     }
 }
 
-std::random_device rd;
-std::mt19937 gen(rd());
+random_device rd;
+mt19937 gen(rd());
 
 graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
     if (numNodes < 0) return nullptr;
@@ -349,9 +349,9 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
     graph* myGraph = new graph(numNodes, isDirected, isWeighted);
 
     // Initialize nodes with random positions within the DisplayScreen
-    std::uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
+    uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
                                                myGraph->DisplayScreen.x + myGraph->DisplayScreen.width - myGraph->nodeRadius);
-    std::uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
+    uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
                                                myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
@@ -360,7 +360,7 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
     // Add exactly numEdges edges
     if (numEdges > 0) {
         // Create a list of all possible edges (excluding self-loops)
-        std::vector<std::pair<int, int>> possibleEdges;
+        vector<pair<int, int>> possibleEdges;
         for (int u = 1; u <= numNodes; ++u) {
             for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
                 if (u == v) continue;  // No self-loops
@@ -369,7 +369,7 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
         }
 
         // Shuffle the list of possible edges
-        std::shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
+        shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
 
         // Add edges until we reach the desired number
         int edgesAdded = 0;
@@ -419,9 +419,9 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
     graph* myGraph = new graph(numNodes, isDirected, isWeighted);
 
     // Initialize nodes with random positions within the DisplayScreen
-    std::uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
+    uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
                                                myGraph->DisplayScreen.x + myGraph->DisplayScreen.width - myGraph->nodeRadius);
-    std::uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
+    uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
                                                myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].val = i;
@@ -429,14 +429,14 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
     }
 
     // Step 1: Generate a random spanning tree to ensure connectivity
-    std::vector<int> nodes(numNodes);
+    vector<int> nodes(numNodes);
     for (int i = 0; i < numNodes; ++i) {
         nodes[i] = i + 1;  // Nodes are 1 to numNodes
     }
-    std::shuffle(nodes.begin(), nodes.end(), gen);  // Randomize node order
+    shuffle(nodes.begin(), nodes.end(), gen);  // Randomize node order
 
     // Use a simple method to build a spanning tree: connect each node to a previous node
-    std::vector<bool> inTree(numNodes + 1, false);
+    vector<bool> inTree(numNodes + 1, false);
     inTree[nodes[0]] = true;  // Start with the first node in the shuffled list
     int edgesAdded = 0;
 
@@ -444,11 +444,11 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
     for (int i = 1; i < numNodes; ++i) {
         int v = nodes[i];  // Node to add
         // Choose a random node already in the tree to connect to
-        std::vector<int> treeNodes;
+        vector<int> treeNodes;
         for (int j = 1; j <= numNodes; ++j) {
             if (inTree[j]) treeNodes.push_back(j);
         }
-        std::uniform_int_distribution<> dis(0, treeNodes.size() - 1);
+        uniform_int_distribution<> dis(0, treeNodes.size() - 1);
         int u = treeNodes[dis(gen)];  // Random node in the tree
 
         // Add edge (u, v)
@@ -462,7 +462,7 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
     int remainingEdges = numEdges - edgesAdded;
     if (remainingEdges > 0) {
         // Create a list of all possible edges (excluding self-loops and existing edges)
-        std::vector<std::pair<int, int>> possibleEdges;
+        vector<pair<int, int>> possibleEdges;
         for (int u = 1; u <= numNodes; ++u) {
             for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
                 if (u == v) continue;  // No self-loops
@@ -482,7 +482,7 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
         }
 
         // Shuffle the list of possible edges
-        std::shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
+        shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
 
         // Add remaining edges
         for (const auto& edge : possibleEdges) {
@@ -517,8 +517,8 @@ void RunGraphVisualization(graph* G) {
     G->Draw();
 
     // Display info
-    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Nodes: " + to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Edges: " + to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }
 
 void RunGraphVisualization_MST(graph* G) {
@@ -528,8 +528,8 @@ void RunGraphVisualization_MST(graph* G) {
     G->DrawMST();
 
     // Display info
-    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Nodes: " + to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Edges: " + to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }
  
 void RunGraphVisualization_DIJKSTRA(graph* G) {
@@ -540,8 +540,8 @@ void RunGraphVisualization_DIJKSTRA(graph* G) {
     G -> DrawDIJKSTRA(G -> DIJKSTRA_parameters.first, G -> DIJKSTRA_parameters.second);
 
     // Display info
-    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Nodes: " + to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Edges: " + to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }
 
 int* par = NULL;
@@ -573,10 +573,10 @@ void Handle_InputFile(const char* filePath, graph* &G) {
     G = new graph (numNodes, false, true);
 
     // Initialize nodes with random positions within the DisplayScreen
-    std::uniform_real_distribution<float> disX(G->DisplayScreen.x + G->nodeRadius, 
+    uniform_real_distribution<float> disX(G->DisplayScreen.x + G->nodeRadius, 
         G->DisplayScreen.x + G->DisplayScreen.width - G->nodeRadius);
 
-    std::uniform_real_distribution<float> disY(G->DisplayScreen.y + G->nodeRadius, 
+    uniform_real_distribution<float> disY(G->DisplayScreen.y + G->nodeRadius, 
         G->DisplayScreen.y + G->DisplayScreen.height - G->nodeRadius);
 
     for (int i = 1; i <= numNodes; ++i) {
@@ -592,7 +592,7 @@ void Handle_InputFile(const char* filePath, graph* &G) {
     fin.close();
 }
 
-std::vector<int> getMST(graph *G) {
+vector<int> getMST(graph *G) {
     if (!G) return vector<int>();
 
     par = new int [G->numNode + 1];
@@ -619,19 +619,19 @@ vector<int> getDIJKSTRA(graph* G, int src, int dest) {
     // Check if the graph is valid
     if (!G || G->numNode <= 0) {
         cout << "Invalid graph\n";
-        return std::vector<int>();
+        return vector<int>();
     }
 
     // Validate source and destination vertices
     if (src < 1 || src > G->numNode || dest < 1 || dest > G->numNode) {
         cout << "Invalid source or destination vertex: src=" << src << ", dest=" << dest << ", numNode=" << G->numNode << "\n";
-        return std::vector<int>();
+        return vector<int>();
     }
 
     // Handle the case where src == dest
     if (src == dest) {
         cout << "Source and destination are the same: " << src << "\n";
-        return std::vector<int>(); // Empty path since the distance is 0
+        return vector<int>(); // Empty path since the distance is 0
     }
 
     vector<int> dist(G->numNode + 1, INT_MAX); // Use INT_MAX to represent infinity
@@ -663,7 +663,7 @@ vector<int> getDIJKSTRA(graph* G, int src, int dest) {
             // Check for negative weights (Dijkstra's algorithm requires non-negative weights)
             if (weight < 0) {
                 cout << "Negative edge weight detected: " << weight << ". Dijkstra's algorithm cannot handle negative weights.\n";
-                return std::vector<int>();
+                return vector<int>();
             }
 
             // Relax the edge (u, v)
@@ -677,12 +677,12 @@ vector<int> getDIJKSTRA(graph* G, int src, int dest) {
 
     // Check if a path exists to the destination
     if (dist[dest] == INT_MAX) {
-        std::cout << "No path from " << src << " to " << dest << "\n";
-        return std::vector<int>();
+        cout << "No path from " << src << " to " << dest << "\n";
+        return vector<int>();
     }
 
     // Reconstruct the path from src to dest
-    std::vector<int> Path;
+    vector<int> Path;
     int currentVertex = dest;
     while (currentVertex != src && pre[currentVertex] != -1) {
         Path.push_back(pre[currentVertex]);
@@ -690,6 +690,6 @@ vector<int> getDIJKSTRA(graph* G, int src, int dest) {
     }
 
     // Reverse the path to get it from src to dest
-    std::reverse(Path.begin(), Path.end());
+    reverse(Path.begin(), Path.end());
     return Path;
 }
