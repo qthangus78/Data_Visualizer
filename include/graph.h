@@ -32,6 +32,7 @@ public:
     void DrawNode(int u); 
     void Draw();
     void DrawMST();
+    void DrawDIJKSTRA(int src, int dest);
     void HandleMouseInteraction();
 
     // Graph properties
@@ -43,6 +44,7 @@ public:
     // Graph settings
     bool isDirected;   // True for directed, false for undirected
     bool isWeighted;   // True for weighted, false for unweighted
+    pair<int, int> DIJKSTRA_parameters; /// source and dest for Dijkstra
 
     // Eades algorithm parameters
     float Crep = 100.0f;
@@ -72,7 +74,7 @@ void RunGraphVisualization(graph* G);
 void RunGraphVisualization_MST(graph* G);
 void RunGraphVisualization_DIJKSTRA(graph* G);
 std::vector<int> getMST(graph *G);
-std::vector<int> getDIJKSTRA(graph *G);
+std::vector<int> getDIJKSTRA(graph *G, int src, int dest);
 void Handle_InputFile(const char* filePath, graph* &G);
 
 #endif
