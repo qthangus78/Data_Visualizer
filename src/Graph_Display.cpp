@@ -19,6 +19,8 @@ namespace Graph_display {
         if (G && Gmenu.selectedOption == Graph_Menu::MST_KRUSKAL) {
             RunGraphVisualization_MST(G);
         }
-
+        if (G && Gmenu.selectedOption == Graph_Menu::DIJKSTRA) {
+            RunGraphVisualization_DIJKSTRA(G);
+        }
     }
 }

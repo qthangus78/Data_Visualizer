@@ -294,6 +294,7 @@ void Graph_Menu::MakeGraph(graph* &Graphs) {
     }
     if (selectedOption == DIJKSTRA) {
         Graphs = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
+        Graphs -> DIJKSTRA_parameters = {source, dest};
         // Here you can use source and dest for Dijkstra's algorithm
         // For now, we'll just create the graph
         // You can add Dijkstra's algorithm implementation later

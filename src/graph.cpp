@@ -308,6 +308,24 @@ void graph::DrawMST() {
     }
 }
 
+void graph::DrawDIJKSTRA(int src, int dest) {
+    vector<int> DIJKSTRA_edges = getDIJKSTRA(this, src, dest);
+    for (int i = 0; i < Edges.size(); ++i) {
+        bool special = 0;
+        for (int id : DIJKSTRA_edges) {
+            if (i == id) {
+                special = 1;
+                break;
+            }
+        }
+        DrawEdge(Edges[i], special);
+    }
+
+    for (int u = 1; u <= numNode; ++u) {
+        DrawNode(u);
+    }
+}
+
 std::random_device rd;
 std::mt19937 gen(rd());
 
@@ -434,7 +452,7 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
         int u = treeNodes[dis(gen)];  // Random node in the tree
 
         // Add edge (u, v)
-        int weight = isWeighted ? (1 + (gen() % 10)) : 1;
+        int weight = (gen() % 10);
         myGraph->AddEdge(u, v, weight);
         inTree[v] = true;
         edgesAdded++;
@@ -516,6 +534,14 @@ void RunGraphVisualization_MST(graph* G) {
  
 void RunGraphVisualization_DIJKSTRA(graph* G) {
     // non-complete
+    if (!G) return;
+    G->HandleMouseInteraction();
+    G->BalanceGraph();
+    G -> DrawDIJKSTRA(G -> DIJKSTRA_parameters.first, G -> DIJKSTRA_parameters.second);
+
+    // Display info
+    DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
+    DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }
 
 int* par = NULL;
@@ -589,6 +615,81 @@ std::vector<int> getMST(graph *G) {
     return MST_Edges;
 }   
 
-std::vector<int> getDIJKSTRA(graph *G) {
-    
+vector<int> getDIJKSTRA(graph* G, int src, int dest) {
+    // Check if the graph is valid
+    if (!G || G->numNode <= 0) {
+        cout << "Invalid graph\n";
+        return std::vector<int>();
+    }
+
+    // Validate source and destination vertices
+    if (src < 1 || src > G->numNode || dest < 1 || dest > G->numNode) {
+        cout << "Invalid source or destination vertex: src=" << src << ", dest=" << dest << ", numNode=" << G->numNode << "\n";
+        return std::vector<int>();
+    }
+
+    // Handle the case where src == dest
+    if (src == dest) {
+        cout << "Source and destination are the same: " << src << "\n";
+        return std::vector<int>(); // Empty path since the distance is 0
+    }
+
+    vector<int> dist(G->numNode + 1, INT_MAX); // Use INT_MAX to represent infinity
+    vector<int> pre(G->numNode + 1, -1);       // Predecessor edge IDs
+
+    // Priority queue to store {distance, vertex} pairs, ordered by distance (min-heap)
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> MinHeap;
+
+    // Initialize distances and priority queue
+    dist[src] = 0;
+    MinHeap.push({0, src});
+
+    // Dijkstra's algorithm
+    while (!MinHeap.empty()) {
+        int d = MinHeap.top().first;  // Distance
+        int u = MinHeap.top().second; // Vertex
+        MinHeap.pop();
+
+        // If this entry is outdated (we found a shorter path to u), skip it
+        if (d > dist[u]) {
+            continue;
+        }
+
+        // Explore neighbors of u
+        for (const int& id : G->Adjacent_list[u]) {
+            int v = G->Edges[id].other(u); // Get the other vertex of the edge
+            int weight = G->Edges[id].w;   // Edge weight
+
+            // Check for negative weights (Dijkstra's algorithm requires non-negative weights)
+            if (weight < 0) {
+                cout << "Negative edge weight detected: " << weight << ". Dijkstra's algorithm cannot handle negative weights.\n";
+                return std::vector<int>();
+            }
+
+            // Relax the edge (u, v)
+            if (dist[v] == INT_MAX || dist[v] > dist[u] + weight) {
+                dist[v] = dist[u] + weight;
+                pre[v] = id;
+                MinHeap.push({dist[v], v});
+            }
+        }
+    }
+
+    // Check if a path exists to the destination
+    if (dist[dest] == INT_MAX) {
+        std::cout << "No path from " << src << " to " << dest << "\n";
+        return std::vector<int>();
+    }
+
+    // Reconstruct the path from src to dest
+    std::vector<int> Path;
+    int currentVertex = dest;
+    while (currentVertex != src && pre[currentVertex] != -1) {
+        Path.push_back(pre[currentVertex]);
+        currentVertex = G->Edges[pre[currentVertex]].other(currentVertex);
+    }
+
+    // Reverse the path to get it from src to dest
+    std::reverse(Path.begin(), Path.end());
+    return Path;
 }
