@@ -5,10 +5,8 @@
 #include <string>
 #include "tinyfiledialogs.h"
 
-
 struct Graph_Menu {
     // Upper box: Directed/Undirected and Weighted/Unweighted toggles
-
     bool isDirected = false;
     bool isWeighted = false;
 
@@ -19,11 +17,16 @@ struct Graph_Menu {
     // Textbox inputs for "Nodes" and "Edges"
     std::string nodesInput = "";
     std::string edgesInput = "";
+    // Inputs for "Source" and "Destination" (for Dijkstra)
+    std::string sourceInput = "";
+    std::string destInput = "";
     bool fileSelected = false;
 
     // Textbox states
     bool nodesBoxActive = false;
     bool edgesBoxActive = false;
+    bool sourceBoxActive = false;
+    bool destBoxActive = false;
     
     // Confirm button state
     bool confirmPressed = false;
@@ -38,18 +41,25 @@ struct Graph_Menu {
     
     // Lower box: Background and left column options (positioned in bottom-left corner)
     float lowerBoxY;
-    TextBox lowerBoxBackground;
+    TextBox lowerAlgoBoxBackground;
     TextBox createBtn;
     TextBox mstBtn;
     TextBox dijkstraBtn;
+
+    TextBox lowerParameterBoxBackground;
+    TextBox fileBtn;
+    TextBox confirmBtn;
 
     // Lower box: Right column (Textboxes for "Create" option)
     TextBox nodesLabel;  // Label for "Nodes"
     TextBox nodesBox;    // Input box for nodes
     TextBox edgesLabel;  // Label for "Edges"
     TextBox edgesBox;    // Input box for edges
-    TextBox fileBtn;
-    TextBox confirmBtn;
+    // Textboxes for "Source" and "Destination" (for Dijkstra)
+    TextBox sourceLabel;  // Label for "Source"
+    TextBox sourceBox;    // Input box for source
+    TextBox destLabel;    // Label for "Destination"
+    TextBox destBox;      // Input box for destination
 
     // Blinking cursor variables
     float cursorBlinkTimer = 0.0f;
@@ -65,17 +75,16 @@ struct Graph_Menu {
 
     // Constructor
     Graph_Menu() {
-        // Initialize positions based on screenHeight
-        upperBoxY = screenHeight - 110 - 170 - 15;  // 110 (upper box height) + 170 (lower box height) + 20 (padding)
-        lowerBoxY = screenHeight - 170 + 5;  // 170 (lower box height) + 20 (padding from bottom)
+        // Initialize positions based on screenHeight (screenHeight = 700)
+        upperBoxY = screenHeight - 110 - 200 - 15;  // 700 - 110 - 200 - 15 = 375
+        lowerBoxY = screenHeight - 200 - 5;  // 700 - 200 + 5 = 505
 
         // Upper box background
-        upperBoxBackground.rect = {5, upperBoxY - 10, 290, 110};
+        upperBoxBackground.rect = {5, upperBoxY - 10, 290, 110};  // {5, 365, 290, 110}
         upperBoxBackground.rectColor = {32, 87, 129, 255};
-        upperBoxBackground.text = "";  // No text for background
-        upperBoxBackground.fontSize = 0;  // No text rendering
-        upperBoxBackground.scaleRate = 1.0f;  // No scaling for background
-        // upperBoxBackground.roundness = 0.0f; // rectangle
+        upperBoxBackground.text = "";
+        upperBoxBackground.fontSize = 0;
+        upperBoxBackground.scaleRate = 1.0f;
 
         // Upper box: Toggle buttons
         undirectedBtn.rect = {25, upperBoxY, 100, 40};
@@ -107,76 +116,129 @@ struct Graph_Menu {
         weightedBtn.scaleRate = 1.2f;
 
         // Lower box background
-        lowerBoxBackground.rect = {5, lowerBoxY - 20, 340, 180};
-        lowerBoxBackground.rectColor = {32, 87, 129, 255};
-        lowerBoxBackground.text = "";
-        lowerBoxBackground.fontSize = 0;
-        lowerBoxBackground.scaleRate = 1.0f;
-        // lowerBoxBackground.roundness = 0.0f;
+        lowerAlgoBoxBackground.rect = {5, lowerBoxY - 10, 150, 210};  // {5, 485, 340, 200}
+        lowerAlgoBoxBackground.rectColor = {32, 87, 129, 255};
+        lowerAlgoBoxBackground.text = "";
+        lowerAlgoBoxBackground.fontSize = 0;
+        lowerAlgoBoxBackground.scaleRate = 1.0f;
+        lowerAlgoBoxBackground.roundness = 0.2f;
+
+        lowerParameterBoxBackground.rect = {
+            lowerAlgoBoxBackground.rect.x + lowerAlgoBoxBackground.rect.width + 5,
+            lowerAlgoBoxBackground.rect.y,
+            120, 210
+        };
+        lowerParameterBoxBackground.rectColor = {32, 87, 129, 255};
+        lowerParameterBoxBackground.text = "";
+        lowerParameterBoxBackground.fontSize = 0;
+        lowerParameterBoxBackground.scaleRate = 1.0f;
+        lowerParameterBoxBackground.roundness = 0.2f;
 
         // Lower box: Left column options
-        createBtn.rect = {15, lowerBoxY, 100, 40};
+        createBtn.rect = {lowerAlgoBoxBackground.rect.x + 5, lowerAlgoBoxBackground.rect.y + 25, lowerAlgoBoxBackground.rect.width - 10, 40};
         createBtn.rectColor = {79, 149, 157, 255};
         createBtn.text = "Create";
         createBtn.textColor = BLACK;
-        createBtn.fontSize = 15;
-        createBtn.scaleRate = 1.1f;
+        createBtn.fontSize = 16;
+        createBtn.scaleRate = 1.0f;
+        // createBtn.roundness = 0.0f;
 
-        mstBtn.rect = {15, lowerBoxY + 50, 100, 40};
+        mstBtn.rect = {lowerAlgoBoxBackground.rect.x + 5, lowerAlgoBoxBackground.rect.y + 25 + 60, lowerAlgoBoxBackground.rect.width - 10, 40};
         mstBtn.rectColor = {79, 149, 157, 255};
         mstBtn.text = "MST (Kruskal)";
         mstBtn.textColor = BLACK;
-        mstBtn.fontSize = 15;
-        mstBtn.scaleRate = 1.1f;
+        mstBtn.fontSize = 16;
+        mstBtn.scaleRate = 1.0f;
+        // mstBtn.roundness = 0.0f;
 
-        dijkstraBtn.rect = {15, lowerBoxY + 100, 100, 40};
+        dijkstraBtn.rect = {lowerAlgoBoxBackground.rect.x + 5, lowerAlgoBoxBackground.rect.y + 25 + 120, lowerAlgoBoxBackground.rect.width - 10, 40};
         dijkstraBtn.rectColor = {79, 149, 157, 255};
         dijkstraBtn.text = "Dijkstra";
         dijkstraBtn.textColor = BLACK;
-        dijkstraBtn.fontSize = 15;
-        dijkstraBtn.scaleRate = 1.1f;
+        dijkstraBtn.fontSize = 16;
+        dijkstraBtn.scaleRate = 1.0f;
+        // dijkstraBtn.roundness = 0.0f;
 
-        // Lower box: Right column (Textboxes for "Create")
-        nodesLabel.rect = {165, lowerBoxY - 20 + 10, 150, 15};  // Smaller height for label
-        nodesLabel.rectColor = {79, 149, 157, 255};  // Same as background to blend in
+        nodesLabel.rect = {lowerParameterBoxBackground.rect.x + 5.0f, lowerBoxY, 
+                lowerParameterBoxBackground.rect.width - 10.0f, 30}; 
+        nodesLabel.rectColor = {79, 149, 157, 255};
         nodesLabel.text = "Vertices";
         nodesLabel.textColor = BLACK;
         nodesLabel.fontSize = 15;
-        nodesLabel.scaleRate = 1.0f;  // No scaling for labels
-        nodesLabel.roundness = 0.0f;
+        nodesLabel.scaleRate = 1.0f;
+        // nodesLabel.roundness = 0.0f;
 
-        nodesBox.rect = {165, lowerBoxY - 5 + 10, 150, 40};
+        nodesBox.rect = {lowerParameterBoxBackground.rect.x + lowerParameterBoxBackground.rect.width + 10.0f,
+                    lowerBoxY, 100, 30};  // Input box on the right
         nodesBox.rectColor = {246, 248, 213, 255};
-        nodesBox.text = "";  // Will be updated with nodesInput
+        nodesBox.text = "";
         nodesBox.textColor = BLACK;
-        nodesBox.fontSize = 20;
+        nodesBox.fontSize = 15;
         nodesBox.scaleRate = 1.0f;
-        nodesBox.roundness = 0.0f;
+        // nodesBox.roundness = 0.0f;
 
-        edgesLabel.rect = {165, lowerBoxY + 50, 150, 15};
+        edgesLabel.rect = {nodesLabel.rect.x, lowerBoxY + 40, 
+                nodesLabel.rect.width, 30};
         edgesLabel.rectColor = {79, 149, 157, 255};
         edgesLabel.text = "Edges";
         edgesLabel.textColor = BLACK;
         edgesLabel.fontSize = 15;
         edgesLabel.scaleRate = 1.0f;
-        edgesLabel.roundness = 0.0f;
+        // edgesLabel.roundness = 0.0f;
 
-        edgesBox.rect = {165, lowerBoxY + 50 + 10 + 5, 150, 40};
+        edgesBox.rect = {nodesBox.rect.x, lowerBoxY + 40, 100, 30};
         edgesBox.rectColor = {246, 248, 213, 255};
         edgesBox.text = "";
         edgesBox.textColor = BLACK;
-        edgesBox.fontSize = 20;
+        edgesBox.fontSize = 15;
         edgesBox.scaleRate = 1.0f;
-        edgesBox.roundness = 0.0f;
+        // edgesBox.roundness = 0.0f;
 
-        fileBtn.rect = {155, lowerBoxY + 100 + 10, 70, 40};
+        // Textboxes for "Source" and "Destination" (for Dijkstra)
+        sourceLabel.rect = {nodesLabel.rect.x, lowerBoxY + 80, 
+            nodesLabel.rect.width, 30};
+        sourceLabel.rectColor = {79, 149, 157, 255};
+        sourceLabel.text = "Source";
+        sourceLabel.textColor = BLACK;
+        sourceLabel.fontSize = 15;
+        sourceLabel.scaleRate = 1.0f;
+        // sourceLabel.roundness = 0.0f;
+
+        sourceBox.rect = {nodesBox.rect.x, lowerBoxY + 80, 100, 30};
+        sourceBox.rectColor = {246, 248, 213, 255};
+        sourceBox.text = "";
+        sourceBox.textColor = BLACK;
+        sourceBox.fontSize = 15;
+        sourceBox.scaleRate = 1.0f;
+        // sourceBox.roundness = 0.0f;
+
+        destLabel.rect = {nodesLabel.rect.x, lowerBoxY + 120, nodesLabel.rect.width, 30};
+        destLabel.rectColor = {79, 149, 157, 255};
+        destLabel.text = "Destination";
+        destLabel.textColor = BLACK;
+        destLabel.fontSize = 15;
+        destLabel.scaleRate = 1.0f;
+        // destLabel.roundness = 0.0f;
+
+        destBox.rect = {nodesBox.rect.x, lowerBoxY + 120, 100, 30};
+        destBox.rectColor = {246, 248, 213, 255};
+        destBox.text = "";
+        destBox.textColor = BLACK;
+        destBox.fontSize = 15;
+        destBox.scaleRate = 1.0f;
+        // destBox.roundness = 0.0f;
+
+        fileBtn.rect = {lowerParameterBoxBackground.rect.x + 5.0f, 
+            lowerBoxY + 160, lowerParameterBoxBackground.rect.width - 10.0f, 35};
         fileBtn.rectColor = BLACK;
         fileBtn.text = "Add File";
         fileBtn.textColor = WHITE;
         fileBtn.fontSize = 15;
-        fileBtn.scaleRate = 1.1f;
+        fileBtn.scaleRate = 1.0f;
 
-        confirmBtn.rect = {245, lowerBoxY + 100 + 10, 70, 40};
+        confirmBtn.rect = {lowerParameterBoxBackground.rect.x + lowerParameterBoxBackground.rect.width + 10, 
+                fileBtn.rect.y, 
+                100, 35};
         confirmBtn.rectColor = BLACK;
         confirmBtn.text = "Confirm";
         confirmBtn.textColor = WHITE;
@@ -187,11 +249,9 @@ struct Graph_Menu {
     void ChooseGraphType(graph* &G);
     void ChooseAlgorithms(graph* &G);
     void Handle_Input();
-    void GetInput(int &numNodes, int &numEdges);
+    void GetInput(int &numNodes, int &numEdges, int &source, int &dest);
     void ClearInputBoxes();
     void Handle(graph* &G);
     void Draw();
-
     void MakeGraph(graph* &Graphs);
 };
-

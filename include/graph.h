@@ -62,7 +62,7 @@ public:
 
     // Mouse interaction
     int selectedNode = -1;  // Index of the node being dragged (-1 if none)
-    Rectangle DisplayScreen = {350, 60, 650, 600};
+    Rectangle DisplayScreen = {400, 60, 600, 600};
 };
 
 graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
@@ -72,7 +72,7 @@ void RunGraphVisualization(graph* G);
 void RunGraphVisualization_MST(graph* G);
 void RunGraphVisualization_DIJKSTRA(graph* G);
 std::vector<int> getMST(graph *G);
-
+std::vector<int> getDIJKSTRA(graph *G);
 void Handle_InputFile(const char* filePath, graph* &G);
 
 #endif
