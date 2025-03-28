@@ -4,8 +4,8 @@
 // Khai báo biến toàn cục
 //--------------------------------
 
-const int screenWidth = 1000;
-const int screenHeight = 700;
+int screenWidth = 1400;
+int screenHeight = 750;
 const int FPS = 60;
 int currentSlideID = 0;
 Vector2 mouse;

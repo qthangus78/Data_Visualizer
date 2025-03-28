@@ -12,7 +12,7 @@ struct Graph_Menu {
 
     // Lower box: Options and textboxes
     enum MenuOption { CREATE, MST_KRUSKAL, DIJKSTRA, NONE };
-    MenuOption selectedOption = CREATE;
+    MenuOption selectedOption = NONE;
 
     // Textbox inputs for "Nodes" and "Edges"
     std::string nodesInput = "";

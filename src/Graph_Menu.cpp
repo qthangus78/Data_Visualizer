@@ -304,13 +304,15 @@ void Graph_Menu::MakeGraph(graph* &Graphs) {
 void Graph_Menu::Handle(graph* &G) {
     ChooseGraphType(G);
     ChooseAlgorithms(G);
-
     Handle_Input();
+
+
     if (fileSelected) {
         const char* filePath = tinyfd_openFileDialog("Select a File", "", 0, NULL, NULL, 0);
         Handle_InputFile(filePath, G);
         fileSelected = false;
-    } else if (confirmPressed) {
+    } 
+    else if (confirmPressed) {
         MakeGraph(G);
     }
 }
@@ -335,7 +337,6 @@ void Graph_Menu::Draw() {
 
     // Lower box background
     lowerAlgoBoxBackground.Draw_TextBox();
-    lowerParameterBoxBackground.Draw_TextBox();
 
     // Lower box: Left column
     createBtn.rectColor = (selectedOption == CREATE) ? labelColor[1] : labelColor[0];
@@ -346,24 +347,20 @@ void Graph_Menu::Draw() {
 
     dijkstraBtn.rectColor = (selectedOption == DIJKSTRA) ? labelColor[1] : labelColor[0];
     dijkstraBtn.Draw_TextBox(selectedOption == DIJKSTRA);
-
-    // Draw fileBtn and confirmBtn in the left column
-    fileBtn.rectColor = fileSelected ? LIGHTGRAY : BLACK;
-    fileBtn.Draw_TextBox();
-
-    confirmBtn.Draw_TextBox();
     
     // Draw input boxes
-    nodesLabel.rectColor = labelColor[nodesBoxActive];
-    nodesLabel.Draw_TextBox();
-    if (nodesInput.size() > 0 || nodesBoxActive) nodesBox.Draw_TextBox();
-    if (nodesBoxActive && showCursor) nodesBox.Draw_BlinkingLine();
+    if (selectedOption != NONE) {
+        lowerParameterBoxBackground.Draw_TextBox();
+        nodesLabel.rectColor = labelColor[nodesBoxActive];
+        nodesLabel.Draw_TextBox();
+        if (nodesInput.size() > 0 || nodesBoxActive) nodesBox.Draw_TextBox();
+        if (nodesBoxActive && showCursor) nodesBox.Draw_BlinkingLine();
 
-    edgesLabel.rectColor = labelColor[edgesBoxActive];
-    edgesLabel.Draw_TextBox();
-    if (edgesInput.size() > 0 || edgesBoxActive) edgesBox.Draw_TextBox();
-    if (edgesBoxActive && showCursor) edgesBox.Draw_BlinkingLine();
-
+        edgesLabel.rectColor = labelColor[edgesBoxActive];
+        edgesLabel.Draw_TextBox();
+        if (edgesInput.size() > 0 || edgesBoxActive) edgesBox.Draw_TextBox();
+        if (edgesBoxActive && showCursor) edgesBox.Draw_BlinkingLine();
+    }
     // Draw Source and Destination textboxes only if Dijkstra is selected
     if (selectedOption == DIJKSTRA) {
         sourceLabel.rectColor = labelColor[sourceBoxActive];
@@ -376,4 +373,10 @@ void Graph_Menu::Draw() {
         if (destInput.size() > 0 || destBoxActive) destBox.Draw_TextBox();
         if (destBoxActive && showCursor) destBox.Draw_BlinkingLine();
     }
+
+    // Draw fileBtn and confirmBtn in the left column
+    fileBtn.rectColor = fileSelected ? LIGHTGRAY : BLACK;
+    fileBtn.Draw_TextBox();
+ 
+    confirmBtn.Draw_TextBox();
 }

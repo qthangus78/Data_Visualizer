@@ -3,8 +3,8 @@
 #include<raylib.h>
 using namespace std;
 
-extern const int screenWidth;
-extern const int screenHeight;
+extern int screenWidth;
+extern int screenHeight;
 extern const int FPS;
 extern int currentSlideID;
 
