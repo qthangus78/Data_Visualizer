@@ -1,5 +1,5 @@
-#include "../include/SLL/LinkedList.h"
-#include "../include/GlobalVar.h"
+#include "LinkedList.h"
+#include "GlobalVar.h"
 #include <raylib.h>
 #include <cmath>
 #include <string>

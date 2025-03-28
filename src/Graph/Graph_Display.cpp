@@ -1,6 +1,5 @@
 #include "Graph_Display.h"
 
-Rectangle GraphDisplayScreen = {400, 60, 600, 600};
 namespace Graph_display {
     graph* G = nullptr;
     Graph_Menu Gmenu;

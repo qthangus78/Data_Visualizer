@@ -62,9 +62,7 @@ public:
     // Visualization parameters
     float nodeRadius = 15.0f;
 
-    // Mouse interaction
     int selectedNode = -1;  // Index of the node being dragged (-1 if none)
-    Rectangle DisplayScreen = {400, 60, 600, 600};
 };
 
 graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);

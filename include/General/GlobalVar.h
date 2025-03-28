@@ -3,8 +3,11 @@
 #include<raylib.h>
 using namespace std;
 
-extern int screenWidth;
-extern int screenHeight;
+extern const float screenWidth;
+extern const float screenHeight;
+extern const Vector2 GraphDisplayScreenSize;
+extern Rectangle GraphDisplayScreen;
+
 extern const int FPS;
 extern int currentSlideID;
 

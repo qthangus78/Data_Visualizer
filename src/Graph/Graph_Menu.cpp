@@ -1,7 +1,5 @@
 #include "Graph_Menu.h"
 
-const char* RandomText = "Random";
-
 void Graph_Menu::ChooseGraphType(graph* &G) {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         isDirected = false;
@@ -58,9 +56,6 @@ void Graph_Menu::Handle_Input() {
             nodesBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
-            if (nodesBox.text == RandomText) {
-                nodesBox.text = "";
-            }
         } else {
             nodesBoxActive = false;
         }
@@ -71,9 +66,6 @@ void Graph_Menu::Handle_Input() {
             edgesBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
-            if (edgesBox.text == RandomText) {
-                edgesBox.text = "";
-            }
         } else {
             edgesBoxActive = false;
         }
@@ -84,9 +76,6 @@ void Graph_Menu::Handle_Input() {
             sourceBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
-            if (sourceBox.text == RandomText) {
-                sourceBox.text = "";
-            }
         } else {
             sourceBoxActive = false;
         }
@@ -97,9 +86,6 @@ void Graph_Menu::Handle_Input() {
             destBoxActive = true;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
-            if (destBox.text == RandomText) {
-                destBox.text = "";
-            }
         } else {
             destBoxActive = false;
         }
@@ -193,31 +179,11 @@ void Graph_Menu::Handle_Input() {
     }
 
     // Update the text of the textboxes
-    if (nodesInput.empty() && !nodesBoxActive) {
-        nodesBox.text = RandomText;
-    } else {
-        nodesBox.text = nodesInput.c_str();
-    }
+    nodesBox.text = nodesInput.c_str();
+    edgesBox.text = edgesInput.c_str();
 
-    if (edgesInput.empty() && !edgesBoxActive) {
-        edgesBox.text = RandomText;
-    } else {
-        edgesBox.text = edgesInput.c_str();
-    }
-
-    if (selectedOption == DIJKSTRA) {
-        if (sourceInput.empty() && !sourceBoxActive) {
-            sourceBox.text = RandomText;
-        } else {
-            sourceBox.text = sourceInput.c_str();
-        }
-
-        if (destInput.empty() && !destBoxActive) {
-            destBox.text = RandomText;
-        } else {
-            destBox.text = destInput.c_str();
-        }
-    }
+    sourceBox.text = sourceInput.c_str();
+    destBox.text = destInput.c_str();
 }
 
 void Graph_Menu::GetInput(int &numNodes, int &numEdges, int &source, int &dest) {

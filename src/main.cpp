@@ -9,9 +9,7 @@
 int main() {       
     srand(time(0));
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(screenWidth, screenHeight, "Data Visualizer");
-    // screenWidth = GetScreenWidth();
-    // screenHeight = GetScreenHeight();
+    InitWindow((int)screenWidth, (int)screenHeight, "Data Visualizer");
     SetTargetFPS(FPS);
 
     customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");

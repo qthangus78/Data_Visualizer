@@ -32,8 +32,8 @@ graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
     isDirected = _isDirected;
     isWeighted = _isWeighted;
 
-    // Dynamically scale IdealEdgeLength based on DisplayScreen size and number of nodes
-    IdealEdgeLength = sqrtf(DisplayScreen.width * DisplayScreen.height / (float)numNode) * 0.5f;
+    // Dynamically scale IdealEdgeLength based on GraphDisplayScreen size and number of nodes
+    IdealEdgeLength = sqrtf(GraphDisplayScreen.width * GraphDisplayScreen.height / (float)numNode) * 0.5f;
     // Scale Crep more aggressively based on number of nodes
     Crep = numNode * numNode * 10.0f;
 }
@@ -92,10 +92,10 @@ Vector2 graph::SpringForce(int u, int v) {
 }
 
 Vector2 graph::CenteringForce(int u) {
-    // Center of the DisplayScreen rectangle
+    // Center of the GraphDisplayScreen rectangle
     Vector2 center = {
-        DisplayScreen.x + DisplayScreen.width / 2.0f,
-        DisplayScreen.y + DisplayScreen.height / 2.0f
+        GraphDisplayScreen.x + GraphDisplayScreen.width / 2.0f,
+        GraphDisplayScreen.y + GraphDisplayScreen.height / 2.0f
     };
     Vector2 direction = {center.x - Nodes[u].Pos.x, center.y - Nodes[u].Pos.y};
     float dist = magnitude(direction);
@@ -146,9 +146,9 @@ void graph::BalanceGraph() {
         Nodes[u].Pos.x += Nodes[u].Forces.x * currentVeclocity;
         Nodes[u].Pos.y += Nodes[u].Forces.y * currentVeclocity;
 
-        // Clamp node positions to stay within DisplayScreen
-        Clamp(Nodes[u].Pos.x, DisplayScreen.x + nodeRadius, DisplayScreen.x + DisplayScreen.width - nodeRadius);
-        Clamp(Nodes[u].Pos.y, DisplayScreen.y + nodeRadius, DisplayScreen.y + DisplayScreen.height - nodeRadius);
+        // Clamp node positions to stay within GraphDisplayScreen
+        Clamp(Nodes[u].Pos.x, GraphDisplayScreen.x + nodeRadius, GraphDisplayScreen.x + GraphDisplayScreen.width - nodeRadius);
+        Clamp(Nodes[u].Pos.y, GraphDisplayScreen.y + nodeRadius, GraphDisplayScreen.y + GraphDisplayScreen.height - nodeRadius);
     }
 
     // Apply cooling factor
@@ -183,9 +183,9 @@ void graph::HandleMouseInteraction() {
     if (selectedNode != -1 && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         Nodes[selectedNode].Pos = mouse;
 
-        // Keep the node within DisplayScreen bounds
-        Clamp(Nodes[selectedNode].Pos.x, DisplayScreen.x + nodeRadius, DisplayScreen.x + DisplayScreen.width - nodeRadius);
-        Clamp(Nodes[selectedNode].Pos.y, DisplayScreen.y + nodeRadius, DisplayScreen.y + DisplayScreen.height - nodeRadius);
+        // Keep the node within GraphDisplayScreen bounds
+        Clamp(Nodes[selectedNode].Pos.x, GraphDisplayScreen.x + nodeRadius, GraphDisplayScreen.x + GraphDisplayScreen.width - nodeRadius);
+        Clamp(Nodes[selectedNode].Pos.y, GraphDisplayScreen.y + nodeRadius, GraphDisplayScreen.y + GraphDisplayScreen.height - nodeRadius);
 
         // Reset forces to prevent jittering while dragging
         Nodes[selectedNode].Forces = {0.0f, 0.0f};
@@ -202,9 +202,9 @@ void graph::DrawEdge(const edge& edge, bool special) {
     int u = edge.u;
     int v = edge.v;
 
-    // Only draw the edge if both nodes are within the DisplayScreen
-    bool uVisible = CheckCollisionPointRec(Nodes[u].Pos, DisplayScreen);
-    bool vVisible = CheckCollisionPointRec(Nodes[v].Pos, DisplayScreen);
+    // Only draw the edge if both nodes are within the GraphDisplayScreen
+    bool uVisible = CheckCollisionPointRec(Nodes[u].Pos, GraphDisplayScreen);
+    bool vVisible = CheckCollisionPointRec(Nodes[v].Pos, GraphDisplayScreen);
     if (!uVisible || !vVisible) return;  // Skip if either node is outside
 
     Vector2 start = Nodes[u].Pos;
@@ -240,7 +240,7 @@ void graph::DrawEdge(const edge& edge, bool special) {
             (start.x + end.x) / 2.0f,
             (start.y + end.y) / 2.0f
         };
-        // Since both nodes are within DisplayScreen, the midpoint will also be within bounds
+        // Since both nodes are within GraphDisplayScreen, the midpoint will also be within bounds
         const char* weightText = TextFormat("%d", edge.w);
         float weightFontSize = nodeRadius * 1.2f;
         Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
@@ -348,11 +348,11 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
 
     graph* myGraph = new graph(numNodes, isDirected, isWeighted);
 
-    // Initialize nodes with random positions within the DisplayScreen
-    uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
-                                               myGraph->DisplayScreen.x + myGraph->DisplayScreen.width - myGraph->nodeRadius);
-    uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
-                                               myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
+    // Initialize nodes with random positions within the GraphDisplayScreen
+    uniform_real_distribution<float> disX(GraphDisplayScreen.x + myGraph->nodeRadius, 
+                                        GraphDisplayScreen.x + GraphDisplayScreen.width - myGraph->nodeRadius);
+    uniform_real_distribution<float> disY(GraphDisplayScreen.y + myGraph->nodeRadius, 
+                                        GraphDisplayScreen.y + GraphDisplayScreen.height - myGraph->nodeRadius);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
@@ -418,11 +418,11 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
 
     graph* myGraph = new graph(numNodes, isDirected, isWeighted);
 
-    // Initialize nodes with random positions within the DisplayScreen
-    uniform_real_distribution<float> disX(myGraph->DisplayScreen.x + myGraph->nodeRadius, 
-                                               myGraph->DisplayScreen.x + myGraph->DisplayScreen.width - myGraph->nodeRadius);
-    uniform_real_distribution<float> disY(myGraph->DisplayScreen.y + myGraph->nodeRadius, 
-                                               myGraph->DisplayScreen.y + myGraph->DisplayScreen.height - myGraph->nodeRadius);
+    // Initialize nodes with random positions within the GraphDisplayScreen
+    uniform_real_distribution<float> disX(GraphDisplayScreen.x + myGraph->nodeRadius, 
+                                               GraphDisplayScreen.x + GraphDisplayScreen.width - myGraph->nodeRadius);
+    uniform_real_distribution<float> disY(GraphDisplayScreen.y + myGraph->nodeRadius, 
+                                               GraphDisplayScreen.y + GraphDisplayScreen.height - myGraph->nodeRadius);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].val = i;
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
@@ -572,12 +572,12 @@ void Handle_InputFile(const char* filePath, graph* &G) {
     fin >> numNodes >> numEdges;
     G = new graph (numNodes, false, true);
 
-    // Initialize nodes with random positions within the DisplayScreen
-    uniform_real_distribution<float> disX(G->DisplayScreen.x + G->nodeRadius, 
-        G->DisplayScreen.x + G->DisplayScreen.width - G->nodeRadius);
+    // Initialize nodes with random positions within the GraphDisplayScreen
+    uniform_real_distribution<float> disX(GraphDisplayScreen.x + G->nodeRadius, 
+        GraphDisplayScreen.x + GraphDisplayScreen.width - G->nodeRadius);
 
-    uniform_real_distribution<float> disY(G->DisplayScreen.y + G->nodeRadius, 
-        G->DisplayScreen.y + G->DisplayScreen.height - G->nodeRadius);
+    uniform_real_distribution<float> disY(GraphDisplayScreen.y + G->nodeRadius, 
+        GraphDisplayScreen.y + GraphDisplayScreen.height - G->nodeRadius);
 
     for (int i = 1; i <= numNodes; ++i) {
         G->Nodes[i].Pos = {disX(gen), disY(gen)};

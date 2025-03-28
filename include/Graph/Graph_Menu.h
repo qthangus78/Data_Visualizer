@@ -17,7 +17,6 @@ struct Graph_Menu {
     // Textbox inputs for "Nodes" and "Edges"
     std::string nodesInput = "";
     std::string edgesInput = "";
-    // Inputs for "Source" and "Destination" (for Dijkstra)
     std::string sourceInput = "";
     std::string destInput = "";
     bool fileSelected = false;

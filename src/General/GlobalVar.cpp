@@ -4,8 +4,15 @@
 // Khai báo biến toàn cục
 //--------------------------------
 
-int screenWidth = 1400;
-int screenHeight = 750;
+const float screenWidth = 1400;
+const float screenHeight = 750;
+const Vector2 GraphDisplayScreenSize = {600.0f, 600.0f};
+Rectangle GraphDisplayScreen = {float(screenWidth) - GraphDisplayScreenSize.x, 
+                                float(screenHeight) - GraphDisplayScreenSize.y - 40, //padding
+                                GraphDisplayScreenSize.x, 
+                                GraphDisplayScreenSize.y};
+
+
 const int FPS = 60;
 int currentSlideID = 0;
 Vector2 mouse;
