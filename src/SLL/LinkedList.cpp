@@ -1,4 +1,4 @@
-#include "../include/LinkedList.h"
+#include "../include/SLL/LinkedList.h"
 #include "../include/GlobalVar.h"
 #include <raylib.h>
 #include <cmath>
