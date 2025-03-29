@@ -245,12 +245,12 @@ struct Graph_Menu {
         confirmBtn.scaleRate = 1.1f;
     }
 
-    void ChooseGraphType(graph* &G);
-    void ChooseAlgorithms(graph* &G);
+    void ChooseGraphType(Graph* &G);
+    void ChooseAlgorithms(Graph* &G);
     void Handle_Input();
     void GetInput(int &numNodes, int &numEdges, int &source, int &dest);
     void ClearInputBoxes();
-    void Handle(graph* &G);
+    void Handle(Graph* &G);
     void Draw();
-    void MakeGraph(graph* &Graphs);
+    void MakeGraph(Graph* &Graphs);
 };

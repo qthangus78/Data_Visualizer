@@ -1,4 +1,7 @@
 #include "graph.h"
+#include <algorithm>
+#include <random>
+#include <fstream>
 
 float magnitude(Vector2 V) {
     return sqrtf(V.x * V.x + V.y * V.y);
@@ -9,169 +12,134 @@ void Clamp(float &val, float Min, float Max) {
     if (val > Max) val = Max;
 }
 
-graph::node::node(int _val, float x, float y) {
-    val = _val;
-    Pos = {x, y};
-    Forces = {0.0f, 0.0f};
-}
+// Graph Implementation
+Graph::Node::Node(int _val, float x, float y) : val(_val), Pos({x, y}), Forces({0.0f, 0.0f}) {}
 
-graph::edge::edge(int _u, int _v, int _w) {
-    u = _u;
-    v = _v;
-    w = _w;
-}
+Graph::Edge::Edge(int _u, int _v, int _w) : u(_u), v(_v), w(_w) {}
 
-graph::graph(int _numNode, bool _isDirected, bool _isWeighted) {
-    numNode = _numNode;
-    numEdge = 0;
-    Nodes.resize(numNode + 1, node());
-    for (int i = 1; i <= numNode; ++i) Nodes[i].val = i;
-    Adjacent_list.resize(numNode + 1);
-
-    // Set graph properties
-    isDirected = _isDirected;
-    isWeighted = _isWeighted;
-
-    // Dynamically scale IdealEdgeLength based on GraphDisplayScreen size and number of nodes
-    IdealEdgeLength = sqrtf(GraphDisplayScreen.width * GraphDisplayScreen.height / (float)numNode) * 0.5f;
-    // Scale Crep more aggressively based on number of nodes
-    Crep = numNode * numNode * 10.0f;
-}
-
-int graph::edge::other(int x) {
+int Graph::Edge::other(int x) const {
     return u ^ v ^ x;
 }
 
-void graph::AddEdge(int u, int v, int w) {
-    // Add edge from u to v
+Graph::Graph(int _numNode, bool _isDirected, bool _isWeighted)
+    : numNode(_numNode), numEdge(0), isDirected(_isDirected), isWeighted(_isWeighted) {
+    Nodes.resize(numNode + 1);
+    for (int i = 1; i <= numNode; ++i) Nodes[i].val = i;
+    Adjacent_list.resize(numNode + 1);
+}
+
+void Graph::AddEdge(int u, int v, int w) {
     Adjacent_list[u].push_back(Edges.size());
-    // For undirected graph, also add edge from v to u
     if (!isDirected) {
         Adjacent_list[v].push_back(Edges.size());
     }
-    Edges.push_back(edge(u, v, w));
+    Edges.push_back(Edge(u, v, w));
     ++numEdge;
 }
 
-float graph::EulerDist(int u, int v) {
+float Graph::EulerDist(int u, int v) const {
     float dx = Nodes[u].Pos.x - Nodes[v].Pos.x;
     float dy = Nodes[u].Pos.y - Nodes[v].Pos.y;
     return sqrtf(dx * dx + dy * dy);
 }
 
-float graph::EulerDist(int u, Vector2 pos) {
+float Graph::EulerDist(int u, Vector2 pos) const {
     float dx = Nodes[u].Pos.x - pos.x;
     float dy = Nodes[u].Pos.y - pos.y;
     return sqrtf(dx * dx + dy * dy);
 }
 
-Vector2 graph::UnitVector(int u, int v) {
+bool GraphVisualizer::checkGraph() const {
+    return (graph != nullptr);
+}
+
+Vector2 GraphVisualizer::UnitVector(int u, int v) const {
     Vector2 direction = {
-        Nodes[v].Pos.x - Nodes[u].Pos.x,
-        Nodes[v].Pos.y - Nodes[u].Pos.y
+        graph->Nodes[v].Pos.x - graph->Nodes[u].Pos.x,
+        graph->Nodes[v].Pos.y - graph->Nodes[u].Pos.y
     };
     float dist = magnitude(direction);
     if (dist == 0.0f) return {0.0f, 0.0f};
     return {direction.x / dist, direction.y / dist};
 }
 
-Vector2 graph::RepulsiveForce(int u, int v) {
-    float dist = EulerDist(u, v);
+Vector2 GraphVisualizer::RepulsiveForce(int u, int v) const {
+    float dist = graph->EulerDist(u, v);
     if (dist == 0.0f) return {0.0f, 0.0f};
-    Vector2 direction = UnitVector(v, u);  // Direction from v to u (repulsive)
+    Vector2 direction = UnitVector(v, u);
     float forceMagnitude = Crep / powf(dist, 1.5f);
     return {forceMagnitude * direction.x, forceMagnitude * direction.y};
 }
 
-Vector2 graph::SpringForce(int u, int v) {
-    float dist = EulerDist(u, v);
+Vector2 GraphVisualizer::SpringForce(int u, int v) const {
+    float dist = graph->EulerDist(u, v);
     if (dist == 0.0f) return {0.0f, 0.0f};
-    Vector2 direction = UnitVector(u, v);  // Direction from u to v (attractive)
+    Vector2 direction = UnitVector(u, v);
     float forceMagnitude = (dist > IdealEdgeLength) ? Cspring * logf(dist / IdealEdgeLength) : 0.0f;
     return {forceMagnitude * direction.x, forceMagnitude * direction.y};
 }
 
-Vector2 graph::CenteringForce(int u) {
-    // Center of the GraphDisplayScreen rectangle
+Vector2 GraphVisualizer::CenteringForce(int u) const {
     Vector2 center = {
         GraphDisplayScreen.x + GraphDisplayScreen.width / 2.0f,
         GraphDisplayScreen.y + GraphDisplayScreen.height / 2.0f
     };
-    Vector2 direction = {center.x - Nodes[u].Pos.x, center.y - Nodes[u].Pos.y};
+    Vector2 direction = {center.x - graph->Nodes[u].Pos.x, center.y - graph->Nodes[u].Pos.y};
     float dist = magnitude(direction);
     if (dist == 0.0f) return {0.0f, 0.0f};
     return {Ccenter * direction.x, Ccenter * direction.y};
 }
 
-void graph::BalanceGraph() {
+void GraphVisualizer::BalanceGraph() {
     if (iteration >= numIteration || convergent) return;
 
-    // Traverse all nodes
-    for (int u = 1; u <= numNode; ++u) {
-        // Skip the selected node (being dragged)
+    for (int u = 1; u <= graph->numNode; ++u) {
         if (u == selectedNode) continue;
+        graph->Nodes[u].Forces = {0.0f, 0.0f};
 
-        Nodes[u].Forces = {0.0f, 0.0f};
-
-        // Calculate repulsive force from all other nodes
-        for (int v = 1; v <= numNode; ++v) {
+        for (int v = 1; v <= graph->numNode; ++v) {
             if (v == u) continue;
             Vector2 repulsiveF = RepulsiveForce(u, v);
-            Nodes[u].Forces.x += repulsiveF.x;
-            Nodes[u].Forces.y += repulsiveF.y;
+            graph->Nodes[u].Forces.x += repulsiveF.x;
+            graph->Nodes[u].Forces.y += repulsiveF.y;
         }
 
-        // Calculate attractive force from adjacent nodes
-        for (const int &EdgeID : Adjacent_list[u]) {
-            int v = Edges[EdgeID].other(u);
+        for (const int &EdgeID : graph->Adjacent_list[u]) {
+            int v = graph->Edges[EdgeID].other(u);
             if (v == u) continue;
             Vector2 springF = SpringForce(u, v);
-            Nodes[u].Forces.x += springF.x;
-            Nodes[u].Forces.y += springF.y;
+            graph->Nodes[u].Forces.x += springF.x;
+            graph->Nodes[u].Forces.y += springF.y;
         }
 
-        // Add centering force
         Vector2 centerF = CenteringForce(u);
-        Nodes[u].Forces.x += centerF.x;
-        Nodes[u].Forces.y += centerF.y;
+        graph->Nodes[u].Forces.x += centerF.x;
+        graph->Nodes[u].Forces.y += centerF.y;
     }
 
-    // Calculate new positions and check for convergence
     float totalForce = 0.0f;
-    for (int u = 1; u <= numNode; ++u) {
-        // Skip the selected node
+    for (int u = 1; u <= graph->numNode; ++u) {
         if (u == selectedNode) continue;
+        totalForce += magnitude(graph->Nodes[u].Forces);
+        graph->Nodes[u].Pos.x += graph->Nodes[u].Forces.x * currentVeclocity;
+        graph->Nodes[u].Pos.y += graph->Nodes[u].Forces.y * currentVeclocity;
 
-        totalForce += magnitude(Nodes[u].Forces);
-        Nodes[u].Pos.x += Nodes[u].Forces.x * currentVeclocity;
-        Nodes[u].Pos.y += Nodes[u].Forces.y * currentVeclocity;
-
-        // Clamp node positions to stay within GraphDisplayScreen
-        Clamp(Nodes[u].Pos.x, GraphDisplayScreen.x + nodeRadius, GraphDisplayScreen.x + GraphDisplayScreen.width - nodeRadius);
-        Clamp(Nodes[u].Pos.y, GraphDisplayScreen.y + nodeRadius, GraphDisplayScreen.y + GraphDisplayScreen.height - nodeRadius);
+        Clamp(graph->Nodes[u].Pos.x, GraphDisplayScreen.x + nodeRadius, GraphDisplayScreen.x + GraphDisplayScreen.width - nodeRadius);
+        Clamp(graph->Nodes[u].Pos.y, GraphDisplayScreen.y + nodeRadius, GraphDisplayScreen.y + GraphDisplayScreen.height - nodeRadius);
     }
 
-    // Apply cooling factor
     currentVeclocity *= CoolingFactor;
-
     ++iteration;
-    // cout << "iteration: " << iteration << endl;
-
-    // Check for convergence
-    if (totalForce < epsilon) {
-        convergent = true;
-    }
+    if (totalForce < epsilon) convergent = true;
 }
 
-void graph::HandleMouseInteraction() {
-    // Update global mouse position
+void GraphVisualizer::HandleMouseInteraction() {
     mouse = GetMousePosition();
 
-    // Check for mouse button down to select a node
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        selectedNode = -1;  // Reset selection
-        for (int u = 1; u <= numNode; ++u) {
-            float dist = EulerDist(u, mouse);
+        selectedNode = -1;
+        for (int u = 1; u <= graph->numNode; ++u) {
+            float dist = graph->EulerDist(u, mouse);
             if (dist <= nodeRadius) {
                 selectedNode = u;
                 break;
@@ -179,38 +147,30 @@ void graph::HandleMouseInteraction() {
         }
     }
 
-    // Update the position of the selected node while the mouse button is held
     if (selectedNode != -1 && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        Nodes[selectedNode].Pos = mouse;
-
-        // Keep the node within GraphDisplayScreen bounds
-        Clamp(Nodes[selectedNode].Pos.x, GraphDisplayScreen.x + nodeRadius, GraphDisplayScreen.x + GraphDisplayScreen.width - nodeRadius);
-        Clamp(Nodes[selectedNode].Pos.y, GraphDisplayScreen.y + nodeRadius, GraphDisplayScreen.y + GraphDisplayScreen.height - nodeRadius);
-
-        // Reset forces to prevent jittering while dragging
-        Nodes[selectedNode].Forces = {0.0f, 0.0f};
-        initEadesFactor(this);
+        graph->Nodes[selectedNode].Pos = mouse;
+        Clamp(graph->Nodes[selectedNode].Pos.x, GraphDisplayScreen.x + nodeRadius, GraphDisplayScreen.x + GraphDisplayScreen.width - nodeRadius);
+        Clamp(graph->Nodes[selectedNode].Pos.y, GraphDisplayScreen.y + nodeRadius, GraphDisplayScreen.y + GraphDisplayScreen.height - nodeRadius);
+        graph->Nodes[selectedNode].Forces = {0.0f, 0.0f};
+        initEadesFactor();
     }
 
-    // Release the node when the mouse button is released
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
         selectedNode = -1;
     }
 }
 
-void graph::DrawEdge(const edge& edge, bool special) {
+void GraphVisualizer::DrawEdge(const Graph::Edge& edge, bool special) const {
     int u = edge.u;
     int v = edge.v;
 
-    // Only draw the edge if both nodes are within the GraphDisplayScreen
-    bool uVisible = CheckCollisionPointRec(Nodes[u].Pos, GraphDisplayScreen);
-    bool vVisible = CheckCollisionPointRec(Nodes[v].Pos, GraphDisplayScreen);
-    if (!uVisible || !vVisible) return;  // Skip if either node is outside
+    bool uVisible = CheckCollisionPointRec(graph->Nodes[u].Pos, GraphDisplayScreen);
+    bool vVisible = CheckCollisionPointRec(graph->Nodes[v].Pos, GraphDisplayScreen);
+    if (!uVisible || !vVisible) return;
 
-    Vector2 start = Nodes[u].Pos;
-    Vector2 end = Nodes[v].Pos;
+    Vector2 start = graph->Nodes[u].Pos;
+    Vector2 end = graph->Nodes[v].Pos;
 
-    // Adjust start and end points to stop at the edge of the nodes
     Vector2 direction = {end.x - start.x, end.y - start.y};
     float dist = magnitude(direction);
     if (dist > 0) {
@@ -219,122 +179,216 @@ void graph::DrawEdge(const edge& edge, bool special) {
         end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
     }
 
-    if (isDirected) {
-        // Draw an arrow from u to v
+    if (graph->isDirected) {
         if (dist > 0) {
             DrawLineEx(start, end, special ? 2.0f : 1.0f, special ? RED : BLACK);
-            // Draw arrowhead
             Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
             Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
             DrawLineEx(end, arrow1, special ? 2.0f : 1.2f, special ? RED : BLACK);
             DrawLineEx(end, arrow2, special ? 2.0f : 1.2f, special ? RED : BLACK);
         }
     } else {
-        // Draw a simple line for undirected graph
         DrawLineEx(start, end, special ? 2.0f : 1.0f, special ? RED : BLACK);
     }
 
-    // Draw edge weight if the graph is weighted
-    if (isWeighted) {
-        Vector2 midPoint = {
-            (start.x + end.x) / 2.0f,
-            (start.y + end.y) / 2.0f
-        };
-        // Since both nodes are within GraphDisplayScreen, the midpoint will also be within bounds
+    if (graph->isWeighted) {
+        Vector2 midPoint = {(start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f};
         const char* weightText = TextFormat("%d", edge.w);
         float weightFontSize = nodeRadius * 1.2f;
         Vector2 textSize = MeasureTextEx(customFont, weightText, weightFontSize, 1.0f);
 
-        // Offset the text perpendicular to the edge to avoid overlapping
-        Vector2 perpendicular = {-direction.y, direction.x};  // Rotate 90 degrees counterclockwise
+        Vector2 perpendicular = {-direction.y, direction.x};
         if (perpendicular.y > 0) {
             perpendicular.x *= -1.0f;
             perpendicular.y *= -1.0f;
         }
-        float offset = 10.0f * (special ? 1.2f : 1.0f);  // Distance from the edge
+        float offset = 10.0f * (special ? 1.2f : 1.0f);
         Vector2 textPos = {
             midPoint.x + perpendicular.x * offset - textSize.x / 2.0f,
             midPoint.y + perpendicular.y * offset - textSize.y / 2.0f
         };
 
-        Color NormalColor = {138, 178, 166, 255};
-        Color SpecialColor = {165, 91, 75, 255}; //rgb(138, 178, 166)
-        
-        DrawTextEx(customFont, weightText, textPos, weightFontSize * (special ? 1.2f : 1.0f), 1.0f, special ? SpecialColor : NormalColor);
+        Color normalColor = {138, 178, 166, 255};
+        Color specialColor = {165, 91, 75, 255};
+        DrawTextEx(customFont, weightText, textPos, weightFontSize * (special ? 1.2f : 1.0f), 1.0f, special ? specialColor : normalColor);
     }
 }
 
-void graph::DrawNode(int u) {
-     // Highlight the selected node
+void GraphVisualizer::DrawNode(int u) const {
     Color nodeColor = (u == selectedNode) ? Color{172, 211, 168, 255} : Color{62, 63, 91, 255};
-    DrawCircleV(Nodes[u].Pos, nodeRadius, nodeColor);
+    DrawCircleV(graph->Nodes[u].Pos, nodeRadius, nodeColor);
 
-    // Draw the node value using the custom font
-    const char* nodeText = TextFormat("%d", Nodes[u].val);
+    const char* nodeText = TextFormat("%d", graph->Nodes[u].val);
     float nodeFontSize = nodeRadius * 1.2f;
     Vector2 textSize = MeasureTextEx(customFont, nodeText, nodeFontSize, 1.0f);
     DrawTextEx(customFont, nodeText,
-                {Nodes[u].Pos.x - textSize.x / 2, Nodes[u].Pos.y - textSize.y / 2},
-                nodeFontSize, 1.0f, WHITE);
+               {graph->Nodes[u].Pos.x - textSize.x / 2, graph->Nodes[u].Pos.y - textSize.y / 2},
+               nodeFontSize, 1.0f, WHITE);
 }
 
-void graph::Draw() {
-    // Draw edges and their weights
-    for (const auto& edge : Edges) {
+void GraphVisualizer::Draw() const {
+    for (const auto& edge : graph->Edges) {
         DrawEdge(edge);
     }
-
-    // Draw nodes and their values
-    for (int u = 1; u <= numNode; ++u) {
+    for (int u = 1; u <= graph->numNode; ++u) {
         DrawNode(u);
     }
 }
 
-void graph::DrawMST() {
-    vector<int> MST_edges = getMST(this);
-    for (int i = 0; i < Edges.size(); ++i) {
-        bool special = 0;
+void GraphVisualizer::DrawMST() const {
+    std::vector<int> MST_edges = GraphAlgorithms::getMST(graph);
+    for (int i = 0; i < graph->Edges.size(); ++i) {
+        bool special = false;
         for (int id : MST_edges) {
             if (i == id) {
-                special = 1;
+                special = true;
                 break;
             }
         }
-        DrawEdge(Edges[i], special);
+        DrawEdge(graph->Edges[i], special);
     }
-
-    for (int u = 1; u <= numNode; ++u) {
+    for (int u = 1; u <= graph->numNode; ++u) {
         DrawNode(u);
     }
 }
 
-void graph::DrawDIJKSTRA(int src, int dest) {
-    vector<int> DIJKSTRA_edges = getDIJKSTRA(this, src, dest);
-    for (int i = 0; i < Edges.size(); ++i) {
-        bool special = 0;
+void GraphVisualizer::DrawDIJKSTRA() const {
+    std::vector<int> DIJKSTRA_edges = GraphAlgorithms::getDIJKSTRA(graph, graph->DIJKSTRA_parameters.first, graph->DIJKSTRA_parameters.second);
+    for (int i = 0; i < graph->Edges.size(); ++i) {
+        bool special = false;
         for (int id : DIJKSTRA_edges) {
             if (i == id) {
-                special = 1;
+                special = true;
                 break;
             }
         }
-        DrawEdge(Edges[i], special);
+        DrawEdge(graph->Edges[i], special);
     }
-
-    for (int u = 1; u <= numNode; ++u) {
+    for (int u = 1; u <= graph->numNode; ++u) {
         DrawNode(u);
     }
 }
 
-random_device rd;
-mt19937 gen(rd());
+void GraphVisualizer::initEadesFactor() {
+    iteration = 0;
+    currentVeclocity = Veclocity;
+    convergent = false;
+}
 
-graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
-    if (numNodes < 0) return nullptr;
-    if (numEdges < 0) return nullptr;
-    // Calculate maximum possible edges
+// GraphAlgorithms Implementation
+namespace GraphAlgorithms {
+    int* par = nullptr;
+
+    int root(int x, int* par) {
+        if (par[x] < 0) return x;
+        return par[x] = root(par[x], par);
+    }
+
+    bool unite(int u, int v, int* par) {
+        u = root(u, par);
+        v = root(v, par);
+        if (u == v) return false;
+        if (-par[u] < -par[v]) std::swap(u, v);
+        par[u] += par[v];
+        par[v] = u;
+        return true;
+    }
+
+    std::vector<int> getMST(const Graph* G) {
+        if (!G) return std::vector<int>();
+
+        par = new int[G->numNode + 1];
+        for (int i = 1; i <= G->numNode; ++i) par[i] = -1;
+
+        std::vector<int> MST_Edges;
+        std::vector<int> edgesList;
+        for (int i = 0; i < G->Edges.size(); ++i) edgesList.push_back(i);
+        std::sort(edgesList.begin(), edgesList.end(), [&](const int &id1, const int &id2) {
+            return G->Edges[id1].w < G->Edges[id2].w;
+        });
+
+        for (const int &id : edgesList) {
+            int u = G->Edges[id].u;
+            int v = G->Edges[id].v;
+            if (unite(u, v, par))
+                MST_Edges.push_back(id);
+        }
+        delete[] par;
+        return MST_Edges;
+    }
+
+    std::vector<int> getDIJKSTRA(const Graph* G, int src, int dest) {
+        if (!G || G->numNode <= 0) {
+            std::cout << "Invalid graph\n";
+            return std::vector<int>();
+        }
+
+        if (src < 1 || src > G->numNode || dest < 1 || dest > G->numNode) {
+            std::cout << "Invalid source or destination vertex: src=" << src << ", dest=" << dest << ", numNode=" << G->numNode << "\n";
+            return std::vector<int>();
+        }
+
+        if (src == dest) {
+            std::cout << "Source and destination are the same: " << src << "\n";
+            return std::vector<int>();
+        }
+
+        std::vector<int> dist(G->numNode + 1, INT_MAX);
+        std::vector<int> pre(G->numNode + 1, -1);
+        std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> MinHeap;
+
+        dist[src] = 0;
+        MinHeap.push({0, src});
+
+        while (!MinHeap.empty()) {
+            int d = MinHeap.top().first;
+            int u = MinHeap.top().second;
+            MinHeap.pop();
+
+            if (d > dist[u]) continue;
+
+            for (const int& id : G->Adjacent_list[u]) {
+                int v = G->Edges[id].other(u);
+                int weight = G->Edges[id].w;
+
+                if (weight < 0) {
+                    std::cout << "Negative edge weight detected: " << weight << ". Dijkstra's algorithm cannot handle negative weights.\n";
+                    return std::vector<int>();
+                }
+
+                if (dist[v] == INT_MAX || dist[v] > dist[u] + weight) {
+                    dist[v] = dist[u] + weight;
+                    pre[v] = id;
+                    MinHeap.push({dist[v], v});
+                }
+            }
+        }
+
+        if (dist[dest] == INT_MAX) {
+            std::cout << "No path from " << src << " to " << dest << "\n";
+            return std::vector<int>();
+        }
+
+        std::vector<int> Path;
+        int currentVertex = dest;
+        while (currentVertex != src && pre[currentVertex] != -1) {
+            Path.push_back(pre[currentVertex]);
+            currentVertex = G->Edges[pre[currentVertex]].other(currentVertex);
+        }
+
+        std::reverse(Path.begin(), Path.end());
+        return Path;
+    }
+}
+
+// Graph Generation Functions
+std::random_device rd;
+std::mt19937 gen(rd());
+
+Graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
+    if (numNodes < 0 || numEdges < 0) return nullptr;
+
     int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
-    // Minimum edges is now 0 since connectivity is not required
     int minEdges = 0;
 
     if (numEdges < minEdges) {
@@ -346,39 +400,33 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
         numEdges = maxEdges;
     }
 
-    graph* myGraph = new graph(numNodes, isDirected, isWeighted);
+    Graph* myGraph = new Graph(numNodes, isDirected, isWeighted);
 
-    // Initialize nodes with random positions within the GraphDisplayScreen
-    uniform_real_distribution<float> disX(GraphDisplayScreen.x + myGraph->nodeRadius, 
-                                        GraphDisplayScreen.x + GraphDisplayScreen.width - myGraph->nodeRadius);
-    uniform_real_distribution<float> disY(GraphDisplayScreen.y + myGraph->nodeRadius, 
-                                        GraphDisplayScreen.y + GraphDisplayScreen.height - myGraph->nodeRadius);
+    std::uniform_real_distribution<float> disX(GraphDisplayScreen.x + myGraph->Nodes[1].Pos.x,
+                                              GraphDisplayScreen.x + GraphDisplayScreen.width - myGraph->Nodes[1].Pos.x);
+    std::uniform_real_distribution<float> disY(GraphDisplayScreen.y + myGraph->Nodes[1].Pos.y,
+                                              GraphDisplayScreen.y + GraphDisplayScreen.height - myGraph->Nodes[1].Pos.y);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
 
-    // Add exactly numEdges edges
     if (numEdges > 0) {
-        // Create a list of all possible edges (excluding self-loops)
-        vector<pair<int, int>> possibleEdges;
+        std::vector<std::pair<int, int>> possibleEdges;
         for (int u = 1; u <= numNodes; ++u) {
             for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
-                if (u == v) continue;  // No self-loops
+                if (u == v) continue;
                 possibleEdges.push_back({u, v});
             }
         }
 
-        // Shuffle the list of possible edges
-        shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
+        std::shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
 
-        // Add edges until we reach the desired number
         int edgesAdded = 0;
         for (const auto& edge : possibleEdges) {
             if (edgesAdded >= numEdges) break;
             int u = edge.first;
             int v = edge.second;
 
-            // Check if the edge already exists (to avoid duplicates)
             bool edgeExists = false;
             for (const int &EdgeID : myGraph->Adjacent_list[u]) {
                 int otherNode = myGraph->Edges[EdgeID].other(u);
@@ -389,7 +437,6 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
             }
             if (edgeExists) continue;
 
-            // Add the edge
             int weight = 1 + (gen() % (numNodes + numEdges));
             myGraph->AddEdge(u, v, weight);
             edgesAdded++;
@@ -399,74 +446,55 @@ graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isW
     return myGraph;
 }
 
-graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
-    if (numNodes <= 0) return nullptr;
-    if (numEdges < 0) return nullptr;
+Graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted) {
+    if (numNodes <= 0 || numEdges < 0) return nullptr;
 
-    // Calculate maximum possible edges
     int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
-    // Minimum edges required for connectivity
     int minEdges = numNodes - 1;
 
-    // Validate numEdges
-    if (numEdges < minEdges) {
-        numEdges = minEdges;
-    }
-    if (numEdges > maxEdges) {
-        numEdges = maxEdges;
-    }
+    if (numEdges < minEdges) numEdges = minEdges;
+    if (numEdges > maxEdges) numEdges = maxEdges;
 
-    graph* myGraph = new graph(numNodes, isDirected, isWeighted);
+    Graph* myGraph = new Graph(numNodes, isDirected, isWeighted);
 
-    // Initialize nodes with random positions within the GraphDisplayScreen
-    uniform_real_distribution<float> disX(GraphDisplayScreen.x + myGraph->nodeRadius, 
-                                               GraphDisplayScreen.x + GraphDisplayScreen.width - myGraph->nodeRadius);
-    uniform_real_distribution<float> disY(GraphDisplayScreen.y + myGraph->nodeRadius, 
-                                               GraphDisplayScreen.y + GraphDisplayScreen.height - myGraph->nodeRadius);
+    std::uniform_real_distribution<float> disX(GraphDisplayScreen.x + myGraph->Nodes[1].Pos.x,
+                                              GraphDisplayScreen.x + GraphDisplayScreen.width - myGraph->Nodes[1].Pos.x);
+    std::uniform_real_distribution<float> disY(GraphDisplayScreen.y + myGraph->Nodes[1].Pos.y,
+                                              GraphDisplayScreen.y + GraphDisplayScreen.height - myGraph->Nodes[1].Pos.y);
     for (int i = 1; i <= numNodes; ++i) {
         myGraph->Nodes[i].val = i;
         myGraph->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
 
-    // Step 1: Generate a random spanning tree to ensure connectivity
-    vector<int> nodes(numNodes);
-    for (int i = 0; i < numNodes; ++i) {
-        nodes[i] = i + 1;  // Nodes are 1 to numNodes
-    }
-    shuffle(nodes.begin(), nodes.end(), gen);  // Randomize node order
+    std::vector<int> nodes(numNodes);
+    for (int i = 0; i < numNodes; ++i) nodes[i] = i + 1;
+    std::shuffle(nodes.begin(), nodes.end(), gen);
 
-    // Use a simple method to build a spanning tree: connect each node to a previous node
-    vector<bool> inTree(numNodes + 1, false);
-    inTree[nodes[0]] = true;  // Start with the first node in the shuffled list
+    std::vector<bool> inTree(numNodes + 1, false);
+    inTree[nodes[0]] = true;
     int edgesAdded = 0;
 
-    // Connect each node to a random node already in the tree
     for (int i = 1; i < numNodes; ++i) {
-        int v = nodes[i];  // Node to add
-        // Choose a random node already in the tree to connect to
-        vector<int> treeNodes;
+        int v = nodes[i];
+        std::vector<int> treeNodes;
         for (int j = 1; j <= numNodes; ++j) {
             if (inTree[j]) treeNodes.push_back(j);
         }
-        uniform_int_distribution<> dis(0, treeNodes.size() - 1);
-        int u = treeNodes[dis(gen)];  // Random node in the tree
+        std::uniform_int_distribution<> dis(0, treeNodes.size() - 1);
+        int u = treeNodes[dis(gen)];
 
-        // Add edge (u, v)
         int weight = (gen() % 10);
         myGraph->AddEdge(u, v, weight);
         inTree[v] = true;
         edgesAdded++;
     }
 
-    // Step 2: Add remaining edges randomly
     int remainingEdges = numEdges - edgesAdded;
     if (remainingEdges > 0) {
-        // Create a list of all possible edges (excluding self-loops and existing edges)
-        vector<pair<int, int>> possibleEdges;
+        std::vector<std::pair<int, int>> possibleEdges;
         for (int u = 1; u <= numNodes; ++u) {
             for (int v = (isDirected ? 1 : u + 1); v <= numNodes; ++v) {
-                if (u == v) continue;  // No self-loops
-                // Check if edge (u, v) already exists
+                if (u == v) continue;
                 bool edgeExists = false;
                 for (const int &EdgeID : myGraph->Adjacent_list[u]) {
                     int otherNode = myGraph->Edges[EdgeID].other(u);
@@ -481,104 +509,39 @@ graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
             }
         }
 
-        // Shuffle the list of possible edges
-        shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
+        std::shuffle(possibleEdges.begin(), possibleEdges.end(), gen);
 
-        // Add remaining edges
         for (const auto& edge : possibleEdges) {
             if (remainingEdges <= 0) break;
             int u = edge.first;
             int v = edge.second;
 
-            // Add the edge
             int weight = isWeighted ? (1 + (gen() % 10)) : 1;
             myGraph->AddEdge(u, v, weight);
             remainingEdges--;
         }
     }
 
-    // Initialize Eades factors after graph creation
-    initEadesFactor(myGraph);
-
     return myGraph;
 }
 
-void initEadesFactor(graph* G) {
-    if (!G) return;
-    G->iteration = 0;
-    G->currentVeclocity = G->Veclocity;
-    G->convergent = false;
-}
 
-void RunGraphVisualization(graph* G) {
-    if (!G) return;
-    G->HandleMouseInteraction();
-    G->BalanceGraph();
-    G->Draw();
-
-    // Display info
-    DrawTextEx(customFont, ("Nodes: " + to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
-}
-
-void RunGraphVisualization_MST(graph* G) {
-    if (!G) return;
-    G->HandleMouseInteraction();
-    G->BalanceGraph();
-    G->DrawMST();
-
-    // Display info
-    DrawTextEx(customFont, ("Nodes: " + to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
-}
- 
-void RunGraphVisualization_DIJKSTRA(graph* G) {
-    // non-complete
-    if (!G) return;
-    G->HandleMouseInteraction();
-    G->BalanceGraph();
-    G -> DrawDIJKSTRA(G -> DIJKSTRA_parameters.first, G -> DIJKSTRA_parameters.second);
-
-    // Display info
-    DrawTextEx(customFont, ("Nodes: " + to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    DrawTextEx(customFont, ("Edges: " + to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
-}
-
-int* par = NULL;
-int root(int x, int* par) {
-    if (par[x] < 0) return x;
-    return par[x] = root(par[x], par); 
-}
-
-bool unite(int u, int v, int* par) {
-    u = root(u, par);
-    v = root(v, par);
-    if (u == v) return 0;
-    if (-par[u] < -par[v]) swap(u, v);
-    par[u] += par[v];
-    par[v] = u;
-    return 1;
-}
-
-void Handle_InputFile(const char* filePath, graph* &G) {
-    fstream fin(filePath);
+void Handle_InputFile(const char* filePath, Graph* &G) {
+    std::fstream fin(filePath);
     if (!fin.is_open()) {
-        cout << "Cannot Open File";
+        std::cout << "Cannot Open File\n";
         return;
     }
     if (G) delete G;
 
     int numNodes, numEdges;
     fin >> numNodes >> numEdges;
-    G = new graph (numNodes, false, true);
+    G = new Graph(numNodes, false, true);
 
-    // Initialize nodes with random positions within the GraphDisplayScreen
-    uniform_real_distribution<float> disX(GraphDisplayScreen.x + G->nodeRadius, 
-        GraphDisplayScreen.x + GraphDisplayScreen.width - G->nodeRadius);
-
-    uniform_real_distribution<float> disY(GraphDisplayScreen.y + G->nodeRadius, 
-        GraphDisplayScreen.y + GraphDisplayScreen.height - G->nodeRadius);
-
+    std::uniform_real_distribution<float> disX(GraphDisplayScreen.x + G->Nodes[1].Pos.x,
+                                              GraphDisplayScreen.x + GraphDisplayScreen.width - G->Nodes[1].Pos.x);
+    std::uniform_real_distribution<float> disY(GraphDisplayScreen.y + G->Nodes[1].Pos.y,
+                                              GraphDisplayScreen.y + GraphDisplayScreen.height - G->Nodes[1].Pos.y);
     for (int i = 1; i <= numNodes; ++i) {
         G->Nodes[i].Pos = {disX(gen), disY(gen)};
     }
@@ -586,110 +549,8 @@ void Handle_InputFile(const char* filePath, graph* &G) {
     for (int i = 1; i <= numEdges; ++i) {
         int u, v, w;
         fin >> u >> v >> w;
-        G -> AddEdge(u, v, w);    
+        G->AddEdge(u, v, w);
     }
 
     fin.close();
-}
-
-vector<int> getMST(graph *G) {
-    if (!G) return vector<int>();
-
-    par = new int [G->numNode + 1];
-    for (int i = 1; i <= G->numNode; ++i) par[i] = -1;
-
-    vector<int> MST_Edges;
-    vector<int> edgesList;
-    for (int i = 0; i < G -> Edges.size(); ++i) edgesList.push_back(i);
-    sort(edgesList.begin(), edgesList.end(), [&](const int &id1, const int &id2){
-        return G -> Edges[id1].w < G -> Edges[id2].w;
-    });
-
-    for (const int &id : edgesList) {
-        int u = G -> Edges[id].u;
-        int v = G -> Edges[id].v;
-        if (unite(u, v, par))
-            MST_Edges.push_back(id);
-    }
-    delete [] par;
-    return MST_Edges;
-}   
-
-vector<int> getDIJKSTRA(graph* G, int src, int dest) {
-    // Check if the graph is valid
-    if (!G || G->numNode <= 0) {
-        cout << "Invalid graph\n";
-        return vector<int>();
-    }
-
-    // Validate source and destination vertices
-    if (src < 1 || src > G->numNode || dest < 1 || dest > G->numNode) {
-        cout << "Invalid source or destination vertex: src=" << src << ", dest=" << dest << ", numNode=" << G->numNode << "\n";
-        return vector<int>();
-    }
-
-    // Handle the case where src == dest
-    if (src == dest) {
-        cout << "Source and destination are the same: " << src << "\n";
-        return vector<int>(); // Empty path since the distance is 0
-    }
-
-    vector<int> dist(G->numNode + 1, INT_MAX); // Use INT_MAX to represent infinity
-    vector<int> pre(G->numNode + 1, -1);       // Predecessor edge IDs
-
-    // Priority queue to store {distance, vertex} pairs, ordered by distance (min-heap)
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> MinHeap;
-
-    // Initialize distances and priority queue
-    dist[src] = 0;
-    MinHeap.push({0, src});
-
-    // Dijkstra's algorithm
-    while (!MinHeap.empty()) {
-        int d = MinHeap.top().first;  // Distance
-        int u = MinHeap.top().second; // Vertex
-        MinHeap.pop();
-
-        // If this entry is outdated (we found a shorter path to u), skip it
-        if (d > dist[u]) {
-            continue;
-        }
-
-        // Explore neighbors of u
-        for (const int& id : G->Adjacent_list[u]) {
-            int v = G->Edges[id].other(u); // Get the other vertex of the edge
-            int weight = G->Edges[id].w;   // Edge weight
-
-            // Check for negative weights (Dijkstra's algorithm requires non-negative weights)
-            if (weight < 0) {
-                cout << "Negative edge weight detected: " << weight << ". Dijkstra's algorithm cannot handle negative weights.\n";
-                return vector<int>();
-            }
-
-            // Relax the edge (u, v)
-            if (dist[v] == INT_MAX || dist[v] > dist[u] + weight) {
-                dist[v] = dist[u] + weight;
-                pre[v] = id;
-                MinHeap.push({dist[v], v});
-            }
-        }
-    }
-
-    // Check if a path exists to the destination
-    if (dist[dest] == INT_MAX) {
-        cout << "No path from " << src << " to " << dest << "\n";
-        return vector<int>();
-    }
-
-    // Reconstruct the path from src to dest
-    vector<int> Path;
-    int currentVertex = dest;
-    while (currentVertex != src && pre[currentVertex] != -1) {
-        Path.push_back(pre[currentVertex]);
-        currentVertex = G->Edges[pre[currentVertex]].other(currentVertex);
-    }
-
-    // Reverse the path to get it from src to dest
-    reverse(Path.begin(), Path.end());
-    return Path;
 }

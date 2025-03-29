@@ -1,6 +1,6 @@
 #include "Graph_Menu.h"
 
-void Graph_Menu::ChooseGraphType(graph* &G) {
+void Graph_Menu::ChooseGraphType(Graph* &G) {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         isDirected = false;
         if (G != nullptr) {
@@ -29,7 +29,7 @@ void Graph_Menu::ChooseGraphType(graph* &G) {
     }
 }
 
-void Graph_Menu::ChooseAlgorithms(graph* &G) {
+void Graph_Menu::ChooseAlgorithms(Graph* &G) {
     if (CheckCollisionPointRec(mouse, createBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = CREATE;
     }
@@ -246,7 +246,7 @@ void Graph_Menu::ClearInputBoxes() {
     // destBox.text = "";
 }
 
-void Graph_Menu::MakeGraph(graph* &Graphs) {
+void Graph_Menu::MakeGraph(Graph* &Graphs) {
     int numNodes = 0, numEdges = 0, source = -1, dest = -1;
     GetInput(numNodes, numEdges, source, dest);
     ClearInputBoxes();
@@ -267,7 +267,7 @@ void Graph_Menu::MakeGraph(graph* &Graphs) {
     }
 }
 
-void Graph_Menu::Handle(graph* &G) {
+void Graph_Menu::Handle(Graph* &G) {
     ChooseGraphType(G);
     ChooseAlgorithms(G);
     Handle_Input();
