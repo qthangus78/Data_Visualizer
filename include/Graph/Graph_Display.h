@@ -10,8 +10,7 @@ void RunGraphVisualization_MST(Graph* G);
 void RunGraphVisualization_DIJKSTRA(Graph* G);
 
 namespace Graph_display {
-    // extern Graph* G;
-    extern Graph_Menu Gmenu;
+    extern GraphMenu Gmenu;
     extern GraphVisualizer myGraphVisualizer;
     void Display();
 }

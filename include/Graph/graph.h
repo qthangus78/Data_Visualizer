@@ -56,7 +56,7 @@ private:
     // Eades algorithm parameters
     float Crep = 1000.0f;
     float Cspring = 1.5f;
-    float IdealEdgeLength = 100.0f;
+    float IdealEdgeLength = 150.0f;
     float Ccenter = 0.005f;
     float Veclocity = 0.89f;
     float currentVeclocity = Veclocity;

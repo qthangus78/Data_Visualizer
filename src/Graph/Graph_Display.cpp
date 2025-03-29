@@ -33,8 +33,7 @@ void RunGraphVisualization_DIJKSTRA(GraphVisualizer &visualizer) {
 
 
 namespace Graph_display {
-    // Graph* G = nullptr;
-    Graph_Menu Gmenu;
+    GraphMenu Gmenu;
     GraphVisualizer myGraphVisualizer;
 
     void Display() {
@@ -42,17 +41,17 @@ namespace Graph_display {
         display_title("Graphs", 1);
         DrawRectangleRec(GraphDisplayScreen, {238, 241, 218, 255}); // rgb(51, 145, 154)
 
-        Gmenu.Handle(myGraphVisualizer.graph);
+        Gmenu.Handle(myGraphVisualizer);
         Gmenu.Draw();
 
         if (myGraphVisualizer.checkGraph()) {
-            if (Gmenu.selectedOption == Graph_Menu::CREATE) {
+            if (Gmenu.selectedOption == GraphMenu::MenuOption::CREATE) {
                 RunGraphVisualization(myGraphVisualizer);
             }
-            if (Gmenu.selectedOption == Graph_Menu::MST_KRUSKAL) {
+            if (Gmenu.selectedOption == GraphMenu::MenuOption::MST_KRUSKAL) {
                 RunGraphVisualization_MST(myGraphVisualizer);
             }
-            if (Gmenu.selectedOption == Graph_Menu::DIJKSTRA) {
+            if (Gmenu.selectedOption == GraphMenu::MenuOption::DIJKSTRA) {
                 RunGraphVisualization_DIJKSTRA(myGraphVisualizer);
             }
         }
