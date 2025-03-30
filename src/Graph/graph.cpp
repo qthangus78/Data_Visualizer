@@ -253,7 +253,7 @@ void GraphVisualizer::DrawMST() const {
 }
 
 void GraphVisualizer::DrawDIJKSTRA() const {
-    std::vector<int> DIJKSTRA_edges = GraphAlgorithms::getDIJKSTRA(graph, graph->DIJKSTRA_parameters.first, graph->DIJKSTRA_parameters.second);
+    std::vector<int> DIJKSTRA_edges = GraphAlgorithms::getDIJKSTRA(graph, graph->dijkstraSource);
     for (int i = 0; i < graph->Edges.size(); ++i) {
         bool special = false;
         for (int id : DIJKSTRA_edges) {
@@ -317,19 +317,14 @@ namespace GraphAlgorithms {
         return MST_Edges;
     }
 
-    std::vector<int> getDIJKSTRA(const Graph* G, int src, int dest) {
+    std::vector<int> getDIJKSTRA(const Graph* G, int src) {
         if (!G || G->numNode <= 0) {
             std::cout << "Invalid graph\n";
             return std::vector<int>();
         }
 
-        if (src < 1 || src > G->numNode || dest < 1 || dest > G->numNode) {
-            std::cout << "Invalid source or destination vertex: src=" << src << ", dest=" << dest << ", numNode=" << G->numNode << "\n";
-            return std::vector<int>();
-        }
-
-        if (src == dest) {
-            std::cout << "Source and destination are the same: " << src << "\n";
+        if (src < 1 || src > G->numNode) {
+            std::cout << "Invalid source vertex: src=" << src << ", numNode=" << G->numNode << "\n";
             return std::vector<int>();
         }
 
@@ -356,7 +351,7 @@ namespace GraphAlgorithms {
                     return std::vector<int>();
                 }
 
-                if (dist[v] == INT_MAX || dist[v] > dist[u] + weight) {
+                if (dist[v] > dist[u] + weight) {
                     dist[v] = dist[u] + weight;
                     pre[v] = id;
                     MinHeap.push({dist[v], v});
@@ -364,20 +359,15 @@ namespace GraphAlgorithms {
             }
         }
 
-        if (dist[dest] == INT_MAX) {
-            std::cout << "No path from " << src << " to " << dest << "\n";
-            return std::vector<int>();
+        // Collect all edges used in the shortest paths
+        std::vector<int> PathEdges;
+        for (int v = 1; v <= G->numNode; ++v) {
+            if (v != src && pre[v] != -1) {
+                PathEdges.push_back(pre[v]);
+            }
         }
 
-        std::vector<int> Path;
-        int currentVertex = dest;
-        while (currentVertex != src && pre[currentVertex] != -1) {
-            Path.push_back(pre[currentVertex]);
-            currentVertex = G->Edges[pre[currentVertex]].other(currentVertex);
-        }
-
-        std::reverse(Path.begin(), Path.end());
-        return Path;
+        return PathEdges;
     }
 }
 

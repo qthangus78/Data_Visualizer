@@ -33,7 +33,9 @@ public:
     std::vector<Edge> Edges;
     bool isDirected;
     bool isWeighted;
-    std::pair<int, int> DIJKSTRA_parameters;
+
+    // Add a member to store the source node for Dijkstra's algorithm
+    int dijkstraSource = -1;
 };
 
 class GraphVisualizer {
@@ -76,7 +78,7 @@ private:
 
 namespace GraphAlgorithms {
     std::vector<int> getMST(const Graph* G);
-    std::vector<int> getDIJKSTRA(const Graph* G, int src, int dest);
+    std::vector<int> getDIJKSTRA(const Graph* G, int src);
 }
 
 Graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
