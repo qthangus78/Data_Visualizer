@@ -8,10 +8,17 @@
 class GraphMenu {
 public:
     // Enum classes for type safety and readability
-    enum class MenuOption { CREATE, MST_KRUSKAL, DIJKSTRA, ADD_EDGE, DELETE_EDGE, NONE };
+    enum class MenuOption { CREATE, MST_KRUSKAL, DIJKSTRA, NONE };
+    enum class EdgeOperation { ADD_EDGE, DELETE_EDGE, NONE };
     enum class ActiveField { NONE, NODES, EDGES, SOURCE };
+    enum class GraphDirectionType { DIRECTED, UNDIRECTED };
+    enum class GraphWeightType { WEIGHTED, UNWEIGHTED };
+    enum class ActiveEdgeField { FROM, TO, WEIGHT, NONE };
+
     MenuOption selectedOption = MenuOption::NONE;
+    EdgeOperation selectedEdgeOp = EdgeOperation::NONE;
     ActiveField activeField = ActiveField::NONE;
+    ActiveEdgeField activeEdgeField = ActiveEdgeField::NONE;
 
     // Constructor
     GraphMenu(); // Declaration only
@@ -20,9 +27,9 @@ public:
 
 private:
     // State variables
-    bool isDirected = false;
-    bool isWeighted = false;
-    
+    GraphDirectionType directionType = GraphDirectionType::UNDIRECTED;
+    GraphWeightType weightType = GraphWeightType::UNWEIGHTED;
+
     bool fileSelected = false;
     bool confirmPressed = false;
 
@@ -57,6 +64,13 @@ private:
     // New UI elements for edge operations
     TextBox edgeOperationsBackground; // Background for Add/Delete Edge buttons
 
+    // Edge operation input box
+    TextBox edgeInputBoxBackground;
+    InputField fromField;  // For source vertex
+    InputField toField;    // For destination vertex
+    InputField weightField; // For edge weight
+    bool showEdgeInputBox = false;
+
     // Cursor blinking control
     float cursorBlinkTimer = 0.0f;
     const float cursorBlinkInterval = 0.3f;
@@ -85,4 +99,9 @@ private:
     void DrawInputFields();
     void DrawButtons(bool showButtons);
     bool ShouldShowColoredText(const TextBox& btn, const Color& hoverColor) const;
+
+    // Helper function for edge input box
+    void DrawEdgeInputBox();
+    void HandleEdgeInput();
+    void ClearEdgeInputBoxes();
 };

@@ -70,30 +70,6 @@ GraphMenu::GraphMenu() {
     dijkstraBtn.fontSize = 16;
     dijkstraBtn.scaleRate = 1.0f;
 
-    // Background for Add/Delete Edge buttons
-    edgeOperationsBackground.rect = {lowerAlgoBoxBackground.rect.x, lowerAlgoBoxBackground.rect.y + lowerAlgoBoxBackground.rect.height + 25, lowerAlgoBoxBackground.rect.width, 110};
-    edgeOperationsBackground.rectColor = {32, 87, 129, 255};
-    edgeOperationsBackground.text = "";
-    edgeOperationsBackground.fontSize = 0;
-    edgeOperationsBackground.scaleRate = 1.0f;
-    edgeOperationsBackground.roundness = 0.2f;
-
-
-    // Add Edge button
-    addEdgeBtn.rect = {edgeOperationsBackground.rect.x + 5, edgeOperationsBackground.rect.y + 10, edgeOperationsBackground.rect.width - 10, 40};
-    addEdgeBtn.rectColor = {79, 149, 157, 255};
-    addEdgeBtn.text = "Add Edge";
-    addEdgeBtn.textColor = BLACK;
-    addEdgeBtn.fontSize = 16;
-    addEdgeBtn.scaleRate = 1.0f;
-
-    // Delete Edge button
-    deleteEdgeBtn.rect = {addEdgeBtn.rect.x, addEdgeBtn.rect.y + 50, addEdgeBtn.rect.width, 40};
-    deleteEdgeBtn.rectColor = {79, 149, 157, 255};
-    deleteEdgeBtn.text = "Delete Edge";
-    deleteEdgeBtn.textColor = BLACK;
-    deleteEdgeBtn.fontSize = 16;
-    deleteEdgeBtn.scaleRate = 1.0f;
 
     // Lower box background
     float fieldHeight = 30.0f; // Height of each field
@@ -173,61 +149,130 @@ GraphMenu::GraphMenu() {
     confirmBtn.fontSize = 15;
     confirmBtn.scaleRate = 1.1f;
 
+     // Background for Add/Delete Edge buttons
+    edgeOperationsBackground.rect = {lowerAlgoBoxBackground.rect.x, lowerAlgoBoxBackground.rect.y + lowerAlgoBoxBackground.rect.height + 25, lowerAlgoBoxBackground.rect.width, 110};
+    edgeOperationsBackground.rectColor = {32, 87, 129, 255};
+    edgeOperationsBackground.text = "";
+    edgeOperationsBackground.fontSize = 0;
+    edgeOperationsBackground.scaleRate = 1.0f;
+    edgeOperationsBackground.roundness = 0.2f;
+
+    // Add Edge button
+    addEdgeBtn.rect = {edgeOperationsBackground.rect.x + 5, edgeOperationsBackground.rect.y + 10, edgeOperationsBackground.rect.width - 10, 40};
+    addEdgeBtn.rectColor = {79, 149, 157, 255};
+    addEdgeBtn.text = "Add Edge";
+    addEdgeBtn.textColor = BLACK;
+    addEdgeBtn.fontSize = 16;
+    addEdgeBtn.scaleRate = 1.0f;
+
+    // Delete Edge button
+    deleteEdgeBtn.rect = {addEdgeBtn.rect.x, addEdgeBtn.rect.y + 50, addEdgeBtn.rect.width, 40};
+    deleteEdgeBtn.rectColor = {79, 149, 157, 255};
+    deleteEdgeBtn.text = "Delete Edge";
+    deleteEdgeBtn.textColor = BLACK;
+    deleteEdgeBtn.fontSize = 16;
+    deleteEdgeBtn.scaleRate = 1.0f;
+
+    // Edge input box setup
+    float totalHeight_edge = 3 * fieldHeight + 2 * fieldSpacing + 20.0f; // Height for 3 fields + spacing + padding
+    float totalWidth = labelWidth + boxWidth + 30.0f; // Same width as parameter box
+
+    edgeInputBoxBackground.rect = {
+        edgeOperationsBackground.rect.x + edgeOperationsBackground.rect.width + 10.0f,
+        edgeOperationsBackground.rect.y,
+        totalWidth,
+        totalHeight_edge
+    };
+    edgeInputBoxBackground.rectColor = {32, 87, 129, 255};
+    edgeInputBoxBackground.roundness = 0.2f;
+
+    startY = edgeInputBoxBackground.rect.y + 10.0f;
+    float labelX = edgeInputBoxBackground.rect.x + 10.0f;
+    float inputX = labelX + labelWidth + 10.0f;
+
+    // From field
+    fromField.label.rect = {labelX, startY, labelWidth, fieldHeight};
+    fromField.label.rectColor = {79, 149, 157, 255};
+    fromField.label.text = "From";
+    fromField.label.textColor = BLACK;
+    fromField.label.fontSize = 15;
+    fromField.box.rect = {inputX, startY, boxWidth, fieldHeight};
+    fromField.box.rectColor = {246, 248, 213, 255};
+    fromField.box.textColor = BLACK;
+    fromField.box.fontSize = 15;
+
+    // To field
+    toField.label.rect = {labelX, startY + fieldHeight + fieldSpacing, labelWidth, fieldHeight};
+    toField.label.rectColor = {79, 149, 157, 255};
+    toField.label.text = "To";
+    toField.label.textColor = BLACK;
+    toField.label.fontSize = 15;
+    toField.box.rect = {inputX, startY + fieldHeight + fieldSpacing, boxWidth, fieldHeight};
+    toField.box.rectColor = {246, 248, 213, 255};
+    toField.box.textColor = BLACK;
+    toField.box.fontSize = 15;
+
+    // Weight field
+    weightField.label.rect = {labelX, startY + 2 * (fieldHeight + fieldSpacing), labelWidth, fieldHeight};
+    weightField.label.rectColor = {79, 149, 157, 255};
+    weightField.label.text = "Weight";
+    weightField.label.textColor = BLACK;
+    weightField.label.fontSize = 15;
+    weightField.box.rect = {inputX, startY + 2 * (fieldHeight + fieldSpacing), boxWidth, fieldHeight};
+    weightField.box.rectColor = {246, 248, 213, 255};
+    weightField.box.textColor = BLACK;
+    weightField.box.fontSize = 15;
 }
 
 void GraphMenu::ChooseGraphType(GraphVisualizer &GV) {
-    bool collise = false;
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        isDirected = false;
-        if (GV.graph) GV.graph->isDirected = isDirected;
-        collise = true;
+        directionType = GraphDirectionType::UNDIRECTED;
+        if (GV.graph) GV.graph->isDirected = false;
     }
     if (CheckCollisionPointRec(mouse, directedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (selectedOption != MenuOption::MST_KRUSKAL) { // MST must be undirected
-            isDirected = true;
-            if (GV.graph) GV.graph->isDirected = isDirected;
+            directionType = GraphDirectionType::DIRECTED;
+            if (GV.graph) GV.graph->isDirected = true;
         }
-        collise = true;
     }
     if (CheckCollisionPointRec(mouse, unweightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (selectedOption != MenuOption::MST_KRUSKAL) { // MST must be weighted
-            isWeighted = false;
-            if (GV.graph) GV.graph->isWeighted = isWeighted;
+            weightType = GraphWeightType::UNWEIGHTED;
+            if (GV.graph) GV.graph->isWeighted = false;
         }
-        collise = true;
     }
     if (CheckCollisionPointRec(mouse, weightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        isWeighted = true;
-        if (GV.graph) GV.graph->isWeighted = isWeighted;
-        collise = true;
-    }
-
-    if (collise) {
-        selectedOption = MenuOption::NONE; // Reset selected option
+        weightType = GraphWeightType::WEIGHTED;
+        if (GV.graph) GV.graph->isWeighted = true;
     }
 }
 
 void GraphMenu::ChooseAlgorithms(GraphVisualizer &GV) {
     if (CheckCollisionPointRec(mouse, createBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::CREATE;
+        selectedEdgeOp = EdgeOperation::NONE;
     }
     if (CheckCollisionPointRec(mouse, mstBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::MST_KRUSKAL;
-        isDirected = false;
-        isWeighted = true;
+        selectedEdgeOp = EdgeOperation::NONE;
+        directionType = GraphDirectionType::UNDIRECTED;
+        weightType = GraphWeightType::WEIGHTED;
         if (GV.graph) {
-            GV.graph->isDirected = isDirected;
-            GV.graph->isWeighted = isWeighted;
+            GV.graph->isDirected = false;
+            GV.graph->isWeighted = true;
         }
     }
     if (CheckCollisionPointRec(mouse, dijkstraBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::DIJKSTRA;
+        selectedEdgeOp = EdgeOperation::NONE;
     }
     if (CheckCollisionPointRec(mouse, addEdgeBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        selectedOption = MenuOption::ADD_EDGE;
+        selectedEdgeOp = EdgeOperation::ADD_EDGE;
+        // selectedOption = MenuOption::NONE;
     }
     if (CheckCollisionPointRec(mouse, deleteEdgeBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        selectedOption = MenuOption::DELETE_EDGE;   
+        selectedEdgeOp = EdgeOperation::DELETE_EDGE;   
+        // selectedOption = MenuOption::NONE;
     }
 }
 
@@ -320,6 +365,97 @@ void GraphMenu::HandleInput() {
     sourceField.box.text = sourceField.input.c_str();
 }
 
+void GraphMenu::HandleEdgeInput() {
+    if (!showEdgeInputBox) return;
+
+    float deltaTime = GetFrameTime();
+    Vector2 mouse = GetMousePosition();
+
+    // Handle textbox activation
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (CheckCollisionPointRec(mouse, fromField.label.rect) ||
+            ((fromField.input.size() > 0 || activeEdgeField == ActiveEdgeField::FROM) && 
+             CheckCollisionPointRec(mouse, fromField.box.rect))) {
+            activeEdgeField = ActiveEdgeField::FROM;
+            cursorBlinkTimer = 0.0f;
+            showCursor = true;
+        }
+        else if (CheckCollisionPointRec(mouse, toField.label.rect) ||
+                ((toField.input.size() > 0 || activeEdgeField == ActiveEdgeField::TO) && 
+                 CheckCollisionPointRec(mouse, toField.box.rect))) {
+            activeEdgeField = ActiveEdgeField::TO;
+            cursorBlinkTimer = 0.0f;
+            showCursor = true;
+        }
+        else if (weightType == GraphWeightType::WEIGHTED && 
+                (CheckCollisionPointRec(mouse, weightField.label.rect) ||
+                 ((weightField.input.size() > 0 || activeEdgeField == ActiveEdgeField::WEIGHT) && 
+                  CheckCollisionPointRec(mouse, weightField.box.rect)))) {
+            activeEdgeField = ActiveEdgeField::WEIGHT;
+            cursorBlinkTimer = 0.0f;
+            showCursor = true;
+        }
+        else {
+            activeEdgeField = ActiveEdgeField::NONE;
+        }
+    }
+
+    // Update cursor blinking
+    cursorBlinkTimer += deltaTime;
+    if (cursorBlinkTimer >= cursorBlinkInterval) {
+        showCursor = !showCursor;
+        cursorBlinkTimer = 0.0f;
+    }
+
+    // Handle numeric input and backspace
+    int key = GetKeyPressed();
+    if (key >= '0' && key <= '9') {
+        if (activeEdgeField == ActiveEdgeField::FROM && fromField.input.size() <= 4) {
+            fromField.input += (char)key;
+        }
+        else if (activeEdgeField == ActiveEdgeField::TO && toField.input.size() <= 4) {
+            toField.input += (char)key;
+        }
+        else if (activeEdgeField == ActiveEdgeField::WEIGHT && weightType == GraphWeightType::WEIGHTED && 
+                 weightField.input.size() <= 4) {
+            weightField.input += (char)key;
+        }
+    }
+
+    // Handle backspace with hold-to-delete
+    if (IsKeyDown(KEY_BACKSPACE)) {
+        if (!backspaceHeld) {
+            backspaceHeld = true;
+            backspaceTimer = 0.0f;
+            initialBackspaceDelayPassed = false;
+            if (activeEdgeField == ActiveEdgeField::FROM && !fromField.input.empty()) fromField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::TO && !toField.input.empty()) toField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::WEIGHT && !weightField.input.empty()) weightField.input.pop_back();
+        }
+        backspaceTimer += deltaTime;
+        if (!initialBackspaceDelayPassed && backspaceTimer >= initialBackspaceDelay) {
+            initialBackspaceDelayPassed = true;
+            backspaceTimer = 0.0f;
+        }
+        if (initialBackspaceDelayPassed && backspaceTimer >= repeatBackspaceDelay) {
+            if (activeEdgeField == ActiveEdgeField::FROM && !fromField.input.empty()) fromField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::TO && !toField.input.empty()) toField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::WEIGHT && !weightField.input.empty()) weightField.input.pop_back();
+            backspaceTimer = 0.0f;
+        }
+    }
+    else {
+        backspaceHeld = false;
+        initialBackspaceDelayPassed = false;
+        backspaceTimer = 0.0f;
+    }
+    
+    // Update textbox texts
+    fromField.box.text = fromField.input.c_str();
+    toField.box.text = toField.input.c_str();
+    weightField.box.text = weightField.input.c_str();
+}
+
 void GraphMenu::GetInput(int& numNodes, int& numEdges, int& source) {
     try {
         numNodes = std::stoi(nodesField.input);
@@ -336,7 +472,7 @@ void GraphMenu::GetInput(int& numNodes, int& numEdges, int& source) {
     catch (...) {
         std::random_device rd;
         std::mt19937 gen(rd());
-        int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
+        int maxEdges = (directionType == GraphDirectionType::DIRECTED) ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
         numEdges = gen() % maxEdges;
     }
 
@@ -361,6 +497,13 @@ void GraphMenu::ClearInputBoxes() {
     activeField = ActiveField::NONE;
 }
 
+void GraphMenu::ClearEdgeInputBoxes() {
+    fromField.input.clear();
+    toField.input.clear();
+    weightField.input.clear();
+    activeField = ActiveField::NONE;
+}
+
 void GraphMenu::MakeGraph(Graph* &G) {
     int numNodes = 0, numEdges = 0, source = -1;
     GetInput(numNodes, numEdges, source);
@@ -370,6 +513,9 @@ void GraphMenu::MakeGraph(Graph* &G) {
     ClearInputBoxes();
 
     if (G) delete G;
+    bool isDirected = (directionType == GraphDirectionType::DIRECTED);
+    bool isWeighted = (weightType == GraphWeightType::WEIGHTED);
+    
     if (selectedOption == MenuOption::CREATE) {
         G = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
     }
@@ -378,7 +524,7 @@ void GraphMenu::MakeGraph(Graph* &G) {
     }
     else if (selectedOption == MenuOption::DIJKSTRA) {
         G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
-        G->dijkstraSource = source; // Use the new member
+        G->dijkstraSource = source;
     }
 }
 
@@ -386,6 +532,13 @@ void GraphMenu::Handle(GraphVisualizer &GV) {
     ChooseGraphType(GV);
     ChooseAlgorithms(GV);
     HandleInput();
+
+    if (selectedEdgeOp != EdgeOperation::NONE) {
+        showEdgeInputBox = true;
+        HandleEdgeInput();
+    } else {
+        showEdgeInputBox = false;
+    }
 
     if (fileSelected) {
         const char* filePath = tinyfd_openFileDialog("Select a File", "", 0, NULL, NULL, 0);
@@ -405,13 +558,15 @@ void GraphMenu::Draw() {
     DrawEdgeOperations();
     DrawParameterBox();
     
-    bool showButtons = (selectedOption == MenuOption::CREATE || 
-                       selectedOption == MenuOption::MST_KRUSKAL || 
-                       selectedOption == MenuOption::DIJKSTRA);
+    bool showButtons = (selectedOption != MenuOption::NONE);
     
     if (showButtons) {
         DrawInputFields();
         DrawButtons(true);
+    }
+
+    if (showEdgeInputBox) {
+        DrawEdgeInputBox();
     }
 }
 
@@ -419,6 +574,9 @@ void GraphMenu::DrawUpperBox() {
     Color labelColor[2] = {{79, 149, 157, 255}, {246, 248, 213, 255}};
     
     upperBoxBackground.Draw_TextBox();
+    bool isDirected = (directionType == GraphDirectionType::DIRECTED);
+    bool isWeighted = (weightType == GraphWeightType::WEIGHTED);
+    
     undirectedBtn.rectColor = isDirected ? labelColor[0] : labelColor[1];
     undirectedBtn.Draw_TextBox(!isDirected);
     directedBtn.rectColor = isDirected ? labelColor[1] : labelColor[0];
@@ -457,12 +615,12 @@ void GraphMenu::DrawEdgeOperations() {
 
     edgeOperationsBackground.Draw_TextBox();
     
-    addEdgeBtn.rectColor = (selectedOption == MenuOption::ADD_EDGE) ? labelColor[1] : labelColor[0];    
+    addEdgeBtn.rectColor = (selectedEdgeOp == EdgeOperation::ADD_EDGE) ? labelColor[1] : labelColor[0];    
     addEdgeBtn.textColor = ShouldShowColoredText(addEdgeBtn, textHoverColor) ? BLACK : 
                           (CheckCollisionPointRec(mouse, addEdgeBtn.rect) ? textHoverColor : BLACK);
     addEdgeBtn.Draw_TextBox();
     
-    deleteEdgeBtn.rectColor = (selectedOption == MenuOption::DELETE_EDGE) ? labelColor[1] : labelColor[0];      
+    deleteEdgeBtn.rectColor = (selectedEdgeOp == EdgeOperation::DELETE_EDGE) ? labelColor[1] : labelColor[0];      
     deleteEdgeBtn.textColor = ShouldShowColoredText(deleteEdgeBtn, textHoverColor) ? BLACK : 
                              (CheckCollisionPointRec(mouse, deleteEdgeBtn.rect) ? textHoverColor : BLACK);
     deleteEdgeBtn.Draw_TextBox();
@@ -514,6 +672,51 @@ void GraphMenu::DrawInputFields() {
         if (!sourceField.input.empty() || activeField == ActiveField::SOURCE) {
             sourceField.box.Draw_TextBox();
             if (activeField == ActiveField::SOURCE && showCursor) sourceField.box.Draw_BlinkingLine();
+        }
+    }
+}
+
+void GraphMenu::DrawEdgeInputBox() {
+    if (!showEdgeInputBox) return;
+
+    Color labelColor[2] = {{79, 149, 157, 255}, {246, 248, 213, 255}};
+    Color textHoverColor = {246, 248, 213, 255};
+
+    if (weightType == GraphWeightType::UNWEIGHTED) 
+        edgeInputBoxBackground.rect.height = 30.0f * 2 + 30;
+    else 
+        edgeInputBoxBackground.rect.height = 30.0f * 3 + 40;
+    edgeInputBoxBackground.Draw_TextBox();
+    
+    // From field with highlighting
+    fromField.label.rectColor = (activeEdgeField == ActiveEdgeField::FROM) ? labelColor[1] : labelColor[0];
+    fromField.label.textColor = ShouldShowColoredText(fromField.label, textHoverColor) ? BLACK :
+        (CheckCollisionPointRec(mouse, fromField.label.rect) ? textHoverColor : BLACK);
+    fromField.label.Draw_TextBox();
+    if (!fromField.input.empty() || activeEdgeField == ActiveEdgeField::FROM) {
+        fromField.box.Draw_TextBox();
+        if (activeEdgeField == ActiveEdgeField::FROM && showCursor) fromField.box.Draw_BlinkingLine();
+    }
+    
+    // To field with highlighting
+    toField.label.rectColor = (activeEdgeField == ActiveEdgeField::TO) ? labelColor[1] : labelColor[0];
+    toField.label.textColor = ShouldShowColoredText(toField.label, textHoverColor) ? BLACK :
+        (CheckCollisionPointRec(mouse, toField.label.rect) ? textHoverColor : BLACK);
+    toField.label.Draw_TextBox();
+    if (!toField.input.empty() || activeEdgeField == ActiveEdgeField::TO) {
+        toField.box.Draw_TextBox();
+        if (activeEdgeField == ActiveEdgeField::TO && showCursor) toField.box.Draw_BlinkingLine();
+    }
+    
+    // Weight field with highlighting (only shown for weighted graphs)
+    if (weightType == GraphWeightType::WEIGHTED) {
+        weightField.label.rectColor = (activeEdgeField == ActiveEdgeField::WEIGHT) ? labelColor[1] : labelColor[0];
+        weightField.label.textColor = ShouldShowColoredText(weightField.label, textHoverColor) ? BLACK :
+            (CheckCollisionPointRec(mouse, weightField.label.rect) ? textHoverColor : BLACK);
+        weightField.label.Draw_TextBox();
+        if (!weightField.input.empty() || activeEdgeField == ActiveEdgeField::WEIGHT) {
+            weightField.box.Draw_TextBox();
+            if (activeEdgeField == ActiveEdgeField::WEIGHT && showCursor) weightField.box.Draw_BlinkingLine();
         }
     }
 }
