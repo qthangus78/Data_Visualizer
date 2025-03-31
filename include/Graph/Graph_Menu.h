@@ -7,12 +7,11 @@
 
 class GraphMenu {
 public:
-    // Enum classes for type safety and readability
+    enum class GraphDirectionType { DIRECTED, UNDIRECTED };
+    enum class GraphWeightType { WEIGHTED, UNWEIGHTED };
     enum class MenuOption { CREATE, MST_KRUSKAL, DIJKSTRA, NONE };
     enum class EdgeOperation { ADD_EDGE, DELETE_EDGE, NONE };
     enum class ActiveField { NONE, NODES, EDGES, SOURCE };
-    enum class GraphDirectionType { DIRECTED, UNDIRECTED };
-    enum class GraphWeightType { WEIGHTED, UNWEIGHTED };
     enum class ActiveEdgeField { FROM, TO, WEIGHT, NONE };
 
     MenuOption selectedOption = MenuOption::NONE;
@@ -71,6 +70,9 @@ private:
     InputField weightField; // For edge weight
     bool showEdgeInputBox = false;
 
+    // Confirm button for edge operations
+    TextBox edgeConfirmBtn;  // Add this line with other TextBox declarations
+
     // Cursor blinking control
     float cursorBlinkTimer = 0.0f;
     const float cursorBlinkInterval = 0.3f;
@@ -88,10 +90,11 @@ private:
     void ChooseAlgorithms(GraphVisualizer &GV);
     void HandleInput();
     void GetInput(int& numNodes, int& numEdges, int& source);
+    void GetEdgeInput(int& from, int& to, int& weight); // Add this line
     void ClearInputBoxes();
     void MakeGraph(Graph* &G);
 
-    // New private helper methods for drawing
+    // methods for drawing
     void DrawUpperBox();
     void DrawAlgorithmOptions();
     void DrawEdgeOperations();
@@ -102,6 +105,6 @@ private:
 
     // Helper function for edge input box
     void DrawEdgeInputBox();
-    void HandleEdgeInput();
+    // void HandleEdgeInput();
     void ClearEdgeInputBoxes();
 };
