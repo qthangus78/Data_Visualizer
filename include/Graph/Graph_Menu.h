@@ -55,12 +55,13 @@ private:
     TextBox lowerParameterBoxBackground;
     TextBox fileBtn;
     TextBox confirmBtn;
+    bool showButtons = false; // Control visibility of buttons
+    TextBox showParameterBoxBtn;
 
-    // New buttons for edge operations
+
+    // buttons for edge operations
     TextBox addEdgeBtn;
     TextBox deleteEdgeBtn;
-
-    // New UI elements for edge operations
     TextBox edgeOperationsBackground; // Background for Add/Delete Edge buttons
 
     // Edge operation input box
@@ -68,10 +69,20 @@ private:
     InputField fromField;  // For source vertex
     InputField toField;    // For destination vertex
     InputField weightField; // For edge weight
-    bool showEdgeInputBox = false;
+    TextBox edgeConfirmBtn;  
 
-    // Confirm button for edge operations
-    TextBox edgeConfirmBtn;  // Add this line with other TextBox declarations
+    TextBox showEdgeInputBoxBtn;
+    bool showEdgeInputBox = false;
+    
+
+    
+    // buttons for clearing graph
+    TextBox clearGraphBackground;
+    TextBox clearGraphBtn;
+    TextBox clearGraphConfirmBtn;
+    bool showClearConfirm = false;
+    bool clearConfirmPressed = false;
+
 
     // Cursor blinking control
     float cursorBlinkTimer = 0.0f;
@@ -89,9 +100,12 @@ private:
     void ChooseGraphType(GraphVisualizer &GV);
     void ChooseAlgorithms(GraphVisualizer &GV);
     void HandleInput();
+    void HandleEdgeOperations(GraphVisualizer &GV);
+    void HandleClearGraphBtn(GraphVisualizer &GV);
     void GetInput(int& numNodes, int& numEdges, int& source);
     void GetEdgeInput(int& from, int& to, int& weight); // Add this line
     void ClearInputBoxes();
+    void ClearEdgeInputBoxes();
     void MakeGraph(Graph* &G);
 
     // methods for drawing
@@ -100,11 +114,10 @@ private:
     void DrawEdgeOperations();
     void DrawParameterBox();
     void DrawInputFields();
-    void DrawButtons(bool showButtons);
-    bool ShouldShowColoredText(const TextBox& btn, const Color& hoverColor) const;
-
-    // Helper function for edge input box
     void DrawEdgeInputBox();
-    // void HandleEdgeInput();
-    void ClearEdgeInputBoxes();
+    void DrawShowEdgeInputBoxBtn();
+    void DrawShowParameterBoxBtn();
+    void DrawButtons(bool showButtons);
+    void DrawClearGraphBtn();
+    bool ShouldShowColoredText(const TextBox& btn, const Color& hoverColor) const;
 };

@@ -62,6 +62,16 @@ void TextBox::Draw_TextBox(bool makeHover) {
     DrawTextEx(customFont, text, {textPos.x , textPos.y}, current_fontSize, 1.5f, textColor);
 }
 
+void TextBox::Draw_TextBox2() {
+    DrawRectangleRounded(rect, roundness, numSegment, rectColor);
+    Vector2 textSize = MeasureTextEx(customFont, text, fontSize, 1.5f);
+    textPos = {
+        rect.x + (rect.width - textSize.x) / 2,
+        rect.y + (rect.height - textSize.y) / 2
+    };
+    DrawTextEx(customFont, text, {textPos.x , textPos.y}, fontSize, 1.5f, textColor);
+}
+
 void TextBox::Draw_BlinkingLine() {
     if (strlen(text) == 0) {
         Vector2 textSize = MeasureTextEx(customFont, "a", current_fontSize, 1.5f);

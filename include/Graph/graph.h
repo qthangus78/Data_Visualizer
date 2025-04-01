@@ -51,6 +51,7 @@ public:
     void DrawMST() const;
     void DrawDIJKSTRA() const;
     void initEadesFactor();
+    
 private:
     int selectedNode = -1;
     float nodeRadius = 15.0f;

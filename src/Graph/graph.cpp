@@ -30,9 +30,8 @@ Graph::Graph(int _numNode, bool _isDirected, bool _isWeighted)
 
 void Graph::AddEdge(int u, int v, int w) {
     Adjacent_list[u].push_back(Edges.size());
-    if (!isDirected) {
-        Adjacent_list[v].push_back(Edges.size());
-    }
+    Adjacent_list[v].push_back(Edges.size());
+
     Edges.push_back(Edge(u, v, w));
     ++numEdge;
 }
@@ -343,6 +342,7 @@ namespace GraphAlgorithms {
             if (d > dist[u]) continue;
 
             for (const int& id : G->Adjacent_list[u]) {
+                if (G->isDirected && u != G->Edges[id].u) continue; // Skip if the edge is not directed from u
                 int v = G->Edges[id].other(u);
                 int weight = G->Edges[id].w;
 

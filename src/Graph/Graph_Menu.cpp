@@ -2,7 +2,7 @@
 
 GraphMenu::GraphMenu() {
     float upperBoxY = 30;
-    float lowerBoxY = 30 + 110 + 25;
+    float lowerBoxY = 30 + 110 + 50;
 
     // Upper box background
     upperBoxBackground.rect = {5, upperBoxY - 10, 290, 110};
@@ -75,7 +75,7 @@ GraphMenu::GraphMenu() {
     int numFields = 3; // Number of fields (Nodes, Edges, Source)
     float totalHeight = numFields * fieldHeight + (numFields - 1) * fieldSpacing + 20.0f; // Total height of fields + spacing + padding
 
-    lowerParameterBoxBackground.rect = {165, lowerBoxY - 10, labelWidth + boxWidth + 30.0f, totalHeight}; // Adjusted width and height
+    lowerParameterBoxBackground.rect = {180, lowerBoxY - 10, labelWidth + boxWidth + 30.0f, totalHeight}; // Adjusted width and height
     lowerParameterBoxBackground.rectColor = {32, 87, 129, 255};
     lowerParameterBoxBackground.text = "";
     lowerParameterBoxBackground.fontSize = 0;
@@ -146,7 +146,7 @@ GraphMenu::GraphMenu() {
    
 
      // Background for Add/Delete Edge buttons
-    edgeOperationsBackground.rect = {lowerAlgoBoxBackground.rect.x, lowerAlgoBoxBackground.rect.y + lowerAlgoBoxBackground.rect.height + 25, lowerAlgoBoxBackground.rect.width, 110};
+    edgeOperationsBackground.rect = {lowerAlgoBoxBackground.rect.x, lowerAlgoBoxBackground.rect.y + lowerAlgoBoxBackground.rect.height + 50, lowerAlgoBoxBackground.rect.width, 110};
     edgeOperationsBackground.rectColor = {32, 87, 129, 255};
     edgeOperationsBackground.text = "";
     edgeOperationsBackground.fontSize = 0;
@@ -174,7 +174,7 @@ GraphMenu::GraphMenu() {
     float totalWidth = labelWidth + boxWidth + 30.0f; // Same width as parameter box
 
     edgeInputBoxBackground.rect = {
-        edgeOperationsBackground.rect.x + edgeOperationsBackground.rect.width + 10.0f,
+        lowerParameterBoxBackground.rect.x,
         edgeOperationsBackground.rect.y,
         totalWidth,
         totalHeight_edge
@@ -231,6 +231,47 @@ GraphMenu::GraphMenu() {
     edgeConfirmBtn.textColor = WHITE;
     edgeConfirmBtn.fontSize = 15;
     edgeConfirmBtn.scaleRate = 1.1f;
+
+    // Clear graph background
+    clearGraphBackground.rect = {
+        edgeOperationsBackground.rect.x,
+        edgeOperationsBackground.rect.y + edgeOperationsBackground.rect.height + 70,
+        edgeOperationsBackground.rect.width,
+        60  // Height to accommodate button and confirm button
+    };
+    clearGraphBackground.rectColor = {32, 87, 129, 255};  // Same as other backgrounds
+    clearGraphBackground.text = "";
+    clearGraphBackground.fontSize = 0;
+    clearGraphBackground.scaleRate = 1.0f;
+    clearGraphBackground.roundness = 0.2f;
+
+    // Adjust clear graph button position relative to background
+    clearGraphBtn.rect = {
+        clearGraphBackground.rect.x + 5,
+        clearGraphBackground.rect.y + 10,
+        clearGraphBackground.rect.width - 10,
+        40
+    };
+
+    // Clear graph button
+    clearGraphBtn.rectColor = {79, 149, 157, 255};
+    clearGraphBtn.text = "Clear Graph";
+    clearGraphBtn.textColor = BLACK;
+    clearGraphBtn.fontSize = 16;
+    clearGraphBtn.scaleRate = 1.0f;
+
+    // Clear graph confirm button
+    clearGraphConfirmBtn.rect = {
+        clearGraphBtn.rect.x,
+        clearGraphBackground.rect.y + clearGraphBackground.rect.height + 10.0f,
+        clearGraphBtn.rect.width,
+        40
+    };
+    clearGraphConfirmBtn.rectColor = BLACK;
+    clearGraphConfirmBtn.text = "Confirm";
+    clearGraphConfirmBtn.textColor = WHITE;
+    clearGraphConfirmBtn.fontSize = 16;
+    clearGraphConfirmBtn.scaleRate = 1.0f;
 }
 
 void GraphMenu::ChooseGraphType(GraphVisualizer &GV) {
@@ -260,6 +301,7 @@ void GraphMenu::ChooseAlgorithms(GraphVisualizer &GV) {
     // Choose menu option
     if (CheckCollisionPointRec(mouse, createBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::CREATE;
+        showButtons = true;
     }
     if (CheckCollisionPointRec(mouse, mstBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::MST_KRUSKAL;
@@ -269,17 +311,21 @@ void GraphMenu::ChooseAlgorithms(GraphVisualizer &GV) {
             GV.graph->isDirected = false;
             GV.graph->isWeighted = true;
         }
+        showButtons = true;
     }
     if (CheckCollisionPointRec(mouse, dijkstraBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::DIJKSTRA;
+        showButtons = true;
     }
 
     // Choose edge options
     if (CheckCollisionPointRec(mouse, addEdgeBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedEdgeOp = EdgeOperation::ADD_EDGE;
+        showEdgeInputBox = true;
     }
     if (CheckCollisionPointRec(mouse, deleteEdgeBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedEdgeOp = EdgeOperation::DELETE_EDGE;   
+        showEdgeInputBox = true;
     }
 }
 
@@ -493,16 +539,98 @@ void GraphMenu::ClearEdgeInputBoxes() {
     activeField = ActiveField::NONE;
 }
 
+void GraphMenu::HandleEdgeOperations(GraphVisualizer &GV) {
+    int from, to, weight;
+    GetEdgeInput(from, to, weight);
+
+    bool invalidInput = false;
+    std::string errorMessage = "";
+
+    // Validate input
+    if (from <= 0 || to <= 0 || fromField.input.empty() || toField.input.empty()) {
+        invalidInput = true;
+        errorMessage = "Invalid edge input: Missing or invalid vertex numbers";
+    }
+    else if (weightType == GraphWeightType::WEIGHTED && weightField.input.empty()) {
+        invalidInput = true;
+        errorMessage = "Invalid edge input: Missing weight for weighted graph";
+    }
+    else if (GV.graph && (from > GV.graph->numNode || to > GV.graph->numNode)) {
+        invalidInput = true;
+        errorMessage = "Invalid edge input: Vertex numbers exceed graph size";
+    }
+
+    if (invalidInput) {
+        const int msgDuration = 1200; // Duration in frames (2 seconds at 60 FPS)
+        static int msgTimer = 0;
+        if (msgTimer == 0) {
+            msgTimer = msgDuration;
+        }
+        if (msgTimer > 0) {
+            DrawText(errorMessage.c_str(), 10, GetScreenHeight() - 30, 20, RED);
+            msgTimer--;
+        }
+        return;
+    }
+
+    if (GV.graph) {
+        if (selectedEdgeOp == EdgeOperation::ADD_EDGE) {
+            // Check if weight is valid for weighted graphs
+            if (!GV.graph->isWeighted || (GV.graph->isWeighted && weight > 0)) {
+                GV.graph->AddEdge(from, to, weight);
+                ClearEdgeInputBoxes();
+            }
+        }
+        else if (selectedEdgeOp == EdgeOperation::DELETE_EDGE) {
+            // Find and remove the edge
+            bool edgeFound = false;
+            for (int i = 0; i < GV.graph->Edges.size(); i++) {
+                const auto& edge = GV.graph->Edges[i];
+                if ((edge.u == from && edge.v == to) || (!GV.graph->isDirected && edge.u == to && edge.v == from)) {
+                    // Remove edge from adjacency lists
+                    for (int u = 1; u <= GV.graph->numNode; u++) {
+                        auto& adj = GV.graph->Adjacent_list[u];
+                        adj.erase(std::remove(adj.begin(), adj.end(), i), adj.end());
+                        // Update remaining edge indices in adjacency list
+                        for (auto& idx : adj) {
+                            if (idx > i) idx--;
+                        }
+                    }
+                    // Remove edge from edge list
+                    GV.graph->Edges.erase(GV.graph->Edges.begin() + i);
+                    GV.graph->numEdge--;
+                    edgeFound = true;
+                    ClearEdgeInputBoxes();
+                    break;
+                }
+            }
+        }
+    }
+} 
+
+void GraphMenu::HandleClearGraphBtn(GraphVisualizer &GV) {
+    if (CheckCollisionPointRec(mouse, clearGraphBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        showClearConfirm = true;
+    }
+    if (showClearConfirm && CheckCollisionPointRec(mouse, clearGraphConfirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (GV.graph) {
+            delete GV.graph;
+            GV.graph = nullptr;
+        }
+        showClearConfirm = false;
+        selectedOption = MenuOption::NONE;
+        selectedEdgeOp = EdgeOperation::NONE;
+        showEdgeInputBox = false;
+        showButtons = false;
+        ClearInputBoxes();
+        ClearEdgeInputBoxes();
+    }
+}
+
 void GraphMenu::Handle(GraphVisualizer &GV) {
     ChooseGraphType(GV);
     ChooseAlgorithms(GV);
     HandleInput();
-
-    if (selectedEdgeOp != EdgeOperation::NONE) {
-        showEdgeInputBox = true;
-    } else {
-        showEdgeInputBox = false;
-    }
 
     if (fileSelected) {
         const char* filePath = tinyfd_openFileDialog("Select a File", "", 0, NULL, NULL, 0);
@@ -511,27 +639,44 @@ void GraphMenu::Handle(GraphVisualizer &GV) {
         fileSelected = false;
     }
     else if (confirmPressed) {
-        MakeGraph(GV.graph);
-        GV.initEadesFactor();
+        if (selectedOption == MenuOption::CREATE) {
+            MakeGraph(GV.graph);
+            GV.initEadesFactor();
+        }
+        else if (selectedOption == MenuOption::DIJKSTRA) {
+            int source;
+            GetInput(GV.graph->numNode, GV.graph->numEdge, source);
+            GV.graph -> dijkstraSource = source;
+        //     GV.graph->Dijkstra(source);
+        }
     }
+
+    if (showEdgeInputBox && CheckCollisionPointRec(mouse, edgeConfirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        HandleEdgeOperations(GV);
+    }
+
+    HandleClearGraphBtn(GV);
 }
 
 void GraphMenu::Draw() {
     DrawUpperBox();
     DrawAlgorithmOptions();
     DrawEdgeOperations();
-    DrawParameterBox();
     
-    bool showButtons = (selectedOption != MenuOption::NONE);
-    
+    // showButtons = true;
+    DrawShowParameterBoxBtn();
     if (showButtons) {
+        DrawParameterBox();
         DrawInputFields();
         DrawButtons(true);
     }
 
+    DrawShowEdgeInputBoxBtn();
     if (showEdgeInputBox) {
         DrawEdgeInputBox();
     }
+
+    DrawClearGraphBtn();
 }
 
 void GraphMenu::DrawUpperBox() {
@@ -590,6 +735,31 @@ void GraphMenu::DrawEdgeOperations() {
     deleteEdgeBtn.Draw_TextBox();
 }
 
+void GraphMenu::DrawClearGraphBtn() {
+    Color labelColor[2] = {{79, 149, 157, 255}, {246, 248, 213, 255}};
+    Color textHoverColor = {246, 248, 213, 255};
+
+    clearGraphBackground.Draw_TextBox();
+    
+    clearGraphBtn.rectColor = labelColor[0];
+    clearGraphBtn.textColor = CheckCollisionPointRec(mouse, clearGraphBtn.rect) ? textHoverColor : BLACK;
+
+    // Draw clear graph background and buttons
+    clearGraphBackground.Draw_TextBox();
+    clearGraphBtn.Draw_TextBox();
+    if (showClearConfirm) {
+        clearGraphConfirmBtn.rectColor = CheckCollisionPointRec(mouse, clearGraphConfirmBtn.rect) ? RED : BLACK;
+        clearGraphConfirmBtn.Draw_TextBox();
+    }
+
+    // Hide confirm button when clicking elsewhere
+    if (showClearConfirm && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && 
+        !CheckCollisionPointRec(mouse, clearGraphBtn.rect) && 
+        !CheckCollisionPointRec(mouse, clearGraphConfirmBtn.rect)) {
+        showClearConfirm = false;
+    }
+}
+
 void GraphMenu::DrawParameterBox() {
     if (selectedOption == MenuOption::CREATE || selectedOption == MenuOption::MST_KRUSKAL) {
         lowerParameterBoxBackground.rect.height = 30.0 * 2 + 30;
@@ -597,9 +767,6 @@ void GraphMenu::DrawParameterBox() {
     else if (selectedOption == MenuOption::DIJKSTRA) {
         lowerParameterBoxBackground.rect.height = 30.0 * 3 + 40;
     } 
-    else {
-        lowerParameterBoxBackground.rect.height = 0;
-    }
     lowerParameterBoxBackground.Draw_TextBox();
 }
 
@@ -687,6 +854,47 @@ void GraphMenu::DrawEdgeInputBox() {
     edgeConfirmBtn.Draw_TextBox();
 }
 
+
+void GraphMenu::DrawShowParameterBoxBtn() {
+    // Show/Hide parameter box button
+    float StartX = lowerAlgoBoxBackground.rect.x + lowerAlgoBoxBackground.rect.width + 2.0f;
+    float EndX = lowerParameterBoxBackground.rect.x - 2.0f;
+
+    showParameterBoxBtn.rect = {StartX, lowerAlgoBoxBackground.rect.y + lowerAlgoBoxBackground.rect.height / 3.0f, 
+        EndX - StartX, lowerAlgoBoxBackground.rect.height / 3.0f};
+
+    showParameterBoxBtn.rectColor = {62, 63, 91, 255}; 
+    showParameterBoxBtn.textColor = CheckCollisionPointRec(mouse, showParameterBoxBtn.rect) ? WHITE : BLACK;
+    showParameterBoxBtn.fontSize = 20;
+    showParameterBoxBtn.scaleRate = 1.0f;
+    showParameterBoxBtn.text = (showButtons ? "<" : ">");
+    showParameterBoxBtn.Draw_TextBox2();
+
+    if (CheckCollisionPointRec(mouse, showParameterBoxBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        showButtons = !showButtons;
+    }
+}
+
+void GraphMenu::DrawShowEdgeInputBoxBtn() {
+    // Show/Hide edge input box button
+    float StartX = edgeOperationsBackground.rect.x + edgeOperationsBackground.rect.width + 2.0f;
+    float EndX = edgeInputBoxBackground.rect.x - 2.0f;
+
+    showEdgeInputBoxBtn.rect = {StartX, edgeOperationsBackground.rect.y + edgeOperationsBackground.rect.height / 3.0f, 
+        EndX - StartX, edgeOperationsBackground.rect.height / 3.0f};
+
+    showEdgeInputBoxBtn.rectColor = {62, 63, 91, 255}; 
+    showEdgeInputBoxBtn.textColor = CheckCollisionPointRec(mouse, showEdgeInputBoxBtn.rect) ? WHITE : BLACK;
+    showEdgeInputBoxBtn.fontSize = 20;
+    showEdgeInputBoxBtn.scaleRate = 1.0f;
+    showEdgeInputBoxBtn.text = (showEdgeInputBox ? "<" : ">");
+    showEdgeInputBoxBtn.Draw_TextBox2();
+
+    if (CheckCollisionPointRec(mouse, showEdgeInputBoxBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        showEdgeInputBox = !showEdgeInputBox;
+    }
+}
+
 void GraphMenu::DrawButtons(bool showButtons) {
     if (showButtons) {
         fileBtn.Draw_TextBox();
@@ -712,15 +920,6 @@ void GraphMenu::MakeGraph(Graph* &G) {
     if (G) delete G;
     bool isDirected = (directionType == GraphDirectionType::DIRECTED);
     bool isWeighted = (weightType == GraphWeightType::WEIGHTED);
-    
-    if (selectedOption == MenuOption::CREATE) {
-        G = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
-    }
-    else if (selectedOption == MenuOption::MST_KRUSKAL) {
-        G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
-    }
-    else if (selectedOption == MenuOption::DIJKSTRA) {
-        G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
-        G->dijkstraSource = source;
-    }
+    G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
 }
+
