@@ -11,6 +11,7 @@ extern int currentSlideID;
 extern Vector2 mouse;
 extern bool WindowClose;
 extern Font customFont;
+extern Texture2D customTexture;
 
 
 //--------------------------------
@@ -69,4 +70,11 @@ struct ShadedData {
     ListNode* node;
 };
 
+struct HeapNode{
+    int val;
+    Vector2 pos;
+    Vector2 xy;
+};
+
+extern std::vector<HeapNode> heapNode;
 

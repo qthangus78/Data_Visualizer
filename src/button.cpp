@@ -19,7 +19,7 @@ void display_title(const char *Title, int lastSlideID) {
    
 
     myTexture BackButton (
-        LoadTexture("../resources/images/back-normal.png"),    
+        customTexture,
         title.rect.x - 40 - 10,
         title.rect.y
     );

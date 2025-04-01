@@ -4,14 +4,14 @@
 // Khai báo biến toàn cục
 //--------------------------------
 
-const int screenWidth = 1000;
-const int screenHeight = 700;
+const int screenWidth = 1400;
+const int screenHeight = 750;
 const int FPS = 60;
 int currentSlideID = 0;
 Vector2 mouse;
 bool WindowClose = 0;
 Font customFont;
-
+Texture2D customTexture;
 
 namespace color {
     Color buttonColor        = BLUE;
@@ -29,5 +29,8 @@ namespace buttonVar {
     button buttonF     = {{50.0f, 560.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
     button buttonClear = {{50.0f, 620.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
 }
+
 Edge EArrow = {100.0f, 3.0f, 20.0f};
 Vector2 startLinkedListPos = {50,180};
+
+std::vector<HeapNode> heapNode;
