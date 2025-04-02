@@ -109,15 +109,24 @@ private:
     void MakeGraph(Graph* &G);
 
     // methods for drawing
-    void DrawUpperBox();
+    void DrawGraphtypeBox();
     void DrawAlgorithmOptions();
     void DrawEdgeOperations();
     void DrawParameterBox();
-    void DrawInputFields();
     void DrawEdgeInputBox();
     void DrawShowEdgeInputBoxBtn();
     void DrawShowParameterBoxBtn();
-    void DrawButtons(bool showButtons);
+    void DrawButtons();
     void DrawClearGraphBtn();
     bool ShouldShowColoredText(const TextBox& btn, const Color& hoverColor) const;
 };
+
+
+// class InfoBox {
+// public:
+//     rectangle BackGround;
+//     vector<TextBox> Texts;
+//     int numText;
+//     float fontSize;    
+// };
+
