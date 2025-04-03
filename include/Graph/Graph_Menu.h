@@ -4,6 +4,7 @@
 #include "TextBox.h"
 #include <string>
 #include "tinyfiledialogs.h"
+#include "random"
 
 class GraphMenu {
 public:

@@ -134,23 +134,23 @@ void drawNode(Vector2 pos, const std::string& text, float radius){
 }
 //Vẽ mũi tên
 Vector2 Vector2Subtract(Vector2 v1, Vector2 v2) {
-    return (Vector2){ v1.x - v2.x, v1.y - v2.y };
+    return Vector2{ v1.x - v2.x, v1.y - v2.y };
 }
 float Vector2Length(Vector2 v) {
     return sqrtf(v.x * v.x + v.y * v.y);
 }
 Vector2 Vector2Add(Vector2 v1, Vector2 v2) {
-    return (Vector2){ v1.x + v2.x, v1.y + v2.y };
+    return Vector2{ v1.x + v2.x, v1.y + v2.y };
 }
 Vector2 Vector2Scale(Vector2 v, float scale) {
-    return (Vector2){ v.x * scale, v.y * scale };
+    return Vector2{ v.x * scale, v.y * scale };
 }
 void drawArrow(Vector2 start, Vector2 end, Color color) {
     Vector2 V = Vector2Subtract(end, start);
     float length = Vector2Length(V);
     if (length == 0) return;
     Vector2 V_unit = Vector2Scale(V, 1.0f / length);
-    Vector2 V_perp = (Vector2){ -V_unit.y, V_unit.x };
+    Vector2 V_perp = Vector2{ -V_unit.y, V_unit.x };
     float a = 10.0f;
     float b = 5.0f;  
     Vector2 temp1 = Vector2Scale(V_unit, -a);     
