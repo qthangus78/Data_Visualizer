@@ -6,29 +6,32 @@ void RunGraphVisualization(GraphVisualizer &visualizer) {
     visualizer.HandleMouseInteraction();
     visualizer.BalanceGraph();
     visualizer.Draw();
-
-    // DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    // DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
 }
 
 void RunGraphVisualization_MST(GraphVisualizer &visualizer) {
     if (!visualizer.checkGraph()) return;
     visualizer.HandleMouseInteraction();
     visualizer.BalanceGraph();
-    visualizer.DrawMST();
 
-    // DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    // DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+    if (visualizer.isKruskalInited() == false) {
+        visualizer.Draw();
+    }
+    else {
+        visualizer.DrawMST_StepByStep();
+    }
 }
 
 void RunGraphVisualization_DIJKSTRA(GraphVisualizer &visualizer) {
     if (!visualizer.checkGraph()) return;
     visualizer.HandleMouseInteraction();
     visualizer.BalanceGraph();
-    visualizer.DrawDIJKSTRA();
 
-    // DrawTextEx(customFont, ("Nodes: " + std::to_string(G->numNode)).c_str(), {900, 10}, 20, 1.0f, DARKGRAY);
-    // DrawTextEx(customFont, ("Edges: " + std::to_string(G->numEdge)).c_str(), {900, 40}, 20, 1.0f, DARKGRAY);
+    if (visualizer.graph->dijkstraSource == -1) {
+        visualizer.Draw();
+    }
+    else {
+        visualizer.DrawDIJKSTRA_StepByStep();
+    }
 }
 
 

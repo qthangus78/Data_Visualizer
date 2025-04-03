@@ -426,9 +426,7 @@ void GraphMenu::DrawParameterBox() {
 void GraphMenu::DrawButtons() {
     if (!showButtons) return;
     
-    if (selectedOption != MenuOption::MST_KRUSKAL) {
-        confirmBtn.Draw_TextBox();
-    }
+    confirmBtn.Draw_TextBox();
 
     if (selectedOption == MenuOption::CREATE) {
         fileBtn.Draw_TextBox();

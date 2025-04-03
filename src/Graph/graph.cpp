@@ -159,7 +159,7 @@ void GraphVisualizer::HandleMouseInteraction() {
     }
 }
 
-void GraphVisualizer::DrawEdge(const Graph::Edge& edge, bool special) const {
+void GraphVisualizer::DrawEdge(const Graph::Edge& edge, int special) const {
     int u = edge.u;
     int v = edge.v;
 
@@ -178,16 +178,32 @@ void GraphVisualizer::DrawEdge(const Graph::Edge& edge, bool special) const {
         end = {end.x - direction.x * nodeRadius, end.y - direction.y * nodeRadius};
     }
 
+    Color edgeColor;
+    float thickness;
+    switch (special) {
+        case 2:  // Currently being visited
+            edgeColor = RED;
+            thickness = 3.0f;
+            break;
+        case 1:  // Part of Dijkstra tree
+            edgeColor = BLUE;
+            thickness = 2.0f;
+            break;
+        default: // Normal edge
+            edgeColor = BLACK;
+            thickness = 1.0f;
+    }
+
     if (graph->isDirected) {
         if (dist > 0) {
-            DrawLineEx(start, end, special ? 2.0f : 1.0f, special ? RED : BLACK);
+            DrawLineEx(start, end, thickness, edgeColor);
             Vector2 arrow1 = {end.x - direction.x * 10 - direction.y * 5, end.y - direction.y * 10 + direction.x * 5};
             Vector2 arrow2 = {end.x - direction.x * 10 + direction.y * 5, end.y - direction.y * 10 - direction.x * 5};
-            DrawLineEx(end, arrow1, special ? 2.0f : 1.2f, special ? RED : BLACK);
-            DrawLineEx(end, arrow2, special ? 2.0f : 1.2f, special ? RED : BLACK);
+            DrawLineEx(end, arrow1, thickness, edgeColor);
+            DrawLineEx(end, arrow2, thickness, edgeColor);
         }
     } else {
-        DrawLineEx(start, end, special ? 2.0f : 1.0f, special ? RED : BLACK);
+        DrawLineEx(start, end, thickness, edgeColor);
     }
 
     if (graph->isWeighted) {
@@ -201,24 +217,40 @@ void GraphVisualizer::DrawEdge(const Graph::Edge& edge, bool special) const {
             perpendicular.x *= -1.0f;
             perpendicular.y *= -1.0f;
         }
-        float offset = 10.0f * (special ? 1.2f : 1.0f);
+        float offset = 10.0f;
         Vector2 textPos = {
             midPoint.x + perpendicular.x * offset - textSize.x / 2.0f,
             midPoint.y + perpendicular.y * offset - textSize.y / 2.0f
         };
 
-        Color normalColor = {138, 178, 166, 255};
-        Color specialColor = {165, 91, 75, 255};
-        DrawTextEx(customFont, weightText, textPos, weightFontSize * (special ? 1.2f : 1.0f), 1.0f, special ? specialColor : normalColor);
+        Color textColor;
+        switch (special) {
+            case 2:
+                textColor = RED;
+                break;
+            case 1:
+                textColor = BLUE;
+                break;
+            default:
+                textColor = Color{138, 178, 166, 255};
+        }
+        DrawTextEx(customFont, weightText, textPos, weightFontSize * (special ? 1.2f : 1.0f), 1.0f, textColor);
     }
 }
 
-void GraphVisualizer::DrawNode(int u) const {
-    Color nodeColor = (u == selectedNode) ? Color{172, 211, 168, 255} : Color{62, 63, 91, 255};
-    DrawCircleV(graph->Nodes[u].Pos, nodeRadius, nodeColor);
+void GraphVisualizer::DrawNode(int u, bool special) const {
+    Color nodeColor;
+    if (u == selectedNode) {
+        nodeColor = Color{172, 211, 168, 255};
+    } else if (special) {
+        nodeColor = Color{165, 91, 75, 255};
+    } else {
+        nodeColor = Color{62, 63, 91, 255};
+    }
+    DrawCircleV(graph->Nodes[u].Pos, nodeRadius * (special ? 1.2f : 1.0f), nodeColor);
 
     const char* nodeText = TextFormat("%d", graph->Nodes[u].val);
-    float nodeFontSize = nodeRadius * 1.2f;
+    float nodeFontSize = nodeRadius * (special ? 1.4f : 1.2f);
     Vector2 textSize = MeasureTextEx(customFont, nodeText, nodeFontSize, 1.0f);
     DrawTextEx(customFont, nodeText,
                {graph->Nodes[u].Pos.x - textSize.x / 2, graph->Nodes[u].Pos.y - textSize.y / 2},
@@ -227,7 +259,7 @@ void GraphVisualizer::DrawNode(int u) const {
 
 void GraphVisualizer::Draw() const {
     for (const auto& edge : graph->Edges) {
-        DrawEdge(edge);
+        DrawEdge(edge, 0);
     }
     for (int u = 1; u <= graph->numNode; ++u) {
         DrawNode(u);
@@ -237,27 +269,10 @@ void GraphVisualizer::Draw() const {
 void GraphVisualizer::DrawMST() const {
     std::vector<int> MST_edges = GraphAlgorithms::getMST(graph);
     for (int i = 0; i < graph->Edges.size(); ++i) {
-        bool special = false;
+        int special = 0;
         for (int id : MST_edges) {
             if (i == id) {
-                special = true;
-                break;
-            }
-        }
-        DrawEdge(graph->Edges[i], special);
-    }
-    for (int u = 1; u <= graph->numNode; ++u) {
-        DrawNode(u);
-    }
-}
-
-void GraphVisualizer::DrawDIJKSTRA() const {
-    std::vector<int> DIJKSTRA_edges = GraphAlgorithms::getDIJKSTRA(graph, graph->dijkstraSource);
-    for (int i = 0; i < graph->Edges.size(); ++i) {
-        bool special = false;
-        for (int id : DIJKSTRA_edges) {
-            if (i == id) {
-                special = true;
+                special = 1;
                 break;
             }
         }
@@ -273,6 +288,7 @@ void GraphVisualizer::initEadesFactor() {
     currentVeclocity = Veclocity;
     convergent = false;
 }
+
 
 // GraphAlgorithms Implementation
 namespace GraphAlgorithms {

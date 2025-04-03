@@ -312,6 +312,7 @@ void GraphMenu::HandleEdgeOperations(GraphVisualizer &GV) {
                 GV.graph->AddEdge(from, to, weight);
                 ClearEdgeInputBoxes();
             }
+            edgesField.input = std::to_string(GV.graph->numEdge);
         }
         else if (selectedEdgeOp == EdgeOperation::DELETE_EDGE) {
             // Find and remove the edge
@@ -348,6 +349,7 @@ void GraphMenu::HandleEdgeOperations(GraphVisualizer &GV) {
                     msgTimer--;
                 }
             }
+            edgesField.input = std::to_string(GV.graph->numEdge);
         }
     }
 } 
@@ -395,9 +397,15 @@ void GraphMenu::Handle(GraphVisualizer &GV) {
                 GV.initEadesFactor();
             }
             else {
-                GV.graph -> dijkstraSource = source;
+                GV.graph->dijkstraSource = source;
             }
+            GV.initDijkstra();
         }
+        else if (selectedOption == MenuOption::MST_KRUSKAL) {
+            GV.initKruskal();
+        }
+
+        confirmPressed = false;  // Reset confirm button state
     }
 
     if (showEdgeInputBox && CheckCollisionPointRec(mouse, edgeConfirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -410,9 +418,6 @@ void GraphMenu::Handle(GraphVisualizer &GV) {
 void GraphMenu::MakeGraph(Graph* &G) {
     int numNodes = 0, numEdges = 0, source = -1;
     GetInput(numNodes, numEdges, source);
-    nodesField.input = std::to_string(numNodes);
-    edgesField.input = std::to_string(numEdges);
-    sourceField.input = std::to_string(source);
     ClearInputBoxes();
 
     if (G) delete G;
@@ -420,5 +425,9 @@ void GraphMenu::MakeGraph(Graph* &G) {
     bool isWeighted = (weightType == GraphWeightType::WEIGHTED);
     G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
     G -> dijkstraSource = source;
+
+    nodesField.input = std::to_string(G -> numNode);
+    edgesField.input = std::to_string(G -> numEdge);
+    sourceField.input = std::to_string(G -> dijkstraSource);
 }
 
