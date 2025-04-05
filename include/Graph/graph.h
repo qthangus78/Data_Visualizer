@@ -90,6 +90,7 @@ private:
     Vector2 CenteringForce(int u) const;
     void DrawEdge(const Graph::Edge& edge, int special = 0) const;
     void DrawNode(int u, bool special = false) const;
+    void DrawDijkstraPseudoCode();  // Add this line
 
     // Add Dijkstra visualization properties
     struct DijkstraVisualizerData {
@@ -130,6 +131,9 @@ private:
     void GetKruskalStep();
     int findSet(int v);
     bool unionSets(int a, int b);
+
+    // Add announcement box for algorithms
+    AnnouncementBox algorithmBox;
 };
 
 namespace GraphAlgorithms {

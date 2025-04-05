@@ -1,5 +1,7 @@
 #pragma once 
 #include <raylib.h>
+#include <bits/stdc++.h>
+using namespace std;
 
 enum class ScreenID {
     StartScreen,
@@ -29,6 +31,47 @@ public:
     bool CheckMouseCollision(); // Check if the mouse is over the texture
     void SetPosition(float xPos, float yPos); // Set position
     bool isPressed(); // Check if the button is pressed
+};
+
+class AnnouncementBox {
+public:
+    AnnouncementBox();
+    AnnouncementBox(Rectangle rect, const char* title);
+    
+    void SetTitle(const char* title);
+    void SetContent(const std::vector<char*>& content);
+    void SetHighlightLines(int startLine, int endLine);
+    
+    void AddInfoLine(const char* label, const char* value);
+    void ClearInfoLines();
+    
+    void Draw();
+    
+private:
+    Rectangle rect;
+    const char* title;
+    vector<char*> content;
+    int highlightStartLine;
+    int highlightEndLine;
+    
+    struct InfoLine {
+        const char* label;
+        const char* value;
+    };
+    std::vector<InfoLine> infoLines;
+    
+    Color backgroundColor;
+    Color borderColor;
+    Color titleColor;
+    Color textColor;
+    Color highlightColor;
+    Color highlightBgColor;
+    
+    float titleFontSize;
+    float contentFontSize;
+    float infoFontSize;
+    float lineHeight;
+    float indentation;
 };
 
 void display_title(const char *Title, ScreenID lastScreenID);
