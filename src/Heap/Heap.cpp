@@ -1,10 +1,13 @@
 #include "Heap.h"
 
+std::vector<HeapNode> heapNode;
+
 MinHeap::MinHeap(){
-    tree = std::vector<int>();
+    heapNode = std::vector<HeapNode> ( 31, {0, {0, 0}, false} );
+    tree = std::vector<int> ( 0 );
     mPush = new Push(this);
     mRemove = new Remove(this);
-    // mTop = new Top(this);
+    mTop = new Top(this);
     // mSize = new Size(this);
     mClear = new ClearH(this);
     mCurrent = mPush;
@@ -40,13 +43,24 @@ void MinHeap::clear(){ tree.clear(); }
 
 void MinHeap::push ( int val ){
     tree.push_back(val);
+    int idx = tree.size() - 1;
+    if ( !heapNode[idx].exist ){
+        int x = idx - ( 1 << (int)log2(idx + 1)) + 1;
+        int y = (int)log2(idx + 1);
+        int height = (int)log2(tree.size())+1;
+        Vector2 pos = calculateNodePos ( {x, y}, 100, screenWidth / 2, height );
+        heapNode[idx] = { val, pos, true };
+    }
     upHeap(tree.size() - 1);
 }
 
 void MinHeap::remove ( int idx ){
     if ( tree.empty() ) return;
-    std::swap(tree[idx], tree[tree.size() - 1]);
+    int lastIdx = tree.size() - 1;
+    std::swap(tree[idx], tree[lastIdx]);
+    swapHeapNode(heapNode[idx], heapNode[lastIdx]);
     tree.pop_back();
+    heapNode[lastIdx] = {0, {0, 0}, false};
     downHeap(idx);
 }
 
@@ -64,6 +78,7 @@ void MinHeap::downHeap ( int idx ){
         }
         if ( pos != idx ){
             std::swap(tree[idx], tree[pos]);
+            swapHeapNode(heapNode[idx], heapNode[pos]);
             idx = pos;
         }
         else break;
@@ -75,6 +90,7 @@ void MinHeap::upHeap ( int idx ){
         int p = parent(idx);
         if ( tree[p] > tree[idx] ){
             std::swap(tree[p], tree[idx]);
+            swapHeapNode(heapNode[idx], heapNode[p]);
             idx = p;
         }
         else break;
@@ -128,18 +144,21 @@ Vector2 calculateNodePos ( Vector2 pos, int offsetY, int offsetX, int height){
 
 void drawHeap(std::vector<int>& tree) {
     if (tree.empty()) return;
-    heapNode.clear();
+
     int nodeRadius = 20;
     int height = (int)log2(tree.size())+1;
     int offsetX = screenWidth / 2; 
     int offsetY = 100;
+
     for (int y = 0; y < height; y++) { // Iterate over levels
         for (int x = 0; x < std::pow(2, y); x++) { // Iterate over nodes in the level
             int temp = x + std::pow(2, y) - 1;
             if (temp >= tree.size()) break;
+
             Vector2 parentPos = calculateNodePos({x, y}, offsetY, offsetX, height);
-            heapNode.push_back({tree[temp], parentPos, {x, y}});
-            drawNode(parentPos, std::to_string(tree[temp]), nodeRadius); // Correct index calculation
+
+            drawNode(parentPos, std::to_string(tree[temp]), nodeRadius);
+            
             if ( y < height - 1 ){
                 if ( 2 * temp + 1 < tree.size() ){
                     int leftChildX = 2 * x;
@@ -159,6 +178,20 @@ void drawHeap(std::vector<int>& tree) {
                 }
             }
         }
+    }
+}
+
+void swapHeapNode(HeapNode &a, HeapNode &b){
+    std::swap(a.val, b.val);
+    std::swap(a.exist, b.exist);
+}
+
+void recalculateNodePos ( MinHeap* mHeap ){
+    int height = (int)log2(mHeap->size()) + 1;
+    for (int i = 0; i < mHeap->size(); i++) {
+        int x = i - (1 << (int)log2(i + 1)) + 1;
+        int y = (int)log2(i + 1);
+        heapNode[i].pos = calculateNodePos({x, y}, 100, screenWidth / 2, height);
     }
 }
 

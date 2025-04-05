@@ -13,6 +13,7 @@ int main() {
 
     customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
     customTexture = LoadTexture("../resources/images/back-normal.png");
+    dice = LoadTexture("../src/Heap/dice.png");
 
     SSL SSL;
     SLL_display::sslInstance = &SSL; 
@@ -52,7 +53,8 @@ int main() {
         EndDrawing();
     }
 
-    
+    UnloadTexture(dice);
+    UnloadTexture(customTexture);
     UnloadFont(customFont);
     CloseWindow();
     return 0;

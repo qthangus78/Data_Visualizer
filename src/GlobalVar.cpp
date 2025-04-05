@@ -12,6 +12,8 @@ Vector2 mouse;
 bool WindowClose = 0;
 Font customFont;
 Texture2D customTexture;
+Texture2D dice;
+
 
 namespace color {
     Color buttonColor        = BLUE;
@@ -33,4 +35,4 @@ namespace buttonVar {
 Edge EArrow = {100.0f, 3.0f, 20.0f};
 Vector2 startLinkedListPos = {50,180};
 
-std::vector<HeapNode> heapNode;
+

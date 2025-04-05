@@ -10,6 +10,12 @@
 
 class MinHeap;
 
+struct HeapNode{
+    int val;
+    Vector2 pos;
+    bool exist;
+};
+
 struct Button {
     Rectangle rect;
     std::string txt;
@@ -28,15 +34,19 @@ class ButtonManager{
         Button push = { {10, screenHeight - 60, 200, 50}, "PUSH", Fade(MAROON, 0.2f) };
         Button remove = { {20 + push.rect.width, screenHeight - 60, 200, 50}, "REMOVE", Fade(MAROON, 0.2f) };
         Button clear = { {30 + remove.rect.width * 2, screenHeight - 60, 200, 50}, "CLEAR", Fade(MAROON, 0.2f) };
-        Button top;
+        Button top = { {40 + clear.rect.width * 3, screenHeight - 60, 200, 50}, "TOP", Fade(MAROON, 0.2f) };
         Button size;
-    
+        Button random;
+
         void DrawButtons();
         void HandleButtons(MinHeap* mHeap);
         void DrawInputBox(int x, int y);
         void DrawBlinkingLine(int x, int y);
-        void DrawBlinkingText ( string txt, int x, int y );
+        void DrawBlinkingText( string txt, int x, int y );
+        void DrawRandom(int x, int y);
 };
+
+extern std::vector<HeapNode> heapNode;
 
 class IStateHeap{
 public:
@@ -45,6 +55,7 @@ public:
     virtual void update() = 0;
     ButtonManager buttons;
 };
+
 
 class MinHeap{
 public:
@@ -91,29 +102,47 @@ public:
 class Push : public IStateHeap{
 private:
     MinHeap *mHeap;
+    int currentStep = 0;
+    bool isAnimating = false;
 public:
-    int animatingIdx = -1;
     Vector2 animatingPos;
     Vector2 targetPos;
-    bool isAnimating = false;
-
-    void pushAnimate(int val);
-    void updateAnimate();
-    void drawAnimate();
+    Vector2 animatingPos2;
+    Vector2 targetPos2;
+    int animatingIdx = -1;
+    int parentIdx = -1;
 
     Push(MinHeap* heap);
     void draw() override;
     void update() override;
+
+    void handleInsert(int val);
+    void updateInsert();
+    void handleBubbleUp();
+    void updateBubbleUp();
 };
 
 class Remove : public IStateHeap{
 private:
     MinHeap *mHeap;
-
+    int currentStep = 0;
+    bool isAnimating = false;
 public:
+    Vector2 animatingPos;
+    Vector2 targetPos;
+    Vector2 animatingPos2;
+    Vector2 targetPos2;
+    int animatingIdx = -1;
+    int parentIdx = -1;
+
     Remove(MinHeap* heap);
     void draw() override;
     void update() override;
+
+    void handleRemove(int idx);
+    void updateRemove();
+    void handleBubbleDown();
+    void updateBubbleDown();
 };
 
 class ClearH : public IStateHeap{
@@ -125,18 +154,26 @@ public:
     void update() override;
 };
 
-// class pushAnimation : public MinHeap{
-// public:
-    
-// };
+class Top : public IStateHeap{
+private:
+    float blinkTime = 0.0f;
+    MinHeap *mHeap;
+public:
+    Top(MinHeap* heap);
+    void DrawBlinkingTop();
+    void draw() override;
+    void update() override;
+};
 
 // Drawing function
 Vector2 calculateArrowPosition ( Vector2 &start, Vector2 &end, const float &radius );
 Vector2 calculateNodePos ( Vector2 pos, int offsetY, int offsetX, int height);
 void drawHeap(std::vector<int>& tree);
+void DrawPartOfHeap ( MinHeap* mHeap, int animatingIdx, int parentIdx, bool isAnimating, int curentStep );
 
 Vector2 Vector2Normalize(Vector2 v);
-
+void swapHeapNode(HeapNode &a, HeapNode &b);
+void recalculateNodePos ( MinHeap* mHeap );
 
 
 
