@@ -18,6 +18,4 @@ void MinHeap::draw(){
     int horizontalSpacing = 40;
     int screenWidth = GetScreenWidth();
     int screenHeight = GetScreenHeight();
-    
-    
 }
