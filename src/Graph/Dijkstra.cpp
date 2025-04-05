@@ -49,12 +49,12 @@ void GraphVisualizer::DrawDIJKSTRA_StepByStep() {
             special = 2;  // Currently being visited
         }
         // Edge in Dijkstra tree
-        else if (dijkstra_data.processed[graph->Edges[i].v] && 
+        else if (dijkstra_data.processed[graph->Edges[i].u] && 
                  dijkstra_data.distances[graph->Edges[i].v] == 
                  dijkstra_data.distances[graph->Edges[i].u] + graph->Edges[i].w) {
             special = 1;  // Part of shortest path tree
         }
-        else if (dijkstra_data.processed[graph->Edges[i].u] && 
+        else if (dijkstra_data.processed[graph->Edges[i].v] && 
                  dijkstra_data.distances[graph->Edges[i].u] == 
                  dijkstra_data.distances[graph->Edges[i].v] + graph->Edges[i].w) {
             special = 1;  // Part of shortest path tree

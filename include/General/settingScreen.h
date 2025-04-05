@@ -6,6 +6,6 @@
 namespace settingScreen {
     void Display() {
         ClearBackground({192, 245, 242, 100});
-        display_title("Settings" , 0);
+        display_title("Settings" , ScreenID::StartScreen);
     }
 }

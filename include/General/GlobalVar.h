@@ -1,6 +1,7 @@
 #pragma once 
 #include<bits/stdc++.h>
 #include<raylib.h>
+#include "button.h"
 using namespace std;
 
 extern const float screenWidth;
@@ -9,12 +10,18 @@ extern const Vector2 GraphDisplayScreenSize;
 extern Rectangle GraphDisplayScreen;
 
 extern const int FPS;
-extern int currentSlideID;
 
 extern Vector2 mouse;
 extern bool WindowClose;
-extern Font customFont;
 
+extern Font customFont;
+extern myTexture BackButton; 
+extern myTexture PlayButton;
+extern myTexture PauseButton;
+extern myTexture ReplayButton;
+extern myTexture UndoButton;
+extern myTexture RedoButton;
+extern ScreenID currentScreenID;
 //--------------------------------
 // Cấu trúc button
 //--------------------------------
@@ -70,5 +77,11 @@ struct ShadedData {
     Vector2 pos;
     ListNode* node;
 };
+
+void LoadFontResource();
+void LoadButtonsResources();
+
+void UnloadFontResource();
+void UnloadButtonsResources();
 
 

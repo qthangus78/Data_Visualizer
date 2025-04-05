@@ -9,52 +9,53 @@
 int main() {       
     srand(time(0));
     SetConfigFlags(FLAG_MSAA_4X_HINT);
+    
     InitWindow((int)screenWidth, (int)screenHeight, "Data Visualizer");
     SetTargetFPS(FPS);
 
-    customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
-    BackButton.texture = LoadTexture("../resources/images/back-normal.png");
-    
+    LoadFontResource();
+    LoadButtonsResources();
+
+        
     SSL SSL;
     SLL_display::sslInstance = &SSL; 
-
-    MinHeap minHeap;
-    Heap_display::heapInstance = &minHeap;
-    minHeap.tree = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
     
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();
+        ClearBackground({192, 245, 242, 100});
+
         mouse = GetMousePosition();
 
-        switch (currentSlideID)
-        {
-            case 0: 
+        switch (ScreenID(currentScreenID)) {
+            case ScreenID::StartScreen: 
                 startScreen::Display();
                 break;
-            case 1: 
+            case ScreenID::StartMenuScreen: 
                 startMenuScreen::Display();
                 break;
-            case 2: 
+            case ScreenID::SettingScreen: 
                 settingScreen::Display();
                 break;
-            case 3:
+            case ScreenID::SLLScreen: 
                 SLL_display::Display();
                 break;
-            case 4:
+            case ScreenID::HeapScreen: 
                 Heap_display::Display();
                 break;
-            case 5:
+            case ScreenID::AVLTreeScreen: 
                 AVLTree_display::Display();
                 break;
-            case 6:
+            case ScreenID::GraphScreen: 
                 Graph_display::Display();
                 break;
         }
-
+        
         EndDrawing();
     }
 
-    UnloadFont(customFont);
+    UnloadFontResource();
+    UnloadButtonsResources();
+
     CloseWindow();
     return 0;
 }

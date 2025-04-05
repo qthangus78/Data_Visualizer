@@ -1,32 +1,31 @@
 #pragma once 
-#include "GlobalVar.h"
+#include <raylib.h>
 
-struct myTexture {
-    Texture2D texture;  
-    float x, y;
-    const Color color[2] = {WHITE, BLUE};
-    Color currentColor = WHITE;
-
-    myTexture() {}
-    myTexture(Texture2D _texture, float _x = 0.0, float _y = 0.0) {
-        texture = _texture;
-        x = _x;
-        y = _y;
-    }
-
-    bool CheckMouseCollision() {
-        return CheckCollisionPointRec(mouse, {x, y, (float)texture.width, (float)texture.height});
-    }
-
-    void processColor() {
-        currentColor = color[CheckMouseCollision()];
-    }
-
-    void Drawtexture() {
-        processColor();
-        DrawTexture(texture, x, y, currentColor);
-    }
+enum class ScreenID {
+    StartScreen,
+    StartMenuScreen,
+    SettingScreen,
+    SLLScreen,
+    HeapScreen,
+    AVLTreeScreen,
+    GraphScreen
 };
-extern myTexture BackButton; 
+class myTexture {
+public:
+    Texture2D MainTexture;
+    Texture2D SelectedTexture;
 
-void display_title(const char *Title, int lastSlideID); 
+    float x, y;
+    float width;
+    float height;
+    bool isLoaded = false;
+    Color selectedColor = WHITE;
+
+    myTexture();
+    void LoadTextureResources(const char *mainTexturePath, const char *selectedTexturePath);
+    void Drawtexture();
+    bool CheckMouseCollision();
+};
+
+void display_title(const char *Title, ScreenID lastScreenID);
+bool IsResourcesLoaded(); // Add function to check if resources are loaded

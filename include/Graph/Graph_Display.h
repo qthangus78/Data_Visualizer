@@ -5,12 +5,14 @@
 #include "button.h"
 #include "Graph_Menu.h"
 
-void RunGraphVisualization(Graph* G);
-void RunGraphVisualization_MST(Graph* G);
-void RunGraphVisualization_DIJKSTRA(Graph* G);
+void RunGraphVisualization(GraphVisualizer &GV);
+void RunGraphVisualization_MST(GraphVisualizer &GV);
+void RunGraphVisualization_DIJKSTRA(GraphVisualizer &GV);
 
 namespace Graph_display {
     extern GraphMenu Gmenu;
     extern GraphVisualizer myGraphVisualizer;
+    extern void SetUpTextureButtons();
+    extern void DrawTextureButtons();
     void Display();
 }

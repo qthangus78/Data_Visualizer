@@ -1,8 +1,49 @@
 #include "button.h"
 #include "TextBox.h"
 
-myTexture BackButton;
-void display_title(const char *Title, int lastSlideID) {
+myTexture::myTexture() {
+    x = 0;
+    y = 0;
+    width = 40;
+    height = 40;
+    isLoaded = false; 
+}
+
+void myTexture::LoadTextureResources(const char *mainTexturePath, const char *selectedTexturePath) {
+    MainTexture = LoadTexture(mainTexturePath);
+    SelectedTexture = LoadTexture(selectedTexturePath);
+    
+    width = MainTexture.width;
+    height = MainTexture.height;
+    
+    if (MainTexture.id == 0 || SelectedTexture.id == 0) {
+        // Handle error: texture not loaded
+        std::cerr << "Error loading textures!" << std::endl;
+    } else {
+        isLoaded = true; // Set the flag to true if textures are loaded successfully
+    }
+}
+
+
+bool IsResourcesLoaded() {
+    return BackButton.isLoaded && PlayButton.isLoaded && PauseButton.isLoaded && ReplayButton.isLoaded
+           && UndoButton.isLoaded && RedoButton.isLoaded;
+}
+
+void myTexture::Drawtexture() {    
+    bool selected = CheckMouseCollision();
+    if (selected) {
+        DrawTexture(SelectedTexture, x, y, selectedColor);
+    } else {
+        DrawTexture(MainTexture, x, y, WHITE);
+    }
+}
+
+bool myTexture::CheckMouseCollision() {
+    return CheckCollisionPointRec(mouse, {x, y, width, height});
+}
+
+void display_title(const char *Title, ScreenID lastScreenID) {
     TextBox title;
     title.text = Title;
     title.fontSize = 25;
@@ -20,10 +61,10 @@ void display_title(const char *Title, int lastSlideID) {
    
     BackButton.x = title.rect.x - 40 - 10;
     BackButton.y = title.rect.y;
-  
     BackButton.Drawtexture();
     
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && BackButton.CheckMouseCollision()) {
-        currentSlideID = lastSlideID;
+        currentScreenID = lastScreenID;
     }
 }
+
