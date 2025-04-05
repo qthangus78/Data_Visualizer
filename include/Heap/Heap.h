@@ -133,7 +133,7 @@ public:
     Vector2 animatingPos2;
     Vector2 targetPos2;
     int animatingIdx = -1;
-    int parentIdx = -1;
+    int childIdx = -1;
 
     Remove(MinHeap* heap);
     void draw() override;

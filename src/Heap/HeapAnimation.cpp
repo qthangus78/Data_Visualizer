@@ -153,7 +153,8 @@ void Push::handleInsert(int val){
     animatingPos = { screenWidth / 2, 600 };
     heapNode[animatingIdx] = {val, targetPos, true};
 
-    recalculateNodePos ( mHeap );
+    if ( mHeap->size() == std::pow(2, height - 1))
+        recalculateNodePos ( mHeap );
 
     currentStep = 1;
     isAnimating = true;
@@ -195,6 +196,8 @@ void Push::handleBubbleUp(){
         std::swap(animatingIdx, parentIdx);
     }
     else {
+        animatingIdx = -1;
+        parentIdx = -1;
         isAnimating = false;
         currentStep = 4;
     }
@@ -207,7 +210,7 @@ void Push::updateBubbleUp(){
     Vector2 direction2 = Vector2Subtract(targetPos2, animatingPos2);
     float distance2 = Vector2Length(direction2);
 
-    if ( distance2 > 0.5f ){
+    if ( distance2 > 5.0f ){
         Vector2 step2 = Vector2Scale(Vector2Normalize(direction2), 5.0f);
         animatingPos2 = Vector2Add(animatingPos2, step2);
     }
@@ -275,9 +278,12 @@ void Remove::draw(){
     buttons.DrawInputBox(buttons.remove.rect.x, buttons.remove.rect.y);
     buttons.DrawRandom(buttons.remove.rect.x, buttons.remove.rect.y);
 
-    DrawPartOfHeap(mHeap, animatingIdx, parentIdx, isAnimating, currentStep);
-    if ( currentStep == 1 )
+    DrawPartOfHeap(mHeap, animatingIdx, childIdx, isAnimating, currentStep);
+    if ( currentStep == 1 || currentStep == 3 )
         drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20);
+    if ( currentStep == 3 )
+        drawNode(animatingPos2, std::to_string(mHeap->tree[childIdx]), 20);
+
     
     // Tìm không thấy hoặc cây trống
     if (buttons.notFound) {
@@ -297,7 +303,6 @@ void Remove::update(){
         animatingIdx = mHeap->search(value);
 
         if ( animatingIdx != -1 ){
-            // mHeap->remove(idx);
             handleRemove(animatingIdx);
             buttons.notFound = false;
         }
@@ -309,6 +314,8 @@ void Remove::update(){
         buttons.letterCount = 0;
     }
     updateRemove();
+    handleBubbleDown();
+    updateBubbleDown();
 }
 
 void Remove::handleRemove(int idx){
@@ -329,20 +336,13 @@ void Remove::handleRemove(int idx){
     isAnimating = true;
 }
 
-void Remove::updateBubbleDown(){
-    if ( currentStep != 2 || isAnimating ) return;
-
-    int l = left(animatingIdx);
-    int r = right(animatingIdx);
-    
-}
 
 void Remove::updateRemove(){
     if (currentStep != 1 || !isAnimating) return;
-
+    
     Vector2 direction = Vector2Subtract(targetPos, animatingPos);
     float distance = Vector2Length(direction);
-
+    
     if (distance > 5.0f) {
         Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
         animatingPos = Vector2Add(animatingPos, step);
@@ -353,7 +353,75 @@ void Remove::updateRemove(){
     }
 }
 
+void Remove::handleBubbleDown(){
+    if ( currentStep != 2 || isAnimating ) return;
 
+    int l = mHeap->left(animatingIdx);
+    int r = mHeap->right(animatingIdx);
+    childIdx = animatingIdx;
+    if ( childIdx < mHeap->size() ){
+        if ( l < mHeap->size() && heapNode[l].val < heapNode[childIdx].val )
+            childIdx = l;
+        if ( r < mHeap->size() && heapNode[r].val < heapNode[childIdx].val )
+            childIdx = r;
+        if ( childIdx != animatingIdx ){
+            targetPos = heapNode[childIdx].pos;
+    
+            targetPos2 = heapNode[animatingIdx].pos;
+            animatingPos2 = targetPos;
+    
+            isAnimating = true;
+            currentStep = 3;
+    
+            std::swap(mHeap->tree[animatingIdx], mHeap->tree[childIdx]);
+            swapHeapNode(heapNode[animatingIdx], heapNode[childIdx]);
+            std::swap(animatingIdx, childIdx);
+        }
+        else {
+            animatingIdx = -1;
+            childIdx = -1;
+            isAnimating = false;
+            currentStep = 4;
+        }
+    }
+    else{
+        animatingIdx = -1;
+        childIdx = -1;
+        isAnimating = false;
+        currentStep = 4;
+    }
+}
+
+void Remove::updateBubbleDown(){
+    if ( currentStep != 3 || !isAnimating ) return;
+
+    // Cập nhật vị trí của nút con
+    Vector2 direction2 = Vector2Subtract(targetPos2, animatingPos2);
+    float distance2 = Vector2Length(direction2);
+
+    if ( distance2 > 5.0f ){
+        Vector2 step2 = Vector2Scale(Vector2Normalize(direction2), 5.0f);
+        animatingPos2 = Vector2Add(animatingPos2, step2);
+    }
+    else
+        animatingPos2 = targetPos2;
+    
+    // Cập nhật vị trí của nút cha
+    Vector2 direction = Vector2Subtract(targetPos, animatingPos);
+    float distance = Vector2Length(direction);
+
+    if (distance > 5.0f) {
+        Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
+        animatingPos = Vector2Add(animatingPos, step);
+    }
+    else {
+        animatingPos = targetPos;
+        // Về lại bước 2 kiểm tra bubble up
+        isAnimating = false;
+        currentStep = 2;
+    }
+
+}
 
 //-----------------------
 //CLEAR
