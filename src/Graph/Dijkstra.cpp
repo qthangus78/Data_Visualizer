@@ -67,23 +67,78 @@ void GraphVisualizer::DrawDIJKSTRA_StepByStep() {
             special = 0;
         DrawNode(u, special);
     }
+    
+    // Draw pseudocode announcement box
+    DrawDijkstraPseudoCode();
+}
+
+void GraphVisualizer::DrawDijkstraPseudoCode() {
+    // Determine which lines to highlight
+    int highlightStart = -1;
+    int highlightEnd = -1;
+    
+    switch (dijkstra_data.step_result.action) {
+        case DijkstraStepResult::INIT:
+            highlightStart = 0;
+            highlightEnd = 4;
+            break;
+        case DijkstraStepResult::SELECT_U:
+            highlightStart = 6;
+            highlightEnd = 7;
+            break;
+        case DijkstraStepResult::RELAX_EDGE:
+            highlightStart = 8;
+            highlightEnd = 12;
+            break;
+        case DijkstraStepResult::DONE:
+            highlightStart = -1;
+            highlightEnd = -1;
+            break;
+    }
+    
+    // Set highlighted lines
+    algorithmBox.SetHighlightLines(highlightStart, highlightEnd);
+    
+    // Update info lines
+    algorithmBox.ClearInfoLines();
+    
+    if (graph->dijkstraSource != -1) {
+        char buffer[20];
+        sprintf(buffer, "%d", graph->dijkstraSource);
+        algorithmBox.AddInfoLine("Source", buffer);
+    }
+    
+    if (dijkstra_data.current_u != -1) {
+        char buffer[20];
+        sprintf(buffer, "%d", dijkstra_data.current_u);
+        algorithmBox.AddInfoLine("Current u", buffer);
+    }
+    
+    if (dijkstra_data.step_result.action == DijkstraStepResult::RELAX_EDGE) {
+        char buffer[30];
+        sprintf(buffer, "%d -> %d", dijkstra_data.step_result.u, dijkstra_data.step_result.v);
+        algorithmBox.AddInfoLine("Relaxing edge", buffer);
+    }
+    
+    // Draw the announcement box
+    algorithmBox.Draw();
 }
 
 GraphVisualizer::DijkstraVisualizerData::DijkstraVisualizerData() {
     codes = {
-        "for each vertex v in Graph:",
-        "    distance[v] := infinity",
-        "    previous[v] := undefined",
-        "distance[source] := 0",
-        "Q := the set of all vertices in Graph",
-        "while Q is not empty:",
-        "    u := vertex in Q with smallest distance[]",
+        "for v in Graph:",
+        "    d[v] = infinity",
+        "    prev[v] = nil",
+        "d[src] = 0",
+        "Q = all vertices",
+        "while Q not empty:",
+        "    u = min_dist vertex in Q",
         "    remove u from Q",
-        "    for each neighbor v of u:",
-        "        alt := distance[u] + length(u, v)",
-        "        if alt < distance[v]:",
-        "            distance[v] := alt",
-        "            previous[v] := u"
+        "    for v adjacent to u:",
+        "        alt = d[u] + len(u,v)",
+        "        if alt < d[v]:",
+        "            d[v] = alt",
+        "            prev[v] = u"
     };
 }
 
@@ -95,6 +150,18 @@ void GraphVisualizer::initDijkstra() {
             dijkstra_data.distances[graph->dijkstraSource] = 0;
         }
     }
+    
+    // Setup announcement box
+    float boxMargin = 20.0f;
+    Rectangle codeBox = {
+        GraphDisplayScreen.x + GraphDisplayScreen.width + boxMargin,
+        GraphDisplayScreen.y,
+        300,
+        GraphDisplayScreen.height
+    };
+    algorithmBox = AnnouncementBox(codeBox, "Dijkstra's Algorithm");
+    algorithmBox.SetContent(dijkstra_data.codes);
+    
     dijkstra_data.first_step = true;
     dijkstra_data.current_u = -1;
     dijkstra_data.current_neighbor_index = 0;
