@@ -17,18 +17,16 @@ int main() {
     customTexture = LoadTexture("../resources/images/back-normal.png");
     dice = LoadTexture("../src/Heap/dice.png");
 
-    SSL SSL;
-    SLL_display::sslInstance = &SSL; 
 
-    MinHeap minHeap;
-    Heap_display::heapInstance = &minHeap;
     LoadFontResource();
     LoadButtonsResources();
 
-        
     SSL SSL;
     SLL_display::sslInstance = &SSL; 
     
+    MinHeap minHeap;
+    Heap_display::heapInstance = &minHeap;
+
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();
         ClearBackground({192, 245, 242, 100});
