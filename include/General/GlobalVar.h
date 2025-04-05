@@ -14,11 +14,7 @@ extern const int FPS;
 extern Vector2 mouse;
 extern bool WindowClose;
 
-
-extern Texture2D customTexture;
-extern Texture2D dice;
-
-
+extern Font customFont;
 extern Font SSLFont;
 extern Font textCodeFont;
 extern Font customFont;
@@ -30,6 +26,10 @@ extern myTexture ReplayButton;
 extern myTexture UndoButton;
 extern myTexture RedoButton;
 extern ScreenID currentScreenID;
+extern Texture2D customTexture;
+extern Texture2D dice;
+
+
 //--------------------------------
 // Cấu trúc button
 //--------------------------------

@@ -51,7 +51,7 @@ void ButtonManager::HandleButtons(MinHeap* mHeap){
 void ButtonManager::DrawInputBox( int x, int y ){
 
     // Vẽ ô nhập
-    DrawRectangleRounded( {x, y - 60, 200, 50}, roundness, (int)segments, Fade(MAROON, 0.2f) );
+    DrawRectangleRounded( {(float)x,(float)y - 60, 200, 50}, roundness, (int)segments, Fade(MAROON, 0.2f) );
     DrawText(name, x + 10, y - 50, 20, BLACK); 
 
     // Handle ô nhập
@@ -96,8 +96,8 @@ void ButtonManager::DrawRandom(int x, int y){
     y = y - 60 + ( 50 - dice.height * 0.25 ) / 2;
 
     // Lưu tọa độ vào button random để handle click 
-    random.rect = { x, y, dice.height * 0.25f, dice.height * 0.25f };
-    DrawTextureEx(dice, {x, y}, 0.0f, 0.25f, WHITE);
+    random.rect = { (float)x, (float)y, dice.height * 0.25f, dice.height * 0.25f };
+    DrawTextureEx(dice, {(float)x, (float)y}, 0.0f, 0.25f, WHITE);
 }
 
 //-----------------------
@@ -112,9 +112,9 @@ void Push::draw(){
 
     DrawPartOfHeap(mHeap, animatingIdx, parentIdx, isAnimating, currentStep);
     if ( currentStep == 1 || currentStep == 3 )
-        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20);
+        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20,WHITE);
     if ( currentStep == 3 )
-        drawNode(animatingPos2, std::to_string(mHeap->tree[parentIdx]), 20);
+        drawNode(animatingPos2, std::to_string(mHeap->tree[parentIdx]), 20,WHITE);
     if ( currentStep == 4 ){
         currentStep == 0;
         isAnimating = false;
@@ -147,7 +147,7 @@ void Push::handleInsert(int val){
     int x = animatingIdx - (1 << (int)log2(animatingIdx + 1)) + 1;
     int y = (int)log2(animatingIdx + 1);
     int height = (int)log2(mHeap->size()) + 1;
-    targetPos = calculateNodePos({x, y}, 100, screenWidth / 2, height);
+    targetPos = calculateNodePos({(float)x, (float)y}, 100, screenWidth / 2, height);
 
     // Khởi tạo vị trí ban đầu
     animatingPos = { screenWidth / 2, 600 };
@@ -243,13 +243,13 @@ void DrawPartOfHeap ( MinHeap* mHeap, int animatingIdx, int parentIdx, bool isAn
         if ( isAnimating ){
             if ( currentStep == 1 )
                 if ( i != animatingIdx )
-                    drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
+                    drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius,WHITE);
             if ( currentStep == 3 )
                 if ( i != animatingIdx && i != parentIdx )
-                    drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
+                    drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius,WHITE);
         }
         else
-            drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
+            drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius,WHITE);
 
         if ( y < height - 1 ){
             int leftChild = 2*i + 1;
@@ -280,9 +280,9 @@ void Remove::draw(){
 
     DrawPartOfHeap(mHeap, animatingIdx, childIdx, isAnimating, currentStep);
     if ( currentStep == 1 || currentStep == 3 )
-        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20);
+        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20, WHITE);
     if ( currentStep == 3 )
-        drawNode(animatingPos2, std::to_string(mHeap->tree[childIdx]), 20);
+        drawNode(animatingPos2, std::to_string(mHeap->tree[childIdx]), 20, WHITE);
 
     
     // Tìm không thấy hoặc cây trống

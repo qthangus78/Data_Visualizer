@@ -157,7 +157,7 @@ void drawHeap(std::vector<int>& tree) {
 
             Vector2 parentPos = calculateNodePos({x, y}, offsetY, offsetX, height);
 
-            drawNode(parentPos, std::to_string(tree[temp]), nodeRadius);
+            drawNode(parentPos, std::to_string(tree[temp]), nodeRadius,WHITE);
             
             if ( y < height - 1 ){
                 if ( 2 * temp + 1 < tree.size() ){
@@ -191,7 +191,7 @@ void recalculateNodePos ( MinHeap* mHeap ){
     for (int i = 0; i < mHeap->size(); i++) {
         int x = i - (1 << (int)log2(i + 1)) + 1;
         int y = (int)log2(i + 1);
-        heapNode[i].pos = calculateNodePos({x, y}, 100, screenWidth / 2, height);
+        heapNode[i].pos = calculateNodePos({(float)x, (float)y}, 100, screenWidth / 2, height);
     }
 }
 
