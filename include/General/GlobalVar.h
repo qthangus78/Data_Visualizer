@@ -15,6 +15,8 @@ extern Vector2 mouse;
 extern bool WindowClose;
 
 extern Font customFont;
+extern Font SSLFont;
+extern Font textCodeFont;
 extern myTexture BackButton; 
 extern myTexture PlayButton;
 extern myTexture PauseButton;
