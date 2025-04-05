@@ -24,6 +24,10 @@ extern myTexture ReplayButton;
 extern myTexture UndoButton;
 extern myTexture RedoButton;
 extern ScreenID currentScreenID;
+extern Texture2D customTexture;
+extern Texture2D dice;
+
+
 //--------------------------------
 // Cấu trúc button
 //--------------------------------

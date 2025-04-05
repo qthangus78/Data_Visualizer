@@ -16,9 +16,11 @@ int main() {
     LoadFontResource();
     LoadButtonsResources();
 
-        
     SSL SSL;
     SLL_display::sslInstance = &SSL; 
+
+    MinHeap minHeap;
+    Heap_display::heapInstance = &minHeap;
     
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();

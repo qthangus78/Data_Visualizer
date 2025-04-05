@@ -25,6 +25,8 @@ myTexture PauseButton;
 myTexture ReplayButton;
 myTexture UndoButton;
 myTexture RedoButton;
+Texture2D customTexture;
+Texture2D dice;
 
 ScreenID currentScreenID = ScreenID::StartScreen;
 
@@ -73,10 +75,14 @@ void LoadButtonsResources() {
 
     RedoButton.LoadTextureResources("../resources/images/Rotate-Right.png",
         "../resources/images/Rotate-Right-Select.png");
+    customTexture = LoadTexture("../resources/images/back-normal.png");
+    dice = LoadTexture("../src/Heap/dice.png");
     
     cout << PauseButton.MainTexture.width << " " << PauseButton.MainTexture.height << endl;
 }
 
 void UnloadFontResource() {
     UnloadFont(customFont);
+    UnloadFont(SSLFont);
+    UnloadFont(textCodeFont);
 }
