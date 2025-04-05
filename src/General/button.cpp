@@ -1,6 +1,6 @@
 #include "button.h"
 #include "TextBox.h"
-
+#include <vector>
 
 myTexture::myTexture() {
     x = 0;
@@ -124,7 +124,7 @@ void AnnouncementBox::SetTitle(const char* newTitle) {
     title = newTitle;
 }
 
-void AnnouncementBox::SetContent(const vector<char*>& newContent) {
+void AnnouncementBox::SetContent(const std::vector<char*>& newContent) {
     content = newContent;
 }
 

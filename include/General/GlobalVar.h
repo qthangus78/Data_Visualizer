@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 #include <raylib.h>
 #include "button.h"
-using namespace std;
+// using namespace std;
 
 extern const float screenWidth;
 extern const float screenHeight;

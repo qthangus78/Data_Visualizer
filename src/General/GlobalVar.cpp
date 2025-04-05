@@ -73,8 +73,6 @@ void LoadButtonsResources() {
 
     RedoButton.LoadTextureResources("../resources/images/Rotate-Right.png",
         "../resources/images/Rotate-Right-Select.png");
-    
-    cout << PauseButton.MainTexture.width << " " << PauseButton.MainTexture.height << endl;
 }
 
 void UnloadFontResource() {

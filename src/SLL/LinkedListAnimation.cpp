@@ -254,7 +254,7 @@ void Insert::updateCommonAnimation(){
     }
 }
 void Insert::handleNotMode(){
-    InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonDel.rect.y,progressAppear);
+    InsertTail.rect.y = lerp(float(InsertTail.rect.y), buttonVar::buttonDel.rect.y, progressAppear);
     inputRect.height = lerp(inputRect.height,0,progressAppear);
     InsertIndex.rect.y = lerp(InsertIndex.rect.y,buttonVar::buttonF.rect.y,progressAppear);
     valRect.height = lerp(valRect.height,0,progressAppear);

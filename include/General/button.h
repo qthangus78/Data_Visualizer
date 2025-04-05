@@ -1,7 +1,7 @@
 #pragma once 
 #include <raylib.h>
 #include <bits/stdc++.h>
-using namespace std;
+// using namespace std;
 
 enum class ScreenID {
     StartScreen,
@@ -50,7 +50,7 @@ public:
 private:
     Rectangle rect;
     const char* title;
-    vector<char*> content;
+    std::vector<char*> content;
     int highlightStartLine;
     int highlightEndLine;
     
