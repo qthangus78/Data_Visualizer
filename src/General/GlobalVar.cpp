@@ -74,18 +74,3 @@ void LoadButtonsResources() {
 void UnloadFontResource() {
     UnloadFont(customFont);
 }
-
-void UnloadButtonsResources() {
-    UnloadTexture(BackButton.MainTexture);
-    UnloadTexture(BackButton.SelectedTexture);
-    UnloadTexture(PlayButton.MainTexture);
-    UnloadTexture(PlayButton.SelectedTexture);
-    UnloadTexture(PauseButton.MainTexture);
-    UnloadTexture(PauseButton.SelectedTexture);
-    UnloadTexture(ReplayButton.MainTexture);
-    UnloadTexture(ReplayButton.SelectedTexture);
-    UnloadTexture(UndoButton.MainTexture);
-    UnloadTexture(UndoButton.SelectedTexture);
-    UnloadTexture(RedoButton.MainTexture);
-    UnloadTexture(RedoButton.SelectedTexture);
-}

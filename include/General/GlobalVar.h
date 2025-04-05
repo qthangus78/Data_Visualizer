@@ -82,6 +82,5 @@ void LoadFontResource();
 void LoadButtonsResources();
 
 void UnloadFontResource();
-void UnloadButtonsResources();
 
 

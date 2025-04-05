@@ -9,6 +9,11 @@ myTexture::myTexture() {
     isLoaded = false; 
 }
 
+myTexture::~myTexture() {
+    UnloadTexture(MainTexture);
+    UnloadTexture(SelectedTexture);
+}
+
 void myTexture::LoadTextureResources(const char *mainTexturePath, const char *selectedTexturePath) {
     MainTexture = LoadTexture(mainTexturePath);
     SelectedTexture = LoadTexture(selectedTexturePath);
@@ -24,10 +29,8 @@ void myTexture::LoadTextureResources(const char *mainTexturePath, const char *se
     }
 }
 
-
-bool IsResourcesLoaded() {
-    return BackButton.isLoaded && PlayButton.isLoaded && PauseButton.isLoaded && ReplayButton.isLoaded
-           && UndoButton.isLoaded && RedoButton.isLoaded;
+bool myTexture::isPressed() {
+    return CheckMouseCollision() && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
 
 void myTexture::Drawtexture() {    
@@ -41,6 +44,11 @@ void myTexture::Drawtexture() {
 
 bool myTexture::CheckMouseCollision() {
     return CheckCollisionPointRec(mouse, {x, y, width, height});
+}
+
+void myTexture::SetPosition(float xPos, float yPos) {
+    x = xPos;
+    y = yPos;
 }
 
 void display_title(const char *Title, ScreenID lastScreenID) {
@@ -68,3 +76,7 @@ void display_title(const char *Title, ScreenID lastScreenID) {
     }
 }
 
+bool IsResourcesLoaded() {
+    return BackButton.isLoaded && PlayButton.isLoaded && PauseButton.isLoaded && ReplayButton.isLoaded
+           && UndoButton.isLoaded && RedoButton.isLoaded;
+}

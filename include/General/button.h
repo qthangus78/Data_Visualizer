@@ -21,10 +21,14 @@ public:
     bool isLoaded = false;
     Color selectedColor = WHITE;
 
-    myTexture();
-    void LoadTextureResources(const char *mainTexturePath, const char *selectedTexturePath);
-    void Drawtexture();
-    bool CheckMouseCollision();
+    myTexture(); // Constructor
+    ~myTexture(); // Destructor
+    void LoadTextureResources(const char *mainTexturePath, const char *selectedTexturePath); // Load textures
+    
+    void Drawtexture(); // Draw the texture
+    bool CheckMouseCollision(); // Check if the mouse is over the texture
+    void SetPosition(float xPos, float yPos); // Set position
+    bool isPressed(); // Check if the button is pressed
 };
 
 void display_title(const char *Title, ScreenID lastScreenID);

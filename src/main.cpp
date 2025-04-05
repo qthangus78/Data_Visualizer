@@ -49,13 +49,11 @@ int main() {
                 Graph_display::Display();
                 break;
         }
-        
+
         EndDrawing();
     }
 
     UnloadFontResource();
-    UnloadButtonsResources();
-
     CloseWindow();
     return 0;
 }

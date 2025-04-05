@@ -51,6 +51,10 @@ namespace Graph_display {
 
         RedoButton.x = PlayButton.x + PlayButton.width + BUTTON_SPACING; 
         RedoButton.y = PlayButton.y + 10;
+
+        if (PlayButton.isPressed()) {
+            
+        }
     }
 
     void DrawTextureButtons() {
