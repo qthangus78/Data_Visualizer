@@ -2,13 +2,23 @@
 CXX = clang++
 
 # Compiler flags
-CXXFLAGS = -std=c++20 -I/opt/homebrew/include -I../include
+CXXFLAGS = 	-std=c++20 \
+			-I/opt/homebrew/include \
+			-I../include/General \
+			-I../include/Graph \
+			-I../include/AVL \
+			-I../include/SLL \
+			-I../include/Heap
 
 # Linker flags
 LDFLAGS = -L/opt/homebrew/lib -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio
 
 # Source file
-SRC = *.cpp
+SRC = 	*.cpp \
+		General/*.cpp \
+		Graph/*.cpp \
+		Heap/*.cpp \
+		SLL/*.cpp
 
 # Output ./executable
 OUT = run
