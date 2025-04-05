@@ -14,9 +14,15 @@ extern const int FPS;
 extern Vector2 mouse;
 extern bool WindowClose;
 
-extern Font customFont;
+
+extern Texture2D customTexture;
+extern Texture2D dice;
+
+
 extern Font SSLFont;
 extern Font textCodeFont;
+extern Font customFont;
+
 extern myTexture BackButton; 
 extern myTexture PlayButton;
 extern myTexture PauseButton;

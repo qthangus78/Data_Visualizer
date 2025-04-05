@@ -13,6 +13,15 @@ int main() {
     InitWindow((int)screenWidth, (int)screenHeight, "Data Visualizer");
     SetTargetFPS(FPS);
 
+    customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
+    customTexture = LoadTexture("../resources/images/back-normal.png");
+    dice = LoadTexture("../src/Heap/dice.png");
+
+    SSL SSL;
+    SLL_display::sslInstance = &SSL; 
+
+    MinHeap minHeap;
+    Heap_display::heapInstance = &minHeap;
     LoadFontResource();
     LoadButtonsResources();
 
@@ -53,6 +62,9 @@ int main() {
         EndDrawing();
     }
 
+    UnloadTexture(dice);
+    UnloadTexture(customTexture);
+    UnloadFont(customFont);
     UnloadFontResource();
     CloseWindow();
     return 0;
