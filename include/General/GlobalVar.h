@@ -1,6 +1,6 @@
 #pragma once 
-#include<bits/stdc++.h>
-#include<raylib.h>
+#include <bits/stdc++.h>
+#include <raylib.h>
 #include "button.h"
 using namespace std;
 
@@ -27,7 +27,7 @@ extern ScreenID currentScreenID;
 //--------------------------------
 struct button {
     Rectangle rect;
-    static const int sizeW = 120;
+    static const int sizeW = 100;
     static const int sizeH = 40;
     Color buCol;
     std::string text;
@@ -53,6 +53,8 @@ namespace buttonVar {
     extern button buttonDel;
     extern button buttonF;
     extern button buttonClear;
+    extern button buttonGo;
+    extern button buttonCreate;
 }
 //--------------------------------
 // Cấu trúc Arrow

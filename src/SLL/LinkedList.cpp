@@ -81,6 +81,7 @@ SSL::SSL()
     mFind      = new Find(this);
     mClear = new Clear(this);
     mcurrent   = mNotInMode;
+    PlayButton.SetPosition(600,400);
 }
 
 SSL::~SSL(){
@@ -118,6 +119,7 @@ void SSL::delAllList() {delMemAl(root); }
 void SSL::fileInput(std::ifstream& fin) {fileInputAl(root,tail,fin);}
 
 void SSL::draw(){
+    PlayButton.Drawtexture();
     if(mcurrent) mcurrent->draw();
 }
 void SSL::handle(){;
