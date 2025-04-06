@@ -79,7 +79,7 @@ namespace startMenuScreen {
 
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, AVLTree.rect)) {
-            currentScreenID = ScreenID::AVLTreeScreen;
+            currentScreenID = ScreenID::TrieScreen;
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Shortest_path.rect)) {

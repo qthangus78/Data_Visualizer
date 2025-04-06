@@ -156,8 +156,8 @@ void AnnouncementBox::Draw() {
     
     // Draw horizontal line below title
     DrawLineEx(
-        (Vector2){rect.x + 10, rect.y + 45},
-        (Vector2){rect.x + rect.width - 10, rect.y + 45},
+        Vector2{rect.x + 10, rect.y + 45},
+        Vector2{rect.x + rect.width - 10, rect.y + 45},
         2, borderColor
     );
     
@@ -183,7 +183,7 @@ void AnnouncementBox::Draw() {
         DrawTextEx(
             customFont, 
             content[i], 
-            (Vector2){rect.x + 20 + indentation, startY + i * lineHeight}, 
+            Vector2{rect.x + 20 + indentation, startY + i * lineHeight}, 
             contentFontSize, 
             1.0f, 
             lineColor
@@ -196,18 +196,18 @@ void AnnouncementBox::Draw() {
         
         // Draw separator line
         DrawLineEx(
-            (Vector2){rect.x + 10, infoY - 10},
-            (Vector2){rect.x + rect.width - 10, infoY - 10},
+            Vector2{rect.x + 10, infoY - 10},
+            Vector2{rect.x + rect.width - 10, infoY - 10},
             1, Color{100, 100, 100, 150}
         );
         
-        DrawTextEx(customFont, "Current state:", (Vector2){rect.x + 20, infoY}, 18.0f, 1.0f, textColor);
+        DrawTextEx(customFont, "Current state:", Vector2{rect.x + 20, infoY}, 18.0f, 1.0f, textColor);
         infoY += 30;
         
         for (const auto& info : infoLines) {
             char buffer[100];
             sprintf(buffer, "%s: %s", info.label, info.value);
-            DrawTextEx(customFont, buffer, (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
+            DrawTextEx(customFont, buffer, Vector2{rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
             infoY += 25;
         }
     }

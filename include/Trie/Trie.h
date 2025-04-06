@@ -8,6 +8,8 @@
 #include <vector>
 #include "LinkedList.h"
 
+using namespace std;
+
 
 //------------------
 //Định dạng Trie Node
@@ -17,7 +19,7 @@ class TrieNode {
 public:
 
     // pointer array for child nodes of each node
-    map<char,TrieNode*> children;
+    map<char, TrieNode*> children;
 
     // Used for indicating ending of string
     bool isWord;
@@ -41,12 +43,6 @@ void InputFileTrie(const string& file_name, TrieNode*& root);
 //Draw
 
 void drawArrow(Vector2 start, Vector2 end, Color edgeRender);
-
-void drawLinkedList(ListNode* root);
-
-void drawPartofLinkedList(ListNode* root, ListNode* EndPart);
-
-void drawPartofLinkedListNotColor(ListNode* root, ListNode* EndPart, SSL* s);
 
 void drawButtons();
 

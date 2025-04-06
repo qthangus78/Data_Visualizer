@@ -51,7 +51,7 @@ int main() {
                 Heap_display::Display();
                 break;
             case ScreenID::TrieScreen: 
-                T::Display();
+                Trie_Display::Display();
                 break;
             case ScreenID::GraphScreen: 
                 Graph_display::Display();
