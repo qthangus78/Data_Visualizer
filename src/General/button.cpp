@@ -89,7 +89,7 @@ AnnouncementBox::AnnouncementBox()
     , highlightEndLine(-1)
     , backgroundColor({240, 240, 240, 230})
     , borderColor({50, 50, 50, 255})
-    , titleColor(BLACK)
+    , titleColor(DARKBLUE)
     , textColor(BLACK)
     , highlightColor({244, 67, 54, 255})
     , highlightBgColor({255, 235, 238, 150})
@@ -108,7 +108,7 @@ AnnouncementBox::AnnouncementBox(Rectangle rect, const char* title)
     , highlightEndLine(-1)
     , backgroundColor({240, 240, 240, 230})
     , borderColor({50, 50, 50, 255})
-    , titleColor(BLACK)
+    , titleColor(DARKBLUE)
     , textColor(BLACK)
     , highlightColor({244, 67, 54, 255})
     , highlightBgColor({255, 235, 238, 150})
@@ -134,7 +134,10 @@ void AnnouncementBox::SetHighlightLines(int startLine, int endLine) {
 }
 
 void AnnouncementBox::AddInfoLine(const char* label, const char* value) {
-    infoLines.push_back({label, value});
+    InfoLine newLine;
+    newLine.label = label ? label : "";  // Make a copy of the string
+    newLine.value = value ? value : "";  // Make a copy of the string
+    infoLines.push_back(newLine);
 }
 
 void AnnouncementBox::ClearInfoLines() {
@@ -161,8 +164,9 @@ bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxCont
     static float dragOffset = 0;
     
     if (needsScrollBar) {
-        Rectangle scrollBarRect = {rect.x + rect.width - 15, scrollY, 10, scrollHeight};
-        Rectangle scrollThumbRect = {rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
+        // Set the member variables instead of creating local variables
+        scrollBarRect = (Rectangle){rect.x + rect.width - 15, scrollY, 10, scrollHeight};
+        scrollThumbRect = (Rectangle){rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
         
         if (CheckCollisionPointRec(GetMousePosition(), scrollThumbRect)) {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -180,13 +184,74 @@ bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxCont
                 isDragging = false;
             }
         }
-        
-        // Draw scroll bar
-        DrawRectangleRec(scrollBarRect, Color{200, 200, 200, 100});
-        DrawRectangleRec(scrollThumbRect, Color{150, 150, 150, 200});
     }
     
     return needsScrollBar;
+}
+
+void AnnouncementBox::DrawTable(float& infoY, int startIndex, int endIndex, float maxContentHeight, float baseY) {
+    float tableStartY = infoY;
+    int tableColumns = 3; // Vertex, Distance, Predecessor
+    float colWidths[3] = {60, 80, 100}; // Column widths
+    
+    for (int i = startIndex; i <= endIndex; i++) {
+        const auto& info = infoLines[i];
+
+        // End of table reached
+        if (info.label == "__TABLE_END__") {
+            infoY += lineHeight / 2; // Add a bit of space after the table
+            return;
+        }
+        
+        // Skip if not visible
+        if (infoY + lineHeight < baseY || infoY > baseY + maxContentHeight) {
+            infoY += lineHeight;
+            continue;
+        }
+        
+        // Table cell background
+        bool isHeader = (i == startIndex);
+        Color cellBgColor = isHeader ? Color{220, 220, 220, 255} : Color{245, 245, 245, 255};
+        
+        // Draw row background
+        DrawRectangle(rect.x + 20, infoY, rect.width - 50, lineHeight, cellBgColor);
+        
+        // Draw cell borders
+        DrawLine(rect.x + 20, infoY, rect.x + rect.width - 30, infoY, Color{180, 180, 180, 255});
+        DrawLine(rect.x + 20, infoY + lineHeight, rect.x + rect.width - 30, infoY + lineHeight, Color{180, 180, 180, 255});
+        
+        // Draw vertical borders
+        DrawLine(rect.x + 20, infoY, rect.x + 20, infoY + lineHeight, Color{180, 180, 180, 255});
+        DrawLine(rect.x + 20 + colWidths[0], infoY, rect.x + 20 + colWidths[0], infoY + lineHeight, Color{180, 180, 180, 255});
+        DrawLine(rect.x + 20 + colWidths[0] + colWidths[1], infoY, rect.x + 20 + colWidths[0] + colWidths[1], infoY + lineHeight, Color{180, 180, 180, 255});
+        DrawLine(rect.x + rect.width - 30, infoY, rect.x + rect.width - 30, infoY + lineHeight, Color{180, 180, 180, 255});
+        
+        // Draw text
+        DrawTextEx(customFont, info.label.c_str(), (Vector2){rect.x + 25, infoY + 2}, infoFontSize, 1.0f, textColor);
+
+        // Split the value string by '|' character
+        std::string value = info.value;
+        std::string distStr = "";
+        std::string predStr = "";
+
+        // Find delimiter position
+        size_t delimiterPos = value.find('|');
+        if (delimiterPos != std::string::npos) {
+            // Extract the distance part
+            distStr = value.substr(0, delimiterPos);
+            
+            // Extract the predecessor part
+            predStr = value.substr(delimiterPos + 1);
+        } else {
+            distStr = value;
+        }
+
+        // Draw the distance and predecessor cells
+        DrawTextEx(customFont, distStr.c_str(), (Vector2){rect.x + 25 + colWidths[0], infoY + 2}, infoFontSize, 1.0f, textColor);
+        DrawTextEx(customFont, predStr.c_str(), (Vector2){rect.x + 25 + colWidths[0] + colWidths[1], infoY + 2}, infoFontSize, 1.0f, textColor);
+        
+        infoY += lineHeight;
+    }
 }
 
 void AnnouncementBox::Draw() {
@@ -196,7 +261,17 @@ void AnnouncementBox::Draw() {
     // Draw title
     float titleY = rect.y + 10;
     Vector2 titlePos = {rect.x + rect.width / 2.0f - MeasureTextEx(customFont, title, titleFontSize, 1.0f).x / 2.0f, titleY};
-    DrawTextEx(customFont, title, titlePos, 24.0f, 1.0f, textColor);
+    DrawTextEx(customFont, title, titlePos, titleFontSize, 1.0f, textColor);
+
+     // Add bold underline for title
+    float titleWidth = MeasureTextEx(customFont, title, titleFontSize, 1.0f).x;
+    float underlineY = titleY + titleFontSize + 4;
+    DrawLineEx(
+        (Vector2){titlePos.x, underlineY},
+        (Vector2){titlePos.x + titleWidth, underlineY},
+        3.0f,  // Line thickness (bold)
+        titleColor
+    );
     
     // Calculate visible content height
     float codeHeight = content.size() * lineHeight;
@@ -209,6 +284,11 @@ void AnnouncementBox::Draw() {
     float scrollHeight = maxContentHeight;
     bool needsScrollBar = HandleScrollingBar(totalContentHeight, maxContentHeight, scrollY, scrollHeight);
     
+    if (needsScrollBar) {
+        // Draw scroll bar
+        DrawRectangleRec(scrollBarRect, Color{200, 200, 200, 100});
+        DrawRectangleRec(scrollThumbRect, Color{150, 150, 150, 200});
+    }
     // Apply scrolling to content
     BeginScissorMode(rect.x, rect.y + 50, rect.width - (needsScrollBar ? 20 : 0), maxContentHeight);
     
@@ -224,27 +304,54 @@ void AnnouncementBox::Draw() {
         }
         
         Color bgColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightBgColor : backgroundColor;
+        Color txtColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightColor : textColor;
         DrawRectangle(rect.x + 10, y, rect.width - 30, lineHeight, bgColor);
-        DrawTextEx(customFont, content[i], (Vector2){rect.x + 15, y + 5}, contentFontSize, 1.0f, textColor);
+        DrawTextEx(customFont, content[i], (Vector2){rect.x + 15, y + 5}, contentFontSize, 1.0f, txtColor);
     }
     
     // Draw divider line
-    float lineY = codeY + content.size() * lineHeight + 10;
-    DrawLine(rect.x + 20, lineY, rect.x + rect.width - 30, lineY, Color{100, 100, 100, 150});
+    float lineY = codeY + content.size() * lineHeight;
     
     // Draw info section
     float infoY = lineY + 20;
     
-    for (const auto& info : infoLines) {
+    for (int i = 0; i < infoLines.size(); i++) {
+        const auto& info = infoLines[i];
+        
         // Skip if not visible
         if (infoY + lineHeight < rect.y + 50 || infoY > rect.y + 50 + maxContentHeight) {
             infoY += lineHeight;
             continue;
         }
         
-        char buffer[100];
-        sprintf(buffer, "%s: %s", info.label, info.value);
-        DrawTextEx(customFont, buffer, (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
+        // Check for separator marker
+        if (info.label == "__SEPARATOR__") {
+            // Draw a horizontal line instead of text
+            DrawLine(rect.x + 20, infoY + lineHeight/2, rect.x + rect.width - 30, 
+                    infoY + lineHeight/2, Color{100, 100, 100, 150});
+            infoY += lineHeight;
+            continue;
+        }
+        
+        // Check for table markers
+        if (info.label == "__TABLE_START__") {
+            infoY += lineHeight / 2; // Add a bit of space before the table
+            
+            int j = i + 1;
+            while(j < infoLines.size() && infoLines[j].label != "__TABLE_END__") {
+                j++;
+            }
+
+            DrawTable(infoY, i + 1, j, maxContentHeight, rect.y + 50);
+            
+            // Skip to end of table
+            i = j;
+            continue;
+        }
+        
+        // Regular info line
+        std::string buffer = info.label + ": " + info.value;
+        DrawTextEx(customFont, buffer.c_str(), (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
         infoY += lineHeight;
     }
     

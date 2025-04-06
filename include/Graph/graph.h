@@ -137,6 +137,8 @@ private:
     // Add announcement box for algorithms
     AnnouncementBox algorithmBox;
     void UpdateDijkstraInfoLines();
+    void UpdateDijkstraTable();
+    void UpdateAdditionalInfoLines();
 };
 
 namespace GraphAlgorithms {

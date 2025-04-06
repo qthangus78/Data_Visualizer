@@ -36,10 +36,6 @@ void GraphVisualizer::DrawDIJKSTRA_StepByStep() {
         }
     }
 
-    if (dijkstra_data.step_result.action == DijkstraStepResult::DONE) {
-        cout << "Dijkstra's algorithm completed." << endl;
-    }
-
     for (int i = 0; i < graph->Edges.size(); ++i) {
         int special = 0;
         // Edge being currently relaxed
@@ -70,6 +66,12 @@ void GraphVisualizer::DrawDIJKSTRA_StepByStep() {
     
     // Draw pseudocode announcement box
     DrawDijkstraPseudoCode();
+        
+    // Update info lines
+    UpdateDijkstraInfoLines();
+    
+    // Draw the announcement box
+    algorithmBox.Draw();
 }
 
 void GraphVisualizer::DrawDijkstraPseudoCode() {
@@ -98,73 +100,91 @@ void GraphVisualizer::DrawDijkstraPseudoCode() {
     
     // Set highlighted lines
     algorithmBox.SetHighlightLines(highlightStart, highlightEnd);
-    
-    // Update info lines
-    UpdateDijkstraInfoLines();
-    
-    // Draw the announcement box
-    algorithmBox.Draw();
 }
 
-void GraphVisualizer::UpdateDijkstraInfoLines() {
-    algorithmBox.ClearInfoLines();
-    
+void GraphVisualizer::UpdateAdditionalInfoLines() {
     if (graph->dijkstraSource != -1) {
         char buffer[20];
         sprintf(buffer, "%d", graph->dijkstraSource);
         algorithmBox.AddInfoLine("Source", buffer);
     }
-    
-    if (dijkstra_data.current_u != -1) {
-        char buffer[20];
-        sprintf(buffer, "%d", dijkstra_data.current_u);
-        algorithmBox.AddInfoLine("Current u", buffer);
+
+    if (dijkstra_data.step_result.action == DijkstraStepResult::DONE) {
+        algorithmBox.AddInfoLine("Dijkstra's algorithm", "Done");
+    } 
+    else {
+        if (dijkstra_data.current_u != -1) {
+            char buffer[20];
+            sprintf(buffer, "%d", dijkstra_data.current_u);
+            algorithmBox.AddInfoLine("Current u", buffer);
+        }
+        
+        if (dijkstra_data.step_result.action == DijkstraStepResult::RELAX_EDGE) {
+            char buffer[30];
+            sprintf(buffer, "%d -> %d", dijkstra_data.step_result.u, dijkstra_data.step_result.v);
+            algorithmBox.AddInfoLine("Relaxing edge", buffer);
+        }
     }
+}
+
+void GraphVisualizer::UpdateDijkstraInfoLines() {
+    algorithmBox.ClearInfoLines();
+
+    algorithmBox.AddInfoLine("__SEPARATOR__", "");
+    UpdateDijkstraTable();
+
+    algorithmBox.AddInfoLine("__SEPARATOR__", "");
+    UpdateAdditionalInfoLines();
+}
+
+void GraphVisualizer::UpdateDijkstraTable() {
+    // Add header marker to indicate this is a table
+    algorithmBox.AddInfoLine("__TABLE_START__", "");
     
-    if (dijkstra_data.step_result.action == DijkstraStepResult::RELAX_EDGE) {
-        char buffer[30];
-        sprintf(buffer, "%d -> %d", dijkstra_data.step_result.u, dijkstra_data.step_result.v);
-        algorithmBox.AddInfoLine("Relaxing edge", buffer);
-    }
+    // Add table header
+    algorithmBox.AddInfoLine("Vertex", "Distance|Predecessor");
     
-    // Add a separator
-    algorithmBox.AddInfoLine("----------", "----------");
-    
-    // Add distance table header
-    algorithmBox.AddInfoLine("Vertex", "Distance | Previous");
-    
-    // Add distance and previous information for all vertices
+    // Add table data rows
     for (int v = 1; v <= graph->numNode; v++) {
-        char buffer[50];
+        // Create vertex string - use simple format without special chars
+        std::string vStr = std::to_string(v);
+        // Create distance and predecessor string
+        std::string distPredStr;
         if (dijkstra_data.distances[v] == INT_MAX) {
-            sprintf(buffer, "INF | -");
-        } else {
-            char prevStr[10];
+            distPredStr = "INF|-";
+        } 
+        else {
+            std::string predStr = "-";  // Default
+            
+            // For source vertex, predecessor is "-"
             if (v == graph->dijkstraSource) {
-                strcpy(prevStr, "-");
+                // Keep default "-"
             } else {
-                // Find the previous vertex by checking the edges
-                int prev = -1;
-                for (int i = 0; i < graph->Edges.size(); i++) {
-                    if (graph->Edges[i].v == v && 
-                        dijkstra_data.distances[v] == dijkstra_data.distances[graph->Edges[i].u] + graph->Edges[i].w) {
-                        prev = graph->Edges[i].u;
+                // For other vertices, find the previous vertex in shortest path
+                for (const auto& edge : graph->Edges) {
+                    // Check for direct edge that's part of shortest path
+                    if (edge.v == v && 
+                        dijkstra_data.distances[v] == dijkstra_data.distances[edge.u] + edge.w) {
+                        predStr = std::to_string(edge.u);
                         break;
-                    } else if (!graph->isDirected && graph->Edges[i].u == v && 
-                              dijkstra_data.distances[v] == dijkstra_data.distances[graph->Edges[i].v] + graph->Edges[i].w) {
-                        prev = graph->Edges[i].v;
+                    } 
+                    // For undirected graphs, also check the reverse direction
+                    else if (!graph->isDirected && edge.u == v && 
+                             dijkstra_data.distances[v] == dijkstra_data.distances[edge.v] + edge.w) {
+                        predStr = std::to_string(edge.v);
                         break;
                     }
                 }
-                sprintf(prevStr, "%d", prev);
             }
-            sprintf(buffer, "%d | %s", dijkstra_data.distances[v], prevStr);
+            distPredStr = std::to_string(dijkstra_data.distances[v]) + "|" + predStr;
         }
         
-        char vStr[10];
-        sprintf(vStr, "v%d", v);
-        algorithmBox.AddInfoLine(vStr, buffer);
+        // Add the line to the table
+        algorithmBox.AddInfoLine(vStr.c_str(), distPredStr.c_str());
     }
+    
+    // Add end marker
+    algorithmBox.AddInfoLine("__TABLE_END__", "");
 }
 
 GraphVisualizer::DijkstraVisualizerData::DijkstraVisualizerData() {

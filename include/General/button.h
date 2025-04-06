@@ -48,6 +48,7 @@ public:
     void Draw();
     
     bool HandleScrollingBar(float totalContentHeight, float maxContentHeight, float scrollY, float scrollHeight);
+    void DrawTable(float& infoY, int startIndex, int endIndex, float maxContentHeight, float baseY);
 
 private:
     Rectangle rect;
@@ -57,8 +58,8 @@ private:
     int highlightEndLine;
 
     struct InfoLine {
-        const char* label;
-        const char* value;
+        std::string label;
+        std::string value;
     };
     std::vector<InfoLine> infoLines;
     
@@ -77,7 +78,8 @@ private:
 
     // Scrolling variables
     float scrollOffset = 0.0f;
-    float codeLineHeight = 30.0f;
+    Rectangle scrollBarRect;
+    Rectangle scrollThumbRect;
 };
 
 void display_title(const char *Title, ScreenID lastScreenID);
