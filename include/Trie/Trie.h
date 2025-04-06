@@ -50,23 +50,11 @@ void drawPartofLinkedListNotColor(ListNode* root, ListNode* EndPart, SSL* s);
 
 void drawButtons();
 
-void handleButtonsClick(SSL* SSL);
-
 void handleButtonsHover();
 
 void drawBlinkingLines(const std::string& text, Rectangle rect, int& frameCounter);
 
 void drawTextIn(const std::string& text, Rectangle rect, int& frameCounter);
-
-Vector2 Vector2Subtract(Vector2 v1, Vector2 v2);
-
-float Vector2Length(Vector2 v);
-
-Vector2 Vector2Add(Vector2 v1, Vector2 v2);
-
-Vector2 Vector2Scale(Vector2 v, float scale);
-
-void drawArrow2Node(Vector2 start, Vector2 end, Color edgeRender);
 
 
 

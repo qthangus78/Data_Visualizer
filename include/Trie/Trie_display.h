@@ -52,16 +52,46 @@ private:
 	vector<pair<Vector2, Vector2>> Edges;
 	vector < pair<Vector2, char>> Nodes;
 public:
+	enum FunctionNumber {
+		Input = 1,
+	};
+
+	//Trie root
 	TrieNode* root;
+	//function variables
+	int letterCount = 0;
+	const int MAX_INPUT_CHARS = 15;
+
+	string textIn, word;
+	int frameCounter = 0;
+
+	int curFunct = 0;
+
+	//draw variables
+
+
+	Rectangle inputRect = { buttonVar::buttonIns.rect.x + 130,buttonVar::buttonIns.rect.y,130, static_cast<float>(button::sizeH) };
+
+
 	//Trie
 	Trie();
 	
 	void Insert(const string& c);
 	
+	//Utility
+	void drawNodeTrie(Vector2 pos, const char& character, float radius);
+
+	string handleTypeBox(Rectangle rect);
+
+	void drawTypeBox(Rectangle rect);
+
+	void HandleButtonClickTrie();
+
 	//Visualizer
+
 	void Visualize(TrieNode* root, float x, float y, float offset, int depth);
 
-	void drawNodeTrie(Vector2 pos, const char& character, float radius);
+	void Handle();
 
 	void Draw();
 };

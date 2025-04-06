@@ -19,12 +19,10 @@ int main() {
     SSL SSL;
     SLL_display::sslInstance = &SSL; 
 
+
     Trie Trie;
     Trie_Display::TrieInstance = &Trie;
-    Trie.Insert("baby");
-    Trie.Insert("bababui");
-    Trie.Insert("boiii");
-    Trie.Visualize(Trie.root, screenWidth / 10, screenHeight / 2, 300, 0);
+    Trie.Visualize(Trie.root, screenWidth / 10, screenHeight / 2, 150, 0);
 
     MinHeap minHeap;
     Heap_display::heapInstance = &minHeap;
