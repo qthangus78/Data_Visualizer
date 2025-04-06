@@ -12,7 +12,7 @@ void GraphMenu::ChooseGraphType(GraphVisualizer &GV) {
         }
     }
     if (CheckCollisionPointRec(mouse, unweightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        if (selectedOption != MenuOption::MST_KRUSKAL) { // MST must be weighted
+        if (selectedOption == MenuOption::CREATE) { // MST and DIJKSTRA must be weighted
             weightType = GraphWeightType::UNWEIGHTED;
             if (GV.graph) GV.graph->isWeighted = false;
         }
@@ -32,7 +32,7 @@ void GraphMenu::ChooseAlgorithms(GraphVisualizer &GV) {
     if (CheckCollisionPointRec(mouse, mstBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (!GV.graph) {
             showButtons = false;
-            std::string errorMessage = "Please create a graph first!";
+            std::string errorMessage = "Please create a graph first!"; // Show this error message in the AnnouncementBox
             // DrawText(errorMessage.c_str(), 10, GetScreenHeight() - 30, 20, RED);
             return;
         }
@@ -47,6 +47,7 @@ void GraphMenu::ChooseAlgorithms(GraphVisualizer &GV) {
     }
     if (CheckCollisionPointRec(mouse, dijkstraBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::DIJKSTRA;
+        weightType = GraphWeightType::WEIGHTED;
         showButtons = true;
     }
 

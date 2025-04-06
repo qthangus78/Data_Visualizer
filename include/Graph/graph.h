@@ -20,7 +20,7 @@ public:
         int other(int x) const;
     };
 
-    Graph(int _numNode, bool _isDirected = false, bool _isWeighted = false);
+    Graph(int _numNode, bool _isDirected = false, bool _isWeighted = true);
 
     void AddEdge(int u, int v, int w);
     float EulerDist(int u, int v) const;
@@ -94,6 +94,8 @@ private:
     void DrawDijkstraPseudoCode();  // Add this line
 
     // Add Dijkstra visualization properties
+    int selectNextDijkstraU();
+    void GetDijkstraStep();
     struct DijkstraVisualizerData {
         vector<int> distances;
         vector<bool> processed;
@@ -110,10 +112,12 @@ private:
         DijkstraVisualizerData();
     } dijkstra_data;
 
-    int selectNextDijkstraU();
-    void GetDijkstraStep();
+   
 
     // Add Kruskal visualization properties
+    void GetKruskalStep();
+    int findSet(int v);
+    bool unionSets(int a, int b);
     struct KruskalVisualizerData {
         vector<int> parent;
         vector<pair<int, int>> edges;  // {weight, edge_index}
@@ -129,12 +133,10 @@ private:
         KruskalVisualizerData();
     } kruskal_data;
 
-    void GetKruskalStep();
-    int findSet(int v);
-    bool unionSets(int a, int b);
 
     // Add announcement box for algorithms
     AnnouncementBox algorithmBox;
+    void UpdateDijkstraInfoLines();
 };
 
 namespace GraphAlgorithms {

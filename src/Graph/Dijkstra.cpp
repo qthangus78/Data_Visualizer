@@ -100,6 +100,13 @@ void GraphVisualizer::DrawDijkstraPseudoCode() {
     algorithmBox.SetHighlightLines(highlightStart, highlightEnd);
     
     // Update info lines
+    UpdateDijkstraInfoLines();
+    
+    // Draw the announcement box
+    algorithmBox.Draw();
+}
+
+void GraphVisualizer::UpdateDijkstraInfoLines() {
     algorithmBox.ClearInfoLines();
     
     if (graph->dijkstraSource != -1) {
@@ -120,8 +127,44 @@ void GraphVisualizer::DrawDijkstraPseudoCode() {
         algorithmBox.AddInfoLine("Relaxing edge", buffer);
     }
     
-    // Draw the announcement box
-    algorithmBox.Draw();
+    // Add a separator
+    algorithmBox.AddInfoLine("----------", "----------");
+    
+    // Add distance table header
+    algorithmBox.AddInfoLine("Vertex", "Distance | Previous");
+    
+    // Add distance and previous information for all vertices
+    for (int v = 1; v <= graph->numNode; v++) {
+        char buffer[50];
+        if (dijkstra_data.distances[v] == INT_MAX) {
+            sprintf(buffer, "INF | -");
+        } else {
+            char prevStr[10];
+            if (v == graph->dijkstraSource) {
+                strcpy(prevStr, "-");
+            } else {
+                // Find the previous vertex by checking the edges
+                int prev = -1;
+                for (int i = 0; i < graph->Edges.size(); i++) {
+                    if (graph->Edges[i].v == v && 
+                        dijkstra_data.distances[v] == dijkstra_data.distances[graph->Edges[i].u] + graph->Edges[i].w) {
+                        prev = graph->Edges[i].u;
+                        break;
+                    } else if (!graph->isDirected && graph->Edges[i].u == v && 
+                              dijkstra_data.distances[v] == dijkstra_data.distances[graph->Edges[i].v] + graph->Edges[i].w) {
+                        prev = graph->Edges[i].v;
+                        break;
+                    }
+                }
+                sprintf(prevStr, "%d", prev);
+            }
+            sprintf(buffer, "%d | %s", dijkstra_data.distances[v], prevStr);
+        }
+        
+        char vStr[10];
+        sprintf(vStr, "v%d", v);
+        algorithmBox.AddInfoLine(vStr, buffer);
+    }
 }
 
 GraphVisualizer::DijkstraVisualizerData::DijkstraVisualizerData() {

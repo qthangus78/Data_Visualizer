@@ -141,75 +141,113 @@ void AnnouncementBox::ClearInfoLines() {
     infoLines.clear();
 }
 
+bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxContentHeight, float scrollY, float scrollHeight) {
+    // Calculate scroll bar parameters
+    bool needsScrollBar = totalContentHeight > maxContentHeight;
+    float scrollThumbHeight = needsScrollBar ? (scrollHeight / totalContentHeight) * scrollHeight : 0;
+    float scrollThumbY = scrollY + (scrollOffset / totalContentHeight) * scrollHeight;
+    
+    // Handle mouse wheel for scrolling
+    if (needsScrollBar && CheckCollisionPointRec(GetMousePosition(), rect)) {
+        float wheel = GetMouseWheelMove();
+        if (wheel != 0) {
+            scrollOffset -= wheel * 20;
+            scrollOffset = fmax(0, fmin(scrollOffset, totalContentHeight - maxContentHeight));
+        }
+    }
+    
+    // Handle scroll bar dragging
+    static bool isDragging = false;
+    static float dragOffset = 0;
+    
+    if (needsScrollBar) {
+        Rectangle scrollBarRect = {rect.x + rect.width - 15, scrollY, 10, scrollHeight};
+        Rectangle scrollThumbRect = {rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
+        
+        if (CheckCollisionPointRec(GetMousePosition(), scrollThumbRect)) {
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                isDragging = true;
+                dragOffset = GetMousePosition().y - scrollThumbY;
+            }
+        }
+        
+        if (isDragging) {
+            if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                float newThumbY = GetMousePosition().y - dragOffset;
+                newThumbY = fmax(scrollY, fmin(newThumbY, scrollY + scrollHeight - scrollThumbHeight));
+                scrollOffset = ((newThumbY - scrollY) / scrollHeight) * totalContentHeight;
+            } else {
+                isDragging = false;
+            }
+        }
+        
+        // Draw scroll bar
+        DrawRectangleRec(scrollBarRect, Color{200, 200, 200, 100});
+        DrawRectangleRec(scrollThumbRect, Color{150, 150, 150, 200});
+    }
+    
+    return needsScrollBar;
+}
+
 void AnnouncementBox::Draw() {
-    // Draw box background
     DrawRectangleRec(rect, backgroundColor);
-    DrawRectangleLinesEx(rect, 2, borderColor);
+    DrawRectangleLinesEx(rect, 1.0f, borderColor);
     
     // Draw title
-    Vector2 titleSize = MeasureTextEx(customFont, title, titleFontSize, 1.0f);
-    Vector2 titlePos = {
-        rect.x + (rect.width - titleSize.x) / 2,
-        rect.y + 15
-    };
-    DrawTextEx(customFont, title, titlePos, titleFontSize, 1.0f, titleColor);
+    float titleY = rect.y + 10;
+    Vector2 titlePos = {rect.x + rect.width / 2.0f - MeasureTextEx(customFont, title, titleFontSize, 1.0f).x / 2.0f, titleY};
+    DrawTextEx(customFont, title, titlePos, 24.0f, 1.0f, textColor);
     
-    // Draw horizontal line below title
-    DrawLineEx(
-        (Vector2){rect.x + 10, rect.y + 45},
-        (Vector2){rect.x + rect.width - 10, rect.y + 45},
-        2, borderColor
-    );
+    // Calculate visible content height
+    float codeHeight = content.size() * lineHeight;
+    float infoHeight = infoLines.size() * lineHeight;
+    float totalContentHeight = codeHeight + infoHeight + 50; // 50 for padding
+    float maxContentHeight = rect.height - 60; // Account for title and padding
     
-    // Draw content
-    float startY = rect.y + 60;
+    // Handle scrolling bar
+    float scrollY = rect.y + 50;
+    float scrollHeight = maxContentHeight;
+    bool needsScrollBar = HandleScrollingBar(totalContentHeight, maxContentHeight, scrollY, scrollHeight);
     
+    // Apply scrolling to content
+    BeginScissorMode(rect.x, rect.y + 50, rect.width - (needsScrollBar ? 20 : 0), maxContentHeight);
+    
+    float codeY = rect.y + 50 - scrollOffset;
+    
+    // Draw code with highlighting
     for (int i = 0; i < content.size(); i++) {
-        bool isHighlighted = (i >= highlightStartLine && i <= highlightEndLine);
-        Color lineColor = isHighlighted ? highlightColor : textColor;
+        float y = codeY + i * lineHeight;
         
-        // Draw highlight background if line is highlighted
-        if (isHighlighted) {
-            Vector2 textSize = MeasureTextEx(customFont, content[i], contentFontSize, 1.0f);
-            DrawRectangle(
-                rect.x + 15 + indentation,
-                startY + i * lineHeight - 2,
-                textSize.x + 10,
-                lineHeight,
-                highlightBgColor
-            );
+        // Skip if not visible
+        if (y + lineHeight < rect.y + 50 || y > rect.y + 50 + maxContentHeight) {
+            continue;
         }
         
-        DrawTextEx(
-            customFont, 
-            content[i], 
-            (Vector2){rect.x + 20 + indentation, startY + i * lineHeight}, 
-            contentFontSize, 
-            1.0f, 
-            lineColor
-        );
+        Color bgColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightBgColor : backgroundColor;
+        DrawRectangle(rect.x + 10, y, rect.width - 30, lineHeight, bgColor);
+        DrawTextEx(customFont, content[i], (Vector2){rect.x + 15, y + 5}, contentFontSize, 1.0f, textColor);
     }
     
-    // Draw additional info
-    if (!infoLines.empty()) {
-        float infoY = startY + content.size() * lineHeight + 20;
-        
-        // Draw separator line
-        DrawLineEx(
-            (Vector2){rect.x + 10, infoY - 10},
-            (Vector2){rect.x + rect.width - 10, infoY - 10},
-            1, Color{100, 100, 100, 150}
-        );
-        
-        DrawTextEx(customFont, "Current state:", (Vector2){rect.x + 20, infoY}, 18.0f, 1.0f, textColor);
-        infoY += 30;
-        
-        for (const auto& info : infoLines) {
-            char buffer[100];
-            sprintf(buffer, "%s: %s", info.label, info.value);
-            DrawTextEx(customFont, buffer, (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
-            infoY += 25;
+    // Draw divider line
+    float lineY = codeY + content.size() * lineHeight + 10;
+    DrawLine(rect.x + 20, lineY, rect.x + rect.width - 30, lineY, Color{100, 100, 100, 150});
+    
+    // Draw info section
+    float infoY = lineY + 20;
+    
+    for (const auto& info : infoLines) {
+        // Skip if not visible
+        if (infoY + lineHeight < rect.y + 50 || infoY > rect.y + 50 + maxContentHeight) {
+            infoY += lineHeight;
+            continue;
         }
+        
+        char buffer[100];
+        sprintf(buffer, "%s: %s", info.label, info.value);
+        DrawTextEx(customFont, buffer, (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
+        infoY += lineHeight;
     }
+    
+    EndScissorMode();
 }
 
