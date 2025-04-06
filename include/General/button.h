@@ -1,8 +1,20 @@
 #pragma once 
 #include "GlobalVar.h"
 
-struct myTexture {
-    Texture2D texture;  
+enum class ScreenID {
+    StartScreen,
+    StartMenuScreen,
+    SettingScreen,
+    SLLScreen,
+    HeapScreen,
+    TrieScreen,
+    GraphScreen
+};
+class myTexture {
+public:
+    Texture2D MainTexture;
+    Texture2D SelectedTexture;
+
     float x, y;
     const Color color[2] = {WHITE, BLUE};
     Color currentColor = WHITE;

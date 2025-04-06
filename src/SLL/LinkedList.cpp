@@ -134,13 +134,13 @@ void drawNode(Vector2 pos, const std::string& text, float radius){
 }
 //Vẽ mũi tên
 Vector2 Vector2Subtract(Vector2 v1, Vector2 v2) {
-    return Vector2{ v1.x - v2.x, v1.y - v2.y };
+    return Vector2 { v1.x - v2.x, v1.y - v2.y };
 }
 float Vector2Length(Vector2 v) {
     return sqrtf(v.x * v.x + v.y * v.y);
 }
 Vector2 Vector2Add(Vector2 v1, Vector2 v2) {
-    return Vector2{ v1.x + v2.x, v1.y + v2.y };
+    return Vector2 { v1.x + v2.x, v1.y + v2.y };
 }
 Vector2 Vector2Scale(Vector2 v, float scale) {
     return Vector2{ v.x * scale, v.y * scale };

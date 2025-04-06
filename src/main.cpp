@@ -49,10 +49,8 @@ int main() {
             case 4:
                 Heap_display::Display();
                 break;
-            case 5: //AVL /Trie
-                //AVLTree_display::Display();
-                Trie_Display::Display();
-
+            case ScreenID::TrieScreen: 
+                T::Display();
                 break;
             case 6:
                 Graph_display::Display();
