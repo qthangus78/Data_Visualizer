@@ -1,46 +1,68 @@
 #include "Graph_Menu.h"
+
 void GraphMenu::ChooseGraphType(GraphVisualizer &GV) {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        isDirected = false;
-        if (GV.graph) GV.graph->isDirected = isDirected;
+        directionType = GraphDirectionType::UNDIRECTED;
+        if (GV.graph) GV.graph->isDirected = false;
     }
     if (CheckCollisionPointRec(mouse, directedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (selectedOption != MenuOption::MST_KRUSKAL) { // MST must be undirected
-            isDirected = true;
-            if (GV.graph) GV.graph->isDirected = isDirected;
+            directionType = GraphDirectionType::DIRECTED;
+            if (GV.graph) GV.graph->isDirected = true;
         }
     }
     if (CheckCollisionPointRec(mouse, unweightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (selectedOption != MenuOption::MST_KRUSKAL) { // MST must be weighted
-            isWeighted = false;
-            if (GV.graph) GV.graph->isWeighted = isWeighted;
+            weightType = GraphWeightType::UNWEIGHTED;
+            if (GV.graph) GV.graph->isWeighted = false;
         }
     }
     if (CheckCollisionPointRec(mouse, weightedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        isWeighted = true;
-        if (GV.graph) GV.graph->isWeighted = isWeighted;
+        weightType = GraphWeightType::WEIGHTED;
+        if (GV.graph) GV.graph->isWeighted = true;
     }
 }
 
 void GraphMenu::ChooseAlgorithms(GraphVisualizer &GV) {
+    // Choose menu option
     if (CheckCollisionPointRec(mouse, createBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::CREATE;
+        showButtons = true;
     }
     if (CheckCollisionPointRec(mouse, mstBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        selectedOption = MenuOption::MST_KRUSKAL;
-        isDirected = false;
-        isWeighted = true;
-        if (GV.graph) {
-            GV.graph->isDirected = isDirected;
-            GV.graph->isWeighted = isWeighted;
+        if (!GV.graph) {
+            showButtons = false;
+            std::string errorMessage = "Please create a graph first!";
+            // DrawText(errorMessage.c_str(), 10, GetScreenHeight() - 30, 20, RED);
+            return;
         }
+        selectedOption = MenuOption::MST_KRUSKAL;
+        directionType = GraphDirectionType::UNDIRECTED;
+        weightType = GraphWeightType::WEIGHTED;
+        if (GV.graph) {
+            GV.graph->isDirected = false;
+            GV.graph->isWeighted = true;
+        }
+        showButtons = true;
     }
     if (CheckCollisionPointRec(mouse, dijkstraBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         selectedOption = MenuOption::DIJKSTRA;
+        showButtons = true;
+    }
+
+    // Choose edge options
+    if (CheckCollisionPointRec(mouse, addEdgeBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        selectedEdgeOp = EdgeOperation::ADD_EDGE;
+        showEdgeInputBox = true;
+    }
+    if (CheckCollisionPointRec(mouse, deleteEdgeBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        selectedEdgeOp = EdgeOperation::DELETE_EDGE;   
+        showEdgeInputBox = true;
     }
 }
 
 void GraphMenu::HandleInput() {
+    mouse = GetMousePosition();
     float deltaTime = GetFrameTime();
 
     // Handle textbox activation
@@ -64,15 +86,34 @@ void GraphMenu::HandleInput() {
             cursorBlinkTimer = 0.0f;
             showCursor = true;
         }
-        else if (selectedOption == MenuOption::DIJKSTRA &&
-                 (CheckCollisionPointRec(mouse, destField.label.rect) ||
-                  ((destField.input.size() > 0 || activeField == ActiveField::DEST) && CheckCollisionPointRec(mouse, destField.box.rect)))) {
-            activeField = ActiveField::DEST;
+        else {
+            activeField = ActiveField::NONE;
+        }
+
+        if (CheckCollisionPointRec(mouse, fromField.label.rect) ||
+            ((fromField.input.size() > 0 || activeEdgeField == ActiveEdgeField::FROM) && 
+             CheckCollisionPointRec(mouse, fromField.box.rect))) {
+            activeEdgeField = ActiveEdgeField::FROM;
+            cursorBlinkTimer = 0.0f;
+            showCursor = true;
+        }
+        else if (CheckCollisionPointRec(mouse, toField.label.rect) ||
+                ((toField.input.size() > 0 || activeEdgeField == ActiveEdgeField::TO) && 
+                 CheckCollisionPointRec(mouse, toField.box.rect))) {
+            activeEdgeField = ActiveEdgeField::TO;
+            cursorBlinkTimer = 0.0f;
+            showCursor = true;
+        }
+        else if (weightType == GraphWeightType::WEIGHTED && 
+                (CheckCollisionPointRec(mouse, weightField.label.rect) ||
+                 ((weightField.input.size() > 0 || activeEdgeField == ActiveEdgeField::WEIGHT) && 
+                  CheckCollisionPointRec(mouse, weightField.box.rect)))) {
+            activeEdgeField = ActiveEdgeField::WEIGHT;
             cursorBlinkTimer = 0.0f;
             showCursor = true;
         }
         else {
-            activeField = ActiveField::NONE;
+            activeEdgeField = ActiveEdgeField::NONE;
         }
 
         fileSelected = CheckCollisionPointRec(mouse, fileBtn.rect);
@@ -98,8 +139,15 @@ void GraphMenu::HandleInput() {
         else if (activeField == ActiveField::SOURCE && sourceField.input.size() <= 4) {
             sourceField.input += static_cast<char>(key);
         }
-        else if (activeField == ActiveField::DEST && destField.input.size() <= 4) {
-            destField.input += static_cast<char>(key);
+        else if (activeEdgeField == ActiveEdgeField::FROM && fromField.input.size() <= 4) {
+            fromField.input += (char)key;
+        }
+        else if (activeEdgeField == ActiveEdgeField::TO && toField.input.size() <= 4) {
+            toField.input += (char)key;
+        }
+        else if (activeEdgeField == ActiveEdgeField::WEIGHT && weightType == GraphWeightType::WEIGHTED && 
+                 weightField.input.size() <= 4) {
+            weightField.input += (char)key;
         }
     }
 
@@ -112,7 +160,10 @@ void GraphMenu::HandleInput() {
             if (activeField == ActiveField::NODES && !nodesField.input.empty()) nodesField.input.pop_back();
             else if (activeField == ActiveField::EDGES && !edgesField.input.empty()) edgesField.input.pop_back();
             else if (activeField == ActiveField::SOURCE && !sourceField.input.empty()) sourceField.input.pop_back();
-            else if (activeField == ActiveField::DEST && !destField.input.empty()) destField.input.pop_back();
+            
+            if (activeEdgeField == ActiveEdgeField::FROM && !fromField.input.empty()) fromField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::TO && !toField.input.empty()) toField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::WEIGHT && !weightField.input.empty()) weightField.input.pop_back();
         }
         backspaceTimer += deltaTime;
         if (!initialBackspaceDelayPassed && backspaceTimer >= initialBackspaceDelay) {
@@ -123,7 +174,10 @@ void GraphMenu::HandleInput() {
             if (activeField == ActiveField::NODES && !nodesField.input.empty()) nodesField.input.pop_back();
             else if (activeField == ActiveField::EDGES && !edgesField.input.empty()) edgesField.input.pop_back();
             else if (activeField == ActiveField::SOURCE && !sourceField.input.empty()) sourceField.input.pop_back();
-            else if (activeField == ActiveField::DEST && !destField.input.empty()) destField.input.pop_back();
+            
+            if (activeEdgeField == ActiveEdgeField::FROM && !fromField.input.empty()) fromField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::TO && !toField.input.empty()) toField.input.pop_back();
+            else if (activeEdgeField == ActiveEdgeField::WEIGHT && !weightField.input.empty()) weightField.input.pop_back();
             backspaceTimer = 0.0f;
         }
     }
@@ -137,10 +191,12 @@ void GraphMenu::HandleInput() {
     nodesField.box.text = nodesField.input.c_str();
     edgesField.box.text = edgesField.input.c_str();
     sourceField.box.text = sourceField.input.c_str();
-    destField.box.text = destField.input.c_str();
+    fromField.box.text = fromField.input.c_str();
+    toField.box.text = toField.input.c_str();
+    weightField.box.text = weightField.input.c_str();
 }
 
-void GraphMenu::GetInput(int& numNodes, int& numEdges, int& source, int& dest) {
+void GraphMenu::GetInput(int& numNodes, int& numEdges, int& source) {
     try {
         numNodes = std::stoi(nodesField.input);
     }
@@ -156,7 +212,7 @@ void GraphMenu::GetInput(int& numNodes, int& numEdges, int& source, int& dest) {
     catch (...) {
         std::random_device rd;
         std::mt19937 gen(rd());
-        int maxEdges = isDirected ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
+        int maxEdges = (directionType == GraphDirectionType::DIRECTED) ? numNodes * (numNodes - 1) : numNodes * (numNodes - 1) / 2;
         numEdges = gen() % maxEdges;
     }
 
@@ -169,18 +225,36 @@ void GraphMenu::GetInput(int& numNodes, int& numEdges, int& source, int& dest) {
             std::mt19937 gen(rd());
             source = 1 + (gen() % numNodes);
         }
-        try {
-            dest = std::stoi(destField.input);
-        }
-        catch (...) {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            dest = 1 + (gen() % numNodes);
-        }
     }
     else {
         source = -1;
-        dest = -1;
+    }
+}
+
+void GraphMenu::GetEdgeInput(int& from, int& to, int& weight) {
+    try {
+        from = std::stoi(fromField.input);
+    }
+    catch (...) {
+        from = -1;
+    }
+
+    try {
+        to = std::stoi(toField.input);
+    }
+    catch (...) {
+        to = -1;
+    }
+
+    try {
+        if (weightType == GraphWeightType::WEIGHTED) {
+            weight = std::stoi(weightField.input);
+        } else {
+            weight = 1; // Default weight for unweighted graphs
+        }
+    }
+    catch (...) {
+        weight = weightType == GraphWeightType::WEIGHTED ? -1 : 1;
     }
 }
 
@@ -190,21 +264,112 @@ void GraphMenu::ClearInputBoxes() {
     activeField = ActiveField::NONE;
 }
 
-void GraphMenu::MakeGraph(Graph* &G) {
-    int numNodes = 0, numEdges = 0, source = -1, dest = -1;
-    GetInput(numNodes, numEdges, source, dest);
-    ClearInputBoxes();
+void GraphMenu::ClearEdgeInputBoxes() {
+    fromField.input.clear();
+    toField.input.clear();
+    weightField.input.clear();
+    activeField = ActiveField::NONE;
+}
 
-    if (G) delete G;
-    if (selectedOption == MenuOption::CREATE) {
-        G = GenerateRandomGraph(numNodes, numEdges, isDirected, isWeighted);
+void GraphMenu::HandleEdgeOperations(GraphVisualizer &GV) {
+    int from, to, weight;
+    GetEdgeInput(from, to, weight);
+
+    bool invalidInput = false;
+    std::string errorMessage = "";
+
+    // Validate input
+    if (from <= 0 || to <= 0 || fromField.input.empty() || toField.input.empty()) {
+        invalidInput = true;
+        errorMessage = "Invalid edge input: Missing or invalid vertex numbers";
     }
-    else if (selectedOption == MenuOption::MST_KRUSKAL) {
-        G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
+    else if (weightType == GraphWeightType::WEIGHTED && weightField.input.empty()) {
+        invalidInput = true;
+        errorMessage = "Invalid edge input: Missing weight for weighted graph";
     }
-    else if (selectedOption == MenuOption::DIJKSTRA) {
-        G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
-        G->DIJKSTRA_parameters = {source, dest};
+    else if (GV.graph && (from > GV.graph->numNode || to > GV.graph->numNode)) {
+        invalidInput = true;
+        errorMessage = "Invalid edge input: Vertex numbers exceed graph size";
+    }
+
+    if (invalidInput) {
+        const int msgDuration = 1200; // Duration in frames 
+        static int msgTimer = 0;
+        if (msgTimer == 0) {
+            msgTimer = msgDuration;
+        }
+        if (msgTimer > 0) {
+            DrawText(errorMessage.c_str(), 10, GetScreenHeight() - 30, 20, RED);
+            msgTimer--;
+        }
+        return;
+    }
+
+    if (GV.graph) {
+        if (selectedEdgeOp == EdgeOperation::ADD_EDGE) {
+            // Check if weight is valid for weighted graphs
+            if (!GV.graph->isWeighted || (GV.graph->isWeighted && weight >= 0)) {
+                GV.graph->AddEdge(from, to, weight);
+                ClearEdgeInputBoxes();
+            }
+            edgesField.input = std::to_string(GV.graph->numEdge);
+        }
+        else if (selectedEdgeOp == EdgeOperation::DELETE_EDGE) {
+            // Find and remove the edge
+            bool edgeFound = false;
+            for (int i = 0; i < GV.graph->Edges.size(); i++) {
+                const auto& edge = GV.graph->Edges[i];
+                if ((edge.u == from && edge.v == to) || (!GV.graph->isDirected && edge.u == to && edge.v == from)) {
+                    // Remove edge from adjacency lists
+                    for (int u = 1; u <= GV.graph->numNode; u++) {
+                        auto& adj = GV.graph->Adjacent_list[u];
+                        adj.erase(std::remove(adj.begin(), adj.end(), i), adj.end());
+                        // Update remaining edge indices in adjacency list
+                        for (auto& idx : adj) {
+                            if (idx > i) idx--;
+                        }
+                    }
+                    // Remove edge from edge list
+                    GV.graph->Edges.erase(GV.graph->Edges.begin() + i);
+                    GV.graph->numEdge--;
+                    edgeFound = true;
+                    ClearEdgeInputBoxes();
+                    break;
+                }
+            }
+
+            if (!edgeFound) {
+                const int msgDuration = 1200; // Duration in frames 
+                static int msgTimer = 0;
+                if (msgTimer == 0) {
+                    msgTimer = msgDuration;
+                }
+                if (msgTimer > 0) {
+                    DrawText("Edge not found", 10, GetScreenHeight() - 30, 20, RED);
+                    msgTimer--;
+                }
+            }
+            edgesField.input = std::to_string(GV.graph->numEdge);
+        }
+    }
+} 
+
+void GraphMenu::HandleClearGraphBtn(GraphVisualizer &GV) {
+    if (CheckCollisionPointRec(mouse, clearGraphBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        showClearConfirm = true;
+    }
+    if (showClearConfirm && CheckCollisionPointRec(mouse, clearGraphConfirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (GV.graph) {
+            delete GV.graph;
+            GV.graph = nullptr;
+        }
+        showClearConfirm = false;
+        selectedOption = MenuOption::NONE;
+        selectedEdgeOp = EdgeOperation::NONE;
+        showEdgeInputBox = false;
+        showButtons = false;
+        ClearInputBoxes();
+        ClearEdgeInputBoxes();
     }
 }
 
@@ -220,63 +385,49 @@ void GraphMenu::Handle(GraphVisualizer &GV) {
         fileSelected = false;
     }
     else if (confirmPressed) {
-        MakeGraph(GV.graph);
-        GV.initEadesFactor();
-    }
-}
-
-void GraphMenu::Draw() {
-    Color labelColor[2] = {{79, 149, 157, 255}, {246, 248, 213, 255}};
-
-    // Upper box
-    upperBoxBackground.Draw_TextBox();
-    undirectedBtn.rectColor = isDirected ? labelColor[0] : labelColor[1];
-    undirectedBtn.Draw_TextBox(!isDirected);
-    directedBtn.rectColor = isDirected ? labelColor[1] : labelColor[0];
-    directedBtn.Draw_TextBox(isDirected);
-    unweightedBtn.rectColor = isWeighted ? labelColor[0] : labelColor[1];
-    unweightedBtn.Draw_TextBox(!isWeighted);
-    weightedBtn.rectColor = isWeighted ? labelColor[1] : labelColor[0];
-    weightedBtn.Draw_TextBox(isWeighted);
-
-    // Lower box: Algorithm options
-    lowerAlgoBoxBackground.Draw_TextBox();
-    createBtn.rectColor = (selectedOption == MenuOption::CREATE) ? labelColor[1] : labelColor[0];
-    createBtn.Draw_TextBox(selectedOption == MenuOption::CREATE);
-    mstBtn.rectColor = (selectedOption == MenuOption::MST_KRUSKAL) ? labelColor[1] : labelColor[0];
-    mstBtn.Draw_TextBox(selectedOption == MenuOption::MST_KRUSKAL);
-    dijkstraBtn.rectColor = (selectedOption == MenuOption::DIJKSTRA) ? labelColor[1] : labelColor[0];
-    dijkstraBtn.Draw_TextBox(selectedOption == MenuOption::DIJKSTRA);
-
-    // Input fields
-    if (selectedOption != MenuOption::NONE) {
-        lowerParameterBoxBackground.Draw_TextBox();
-
-        nodesField.label.rectColor = (activeField == ActiveField::NODES) ? labelColor[1] : labelColor[0];
-        nodesField.label.Draw_TextBox();
-        if (!nodesField.input.empty() || activeField == ActiveField::NODES) nodesField.box.Draw_TextBox();
-        if (activeField == ActiveField::NODES && showCursor) nodesField.box.Draw_BlinkingLine();
-
-        edgesField.label.rectColor = (activeField == ActiveField::EDGES) ? labelColor[1] : labelColor[0];
-        edgesField.label.Draw_TextBox();
-        if (!edgesField.input.empty() || activeField == ActiveField::EDGES) edgesField.box.Draw_TextBox();
-        if (activeField == ActiveField::EDGES && showCursor) edgesField.box.Draw_BlinkingLine();
-
-        if (selectedOption == MenuOption::DIJKSTRA) {
-            sourceField.label.rectColor = (activeField == ActiveField::SOURCE) ? labelColor[1] : labelColor[0];
-            sourceField.label.Draw_TextBox();
-            if (!sourceField.input.empty() || activeField == ActiveField::SOURCE) sourceField.box.Draw_TextBox();
-            if (activeField == ActiveField::SOURCE && showCursor) sourceField.box.Draw_BlinkingLine();
-
-            destField.label.rectColor = (activeField == ActiveField::DEST) ? labelColor[1] : labelColor[0];
-            destField.label.Draw_TextBox();
-            if (!destField.input.empty() || activeField == ActiveField::DEST) destField.box.Draw_TextBox();
-            if (activeField == ActiveField::DEST && showCursor) destField.box.Draw_BlinkingLine();
+        if (selectedOption == MenuOption::CREATE) {
+            MakeGraph(GV.graph);
+            GV.initEadesFactor();
         }
+        else if (selectedOption == MenuOption::DIJKSTRA) {
+            int numNode, numEdge, source;
+            GetInput(numNode, numEdge, source);
+            if (!GV.graph || GV.graph->numNode != numNode || GV.graph->numEdge != numEdge) {
+                MakeGraph(GV.graph);
+                GV.initEadesFactor();
+            }
+            else {
+                GV.graph->dijkstraSource = source;
+            }
+            GV.initDijkstra();
+        }
+        else if (selectedOption == MenuOption::MST_KRUSKAL) {
+            GV.initKruskal();
+        }
+
+        confirmPressed = false;  // Reset confirm button state
     }
 
-    // Buttons
-    fileBtn.rectColor = fileSelected ? LIGHTGRAY : BLACK;
-    fileBtn.Draw_TextBox();
-    confirmBtn.Draw_TextBox();
+    if (showEdgeInputBox && CheckCollisionPointRec(mouse, edgeConfirmBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        HandleEdgeOperations(GV);
+    }
+
+    HandleClearGraphBtn(GV);
 }
+
+void GraphMenu::MakeGraph(Graph* &G) {
+    int numNodes = 0, numEdges = 0, source = -1;
+    GetInput(numNodes, numEdges, source);
+    ClearInputBoxes();
+
+    if (G) delete G;
+    bool isDirected = (directionType == GraphDirectionType::DIRECTED);
+    bool isWeighted = (weightType == GraphWeightType::WEIGHTED);
+    G = GenerateRandomConnectedGraph(numNodes, numEdges, isDirected, isWeighted);
+    G -> dijkstraSource = source;
+
+    nodesField.input = std::to_string(G -> numNode);
+    edgesField.input = std::to_string(G -> numEdge);
+    sourceField.input = std::to_string(G -> dijkstraSource);
+}
+

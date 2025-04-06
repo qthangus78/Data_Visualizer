@@ -70,26 +70,27 @@ namespace startMenuScreen {
 
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Singly_LinkedList.rect)) {
-            currentSlideID = 3;
+            currentScreenID = ScreenID::SLLScreen;
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Heap.rect)) {
-            currentSlideID = 4;
+            currentScreenID = ScreenID::HeapScreen;
         }
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, TrieBox.rect)) {
-            currentSlideID = 5;
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, AVLTree.rect)) {
+            currentScreenID = ScreenID::AVLTreeScreen;
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Shortest_path.rect)) {
-            currentSlideID = 6;
+            currentScreenID = ScreenID::GraphScreen;
         }
     }
 
     void Display() {
         ClearBackground({192, 245, 242, 100});
 
-        display_title("Data Structures Menu", 0);
+        display_title("Data Structures Menu", ScreenID::StartScreen);
         display_textBoxes();
     }   
 }
