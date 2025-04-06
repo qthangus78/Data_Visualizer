@@ -20,5 +20,6 @@ struct TextBox {
     void ScaleProcess();
     void MakeHover();
     void Draw_TextBox(bool makeHover = 0);
+    void Draw_TextBox2();
     void Draw_BlinkingLine();
 };

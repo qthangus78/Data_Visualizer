@@ -1,7 +1,7 @@
 #include "Heap_display.h"
 
 void Heap_display::Display() {
-    display_title("Min Heap", 1);
+    display_title("Min Heap", ScreenID::StartMenuScreen);
     if (heapInstance) {
         heapInstance->update();
         heapInstance->draw();

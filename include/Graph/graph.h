@@ -1,7 +1,7 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+#pragma once
 
 #include "GlobalVar.h"
+using namespace std;
 #include <vector>
 #include <queue>
 
@@ -33,7 +33,15 @@ public:
     std::vector<Edge> Edges;
     bool isDirected;
     bool isWeighted;
-    std::pair<int, int> DIJKSTRA_parameters;
+
+    // Add a member to store the source node for Dijkstra's algorithm
+    int dijkstraSource = -1;
+};
+
+struct DijkstraStepResult {
+    enum Action { INIT, SELECT_U, RELAX_EDGE, DONE };
+    Action action;
+    int u, v;
 };
 
 class GraphVisualizer {
@@ -49,13 +57,24 @@ public:
     void DrawMST() const;
     void DrawDIJKSTRA() const;
     void initEadesFactor();
+
+    // Add Dijkstra visualization methods
+    void initDijkstra();
+    void DrawDIJKSTRA_StepByStep();
+
+
+    // Add MST visualization methods
+    void DrawMST_StepByStep();
+    void initKruskal();
+    bool isKruskalInited() const; 
+
 private:
     int selectedNode = -1;
     float nodeRadius = 15.0f;
 
     // Eades algorithm parameters
     float Crep = 1000.0f;
-    float Cspring = 1.5f;
+    float Cspring = 1.0f;
     float IdealEdgeLength = 150.0f;
     float Ccenter = 0.005f;
     float Veclocity = 0.89f;
@@ -70,17 +89,60 @@ private:
     Vector2 RepulsiveForce(int u, int v) const;
     Vector2 SpringForce(int u, int v) const;
     Vector2 CenteringForce(int u) const;
-    void DrawEdge(const Graph::Edge& edge, bool special = false) const;
-    void DrawNode(int u) const;
+    void DrawEdge(const Graph::Edge& edge, int special = 0) const;
+    void DrawNode(int u, bool special = false) const;
+    void DrawDijkstraPseudoCode();  // Add this line
+
+    // Add Dijkstra visualization properties
+    struct DijkstraVisualizerData {
+        vector<int> distances;
+        vector<bool> processed;
+        int current_u = -1;
+        int current_neighbor_index = 0;
+        bool first_step = true;
+        vector<char*> codes;
+
+        DijkstraStepResult step_result = {DijkstraStepResult::INIT};
+        float elapsed_time = 0.0f;
+        const float step_interval = 1.0f;
+        bool is_paused = false; 
+        bool inited = false;
+        DijkstraVisualizerData();
+    } dijkstra_data;
+
+    int selectNextDijkstraU();
+    void GetDijkstraStep();
+
+    // Add Kruskal visualization properties
+    struct KruskalVisualizerData {
+        vector<int> parent;
+        vector<pair<int, int>> edges;  // {weight, edge_index}
+        int current_edge_index = -1;
+        bool first_step = true;
+        vector<bool> in_mst;
+        vector<char*> codes;
+
+        float elapsed_time = 0.0f;
+        const float step_interval = 1.0f;
+        bool is_paused = false;
+        bool inited = false;
+        KruskalVisualizerData();
+    } kruskal_data;
+
+    void GetKruskalStep();
+    int findSet(int v);
+    bool unionSets(int a, int b);
+
+    // Add announcement box for algorithms
+    AnnouncementBox algorithmBox;
 };
 
 namespace GraphAlgorithms {
     std::vector<int> getMST(const Graph* G);
-    std::vector<int> getDIJKSTRA(const Graph* G, int src, int dest);
+    std::vector<int> getDIJKSTRA(const Graph* G, int src);
 }
+
 
 Graph* GenerateRandomGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
 Graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected, bool isWeighted);
 void Handle_InputFile(const char* filePath, Graph* &G);
-
-#endif

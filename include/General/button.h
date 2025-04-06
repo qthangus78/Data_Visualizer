@@ -1,5 +1,7 @@
 #pragma once 
-#include "GlobalVar.h"
+#include <raylib.h>
+#include <bits/stdc++.h>
+// using namespace std;
 
 enum class ScreenID {
     StartScreen,
@@ -16,29 +18,61 @@ public:
     Texture2D SelectedTexture;
 
     float x, y;
-    const Color color[2] = {WHITE, BLUE};
-    Color currentColor = WHITE;
+    float width;
+    float height;
+    bool isLoaded = false;
+    Color selectedColor = WHITE;
 
-    myTexture() {}
-    myTexture(Texture2D _texture, float _x = 0.0, float _y = 0.0) {
-        texture = _texture;
-        x = _x;
-        y = _y;
-    }
-
-    bool CheckMouseCollision() {
-        return CheckCollisionPointRec(mouse, {x, y, (float)texture.width, (float)texture.height});
-    }
-
-    void processColor() {
-        currentColor = color[CheckMouseCollision()];
-    }
-
-    void Drawtexture() {
-        processColor();
-        DrawTexture(texture, x, y, currentColor);
-    }
+    myTexture(); // Constructor
+    ~myTexture(); // Destructor
+    void LoadTextureResources(const char *mainTexturePath, const char *selectedTexturePath); // Load textures
+    
+    void Drawtexture(); // Draw the texture
+    bool CheckMouseCollision(); // Check if the mouse is over the texture
+    void SetPosition(float xPos, float yPos); // Set position
+    bool isPressed(); // Check if the button is pressed
 };
-extern myTexture BackButton; 
 
-void display_title(const char *Title, int lastSlideID); 
+class AnnouncementBox {
+public:
+    AnnouncementBox();
+    AnnouncementBox(Rectangle rect, const char* title);
+    
+    void SetTitle(const char* title);
+    void SetContent(const std::vector<char*>& content);
+    void SetHighlightLines(int startLine, int endLine);
+    
+    void AddInfoLine(const char* label, const char* value);
+    void ClearInfoLines();
+    
+    void Draw();
+    
+private:
+    Rectangle rect;
+    const char* title;
+    std::vector<char*> content;
+    int highlightStartLine;
+    int highlightEndLine;
+    
+    struct InfoLine {
+        const char* label;
+        const char* value;
+    };
+    std::vector<InfoLine> infoLines;
+    
+    Color backgroundColor;
+    Color borderColor;
+    Color titleColor;
+    Color textColor;
+    Color highlightColor;
+    Color highlightBgColor;
+    
+    float titleFontSize;
+    float contentFontSize;
+    float infoFontSize;
+    float lineHeight;
+    float indentation;
+};
+
+void display_title(const char *Title, ScreenID lastScreenID);
+bool IsResourcesLoaded(); // Add function to check if resources are loaded

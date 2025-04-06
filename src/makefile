@@ -8,13 +8,15 @@ CXXFLAGS = 	-std=c++20 \
 			-I../include/Graph \
 			-I../include/AVL \
 			-I../include/SLL \
-			-I../include/Heap
+			-I../include/Heap \
 
 # Linker flags
 LDFLAGS = -L/opt/homebrew/lib -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio
 
 # Source file
-SRC = 	*.cpp \
+SRC = $(wildcard *.cpp General/*.cpp Graph/*.cpp Heap/*.cpp SLL/*.cpp)
+
+# SRC = 	*.cpp \
 		General/*.cpp \
 		Graph/*.cpp \
 		Heap/*.cpp \

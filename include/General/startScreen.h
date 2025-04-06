@@ -31,11 +31,11 @@ namespace startScreen {
         
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Start.rect)) {
-            currentSlideID = 1;
+            currentScreenID = ScreenID::StartMenuScreen;
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Settings.rect)) {
-            currentSlideID = 2;
+            currentScreenID = ScreenID::SettingScreen;
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Exit.rect)) {
