@@ -11,7 +11,7 @@ const int ROW_OFFSET = 100;
 const int SCREEN_MARGIN = 50;
 const int FontNode = 22;
 extern std::vector<button> code;
-const Rectangle CodeBox = {850,400,500,252};
+const Rectangle CodeBox = {850,430,500,252};
 void initCodeButton();
 //--------------------------------
 // Các hàm thao tác LinkedList

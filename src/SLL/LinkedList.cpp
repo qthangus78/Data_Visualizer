@@ -10,7 +10,7 @@
 std::vector<button> code;
 void initCodeButton(){
     code.resize(7);
-    code[0] = {{850,400,500,36},{240,240,240,230},"",};
+    code[0] = {{850,430,500,36},{240,240,240,230},"",};
     for(int i=1;i<code.size(); i++){
         code[i] = {{code[i-1].rect.x,code[i-1].rect.y+code[i-1].rect.height,code[i-1].rect.width,code[i-1].rect.height},{240,240,240,230},""};
     }
@@ -375,10 +375,10 @@ void SSL::draw(){
 }
 void SSL::handle(){
     initCodeButton();
-    UndoButton.SetPosition(460,650);
-    RedoButton.SetPosition(670,650);
-    PlayButton.SetPosition(560,635);
-    PauseButton.SetPosition(560,635);
+    UndoButton.SetPosition(460,680);
+    RedoButton.SetPosition(670,680);
+    PlayButton.SetPosition(560,665);
+    PauseButton.SetPosition(560,665);
     toggle.Update(GetMousePosition());
     if(PlayButton.isPressed()) {IsPaused = !IsPaused;}
     if(mcurrent) mcurrent->handle();
