@@ -12,12 +12,12 @@ void Trie::Insert(const string& c)
 
 //Utility
 
-void Trie::drawNodeTrie(Vector2 pos, const char& character, float radius)
+void Trie::drawNodeTrie(Vector2 pos, const char& character, Color colorNode, float radius)
 {
 	DrawCircleV(pos, radius, color::nodeNotInMode);
 	char text[2] = { character, '\0' };
 	Vector2 textSize = MeasureTextEx(customFont, text, 23, 2);
-	DrawTextEx(customFont, text, { pos.x - textSize.x / 2, pos.y - textSize.y / 2 }, 22, 2, BLACK);
+	DrawTextEx(customFont, text, { pos.x - textSize.x / 2, pos.y - textSize.y / 2 }, 22, 2, colorNode);
 }
 
 string Trie::handleTypeBox(Rectangle rect)
@@ -82,7 +82,41 @@ void Trie::HandleButtonClickTrie()
 
 //Visualizer
 
-void Trie::Visualize(TrieNode* root, float x, float y, float offset, int depth)
+int Trie::CalculateSubtreeSize(TrieNode* node) {
+	if (node == nullptr) return 0;
+
+	if (node->children.empty()) {
+		node->subtreeSize = 1;
+		return 1;
+	}
+
+	bool isNearlyLeaf = true;
+	for (auto& [_, child] : node->children)
+	{
+		if (!child->children.empty())
+		{
+			isNearlyLeaf = false;
+			break;
+		}
+	}
+
+	if (isNearlyLeaf)
+	{
+		int size = node->children.size();
+		node->subtreeSize = size;
+		return size;
+	}
+
+	int size = 0;  
+	for (auto& [_, child] : node->children) {
+		size += CalculateSubtreeSize(child);  
+	}
+
+	node->subtreeSize = size;
+	return size;
+}
+
+void Trie::MarkNodesEdges(TrieNode* root, float x, float y, float spread, int depth)
 {
 	//depth for future usage
 	if (root == nullptr)
@@ -91,30 +125,50 @@ void Trie::Visualize(TrieNode* root, float x, float y, float offset, int depth)
 	}
 
 	if (depth == 0) //pushback only root
-		Nodes.push_back({ { x,y }, '\0'});
+		Nodes.push_back({ { { x,y }, '\0'}, BLACK });
 
 	vector<pair<char, TrieNode*>> sortedChildren(root->children.begin(), root->children.end());
 	sort(sortedChildren.begin(), sortedChildren.end());
 
-	int childCount = 1;
-	int childNumber = root->children.size();
+	int childCount = 0;
+	int childNumber = root->subtreeSize;
+	float buffer = 0.5;
 
 	for (auto& [character, child] : sortedChildren)
 	{
-		//float spread = offset / max(1, childNumber);
-		float spread = max(offset / max(1, childNumber), 30.0f);
-		float newOffset = offset * 0.75f; //
 		float xNew = x + 80;
-		float yNew = y + - offset + childCount * spread;
+		float yNew = y + (childCount + buffer - childNumber / 2.0f) * spread;
+		if (child)
+		{
+			yNew += (child->subtreeSize / 2.0f - buffer) * spread;
+		}
+
+
 
 		Edges.push_back({ {x,y}, {xNew,yNew} });
-		Nodes.push_back({ { xNew,yNew }, character });
+		if (child && child->isWord)
+		{
+			Nodes.push_back({ {{ xNew,yNew }, character }, GREEN });
+		}
+		else
+		{
+			Nodes.push_back({ {{ xNew,yNew }, character }, RAYWHITE });
 
-		Visualize(child, xNew, yNew, newOffset, depth + 1); //
+		}
 
-		childCount++;
+		MarkNodesEdges(child, xNew, yNew, spread, depth + 1); //
+
+		if (child) childCount += child->subtreeSize; 
 	}
 }
+
+void Trie::Visualize(TrieNode* root)
+{
+	CalculateSubtreeSize(root);
+	MarkNodesEdges(root, screenWidth / 10, screenHeight / 2, spread, 0);
+}
+
+
 
 void Trie::Handle()
 {
@@ -131,7 +185,7 @@ void Trie::Handle()
 			Insert(word);
 			Edges.clear();
 			Nodes.clear();
-			Visualize(root, screenWidth / 10, screenHeight / 2, 150, 0);
+			Visualize(root);
 		}
 			
 		break;
@@ -144,6 +198,15 @@ void Trie::Handle()
 
 void Trie::Draw()
 {
+	//Trie
+	for (auto edge : Edges) {
+		drawArrow(edge.first, edge.second, color::edgeNotInMode);
+	}
+
+	for (auto node : Nodes) {
+		drawNodeTrie(node.first.first, node.first.second,node.second, 25);
+	}
+
 	//button
 	drawButtons();
 
@@ -152,17 +215,6 @@ void Trie::Draw()
 	case FunctionNumber::Input:
 		drawTypeBox(inputRect);
 		break;
-	}
-
-
-
-	//Trie
-	for (auto edge : Edges) {
-		drawArrow(edge.first, edge.second, color::edgeNotInMode);
-	}
-
-	for (auto node : Nodes) {
-		drawNodeTrie(node.first, node.second, 33);
 	}
 }
 

@@ -24,6 +24,9 @@ public:
     // Used for indicating ending of string
     bool isWord;
 
+    //Used for drawing
+    int subtreeSize;
+
     TrieNode();
 };
 

@@ -50,7 +50,7 @@
 class Trie {
 private:
 	vector<pair<Vector2, Vector2>> Edges;
-	vector < pair<Vector2, char>> Nodes;
+	vector < pair<pair<Vector2, char>, Color>> Nodes;
 public:
 	enum FunctionNumber {
 		Input = 1,
@@ -68,7 +68,7 @@ public:
 	int curFunct = 0;
 
 	//draw variables
-
+	const float spread = 55;
 
 	Rectangle inputRect = { buttonVar::buttonIns.rect.x + 130,buttonVar::buttonIns.rect.y,130, static_cast<float>(button::sizeH) };
 
@@ -79,7 +79,7 @@ public:
 	void Insert(const string& c);
 	
 	//Utility
-	void drawNodeTrie(Vector2 pos, const char& character, float radius);
+	void drawNodeTrie(Vector2 pos, const char& character, Color colorNode,float radius);
 
 	string handleTypeBox(Rectangle rect);
 
@@ -88,8 +88,11 @@ public:
 	void HandleButtonClickTrie();
 
 	//Visualizer
+	int CalculateSubtreeSize(TrieNode* node);
 
-	void Visualize(TrieNode* root, float x, float y, float offset, int depth);
+	void MarkNodesEdges(TrieNode* root, float x, float y, float spread, int depth);
+
+	void Visualize(TrieNode* root);
 
 	void Handle();
 

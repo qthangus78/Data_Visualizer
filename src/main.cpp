@@ -23,7 +23,7 @@ int main() {
 
     Trie Trie;
     Trie_Display::TrieInstance = &Trie;
-    Trie.Visualize(Trie.root, screenWidth / 10, screenHeight / 2, 150, 0);
+    Trie.Visualize(Trie.root);
 
     MinHeap minHeap;
     Heap_display::heapInstance = &minHeap;

@@ -10,6 +10,7 @@ using namespace std;
 
 TrieNode::TrieNode() {
     isWord = false;
+    subtreeSize = 1;
     //for (int i = 0; i < 26; i++) {
     //    children['a'+ i] = nullptr;
     //}
