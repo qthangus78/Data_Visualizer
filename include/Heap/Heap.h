@@ -1,10 +1,10 @@
 #pragma once
-#include "GlobalVar.h"
 #include <fstream>
 #include <vector>
 #include <raylib.h>
 #include <utility>
 #include <string>
+#include "GlobalVar.h"
 #include "LinkedList.h"
 #include "button.h"
 
@@ -24,29 +24,39 @@ struct Button {
 
 class ButtonManager{
     public:
-        float roundness = 0.2f;
-        float segments = 0;
-        float blinkTime = 0.0f;
+        float fontSize = 30.0f;
         char name[4] = "\0";
         int letterCount = 0;
+        float blinkTime = 0.0f;
         bool notFound = false;
-
-        Button push = { {10, screenHeight - 60, 200, 50}, "PUSH", Fade(MAROON, 0.2f) };
-        Button remove = { {20 + push.rect.width, screenHeight - 60, 200, 50}, "REMOVE", Fade(MAROON, 0.2f) };
-        Button clear = { {30 + remove.rect.width * 2, screenHeight - 60, 200, 50}, "CLEAR", Fade(MAROON, 0.2f) };
-        Button top = { {40 + clear.rect.width * 3, screenHeight - 60, 200, 50}, "TOP", Fade(MAROON, 0.2f) };
+        Button push = { {10, screenHeight - 60, 200, 50}, "PUSH", BLUE };
+        Button remove = { {20 + push.rect.width, screenHeight - 60, 200, 50}, "REMOVE", BLUE };
+        Button clear = { {30 + remove.rect.width * 2, screenHeight - 60, 200, 50}, "CLEAR", BLUE };
+        Button top = { {40 + clear.rect.width * 3, screenHeight - 60, 200, 50}, "TOP", BLUE };
+        Button initialize = { {50 + top.rect.width * 4, screenHeight - 60, 200, 50}, "INITIALIZE", BLUE };
+        Rectangle loadFile = { 50 + top.rect.width * 4, screenHeight - 180, 200, 50 };
         Button size;
         Button random;
 
+
         void DrawButtons();
-        void HandleButtons(MinHeap* mHeap);
-        void DrawInputBox(int x, int y);
+        void HandleButtonsClick(MinHeap* mHeap);
+        void HandleButtonsHover();
+        void DrawInputBox(float x, float y);
         void DrawBlinkingLine(int x, int y);
         void DrawBlinkingText( string txt, int x, int y );
-        void DrawRandom(int x, int y);
+        void DrawRandom(float x, float y);
+        void DrawLoadFile();
 };
 
+extern std::vector<float> elapsedTime;
+extern std::vector<HeapNode> targetHeapNode;
+extern std::vector<HeapNode> originHeapNode;
 extern std::vector<HeapNode> heapNode;
+extern int offsetX;
+extern int offsetY;
+extern int nodeRadius;
+extern float duration;
 
 class IStateHeap{
 public:
@@ -55,7 +65,6 @@ public:
     virtual void update() = 0;
     ButtonManager buttons;
 };
-
 
 class MinHeap{
 public:
@@ -66,6 +75,7 @@ public:
     IStateHeap* mSize;
     IStateHeap* mClear;
     IStateHeap* mCurrent;
+    IStateHeap* mInitialize;
     IStateHeap* mWaiting;
     
     MinHeap();
@@ -94,6 +104,8 @@ public:
     IStateHeap* getTop();
     IStateHeap* getSize();
     IStateHeap* getClear();
+    IStateHeap* getWaiting();
+    IStateHeap* getInitialize();
 
     void draw();
     void update();
@@ -102,13 +114,17 @@ public:
 class Push : public IStateHeap{
 private:
     MinHeap *mHeap;
-    int currentStep = 0;
+    int currentStep = -1;
     bool isAnimating = false;
 public:
     Vector2 animatingPos;
     Vector2 targetPos;
+    Vector2 originPos;
+
     Vector2 animatingPos2;
     Vector2 targetPos2;
+    Vector2 originPos2;
+
     int animatingIdx = -1;
     int parentIdx = -1;
 
@@ -125,12 +141,15 @@ public:
 class Remove : public IStateHeap{
 private:
     MinHeap *mHeap;
-    int currentStep = 0;
+    int currentStep = -1;
     bool isAnimating = false;
 public:
     Vector2 animatingPos;
     Vector2 targetPos;
+    Vector2 originPos;
+
     Vector2 animatingPos2;
+    Vector2 originPos2;
     Vector2 targetPos2;
     int animatingIdx = -1;
     int childIdx = -1;
@@ -165,17 +184,36 @@ public:
     void update() override;
 };
 
+class Initialize : public IStateHeap{
+private:
+    MinHeap *mHeap;
+public:
+    Initialize(MinHeap* heap);
+    void handleInputFile();
+    void draw() override;
+    void update() override;
+};
+
+class Waiting : public IStateHeap{
+private:
+    MinHeap *mHeap;
+public:
+    Waiting(MinHeap* heap);
+    void draw() override;
+    void update() override;
+};
+
 // Drawing function
 Vector2 calculateArrowPosition ( Vector2 &start, Vector2 &end, const float &radius );
-Vector2 calculateNodePos ( Vector2 pos, int offsetY, int offsetX, int height);
+Vector2 calculateNodePos ( Vector2 pos, int height);
 void drawHeap(std::vector<int>& tree);
 void DrawPartOfHeap ( MinHeap* mHeap, int animatingIdx, int parentIdx, bool isAnimating, int curentStep );
 
 Vector2 Vector2Normalize(Vector2 v);
 void swapHeapNode(HeapNode &a, HeapNode &b);
-void recalculateNodePos ( MinHeap* mHeap );
-
-
+void recalculateAllNodePos ( MinHeap* mHeap );
+void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos, float duration, bool &isAnimating, int i = 0 );
+void updateTreeStructure( int &currentStep, bool &isAnimating );
 
 
 

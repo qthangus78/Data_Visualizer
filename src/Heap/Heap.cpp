@@ -1,19 +1,29 @@
 #include "Heap.h"
 
-std::vector<HeapNode> heapNode;
+std::vector<float> elapsedTime ( 31, 0.0f );
+std::vector<HeapNode> targetHeapNode ( 31, {0, {0, 0}, false} );
+std::vector<HeapNode> originHeapNode ( 31, {0, {0, 0}, false} );
+std::vector<HeapNode> heapNode ( 31, {0, {0, 0}, false} );
+int offsetX = screenWidth / 2;
+int offsetY = 100;
+int nodeRadius = 20;
+float duration = 0.5f;
 
 MinHeap::MinHeap(){
-    heapNode = std::vector<HeapNode> ( 31, {0, {0, 0}, false} );
+
     tree = std::vector<int> ( 0 );
     mPush = new Push(this);
     mRemove = new Remove(this);
     mTop = new Top(this);
     // mSize = new Size(this);
     mClear = new ClearH(this);
-    mCurrent = mPush;
+    mInitialize = new Initialize(this);
+    mWaiting = new Waiting(this);
+    mCurrent = mWaiting;
 }
 
 MinHeap::~MinHeap(){
+    if ( mInitialize ) delete mInitialize;
     if ( mPush ) delete mPush;
     if ( mRemove ) delete mRemove;
     if ( mTop ) delete mTop;
@@ -22,6 +32,7 @@ MinHeap::~MinHeap(){
     if ( mCurrent ) delete mCurrent;
     if ( mWaiting ) delete mWaiting;
 
+    mInitialize = nullptr;
     mPush = nullptr;
     mRemove = nullptr;
     mTop = nullptr;
@@ -48,7 +59,7 @@ void MinHeap::push ( int val ){
         int x = idx - ( 1 << (int)log2(idx + 1)) + 1;
         int y = (int)log2(idx + 1);
         int height = (int)log2(tree.size())+1;
-        Vector2 pos = calculateNodePos ( {x, y}, 100, screenWidth / 2, height );
+        Vector2 pos = calculateNodePos ( {x, y}, height );
         heapNode[idx] = { val, pos, true };
     }
     upHeap(tree.size() - 1);
@@ -117,6 +128,8 @@ IStateHeap* MinHeap::getRemove(){ return mRemove; }
 IStateHeap* MinHeap::getTop(){ return mTop; }
 IStateHeap* MinHeap::getSize(){ return mSize; }
 IStateHeap* MinHeap::getClear(){ return mClear; }
+IStateHeap* MinHeap::getInitialize(){ return mInitialize; }
+IStateHeap* MinHeap::getWaiting(){ return mWaiting; }
 
 Vector2 calculateArrowPosition ( Vector2 &start, Vector2 &end, const float &radius ){
     Vector2 direction = Vector2Subtract(end, start);
@@ -125,7 +138,7 @@ Vector2 calculateArrowPosition ( Vector2 &start, Vector2 &end, const float &radi
     return Vector2Add(start, normalizedDirection);
 }
 
-Vector2 calculateNodePos ( Vector2 pos, int offsetY, int offsetX, int height){
+Vector2 calculateNodePos ( Vector2 pos, int height){
     int horizontalSpacing = 60;
     int verticalSpacing = 60;
     int level = pos.y; // Current level of the node
@@ -145,17 +158,14 @@ Vector2 calculateNodePos ( Vector2 pos, int offsetY, int offsetX, int height){
 void drawHeap(std::vector<int>& tree) {
     if (tree.empty()) return;
 
-    int nodeRadius = 20;
     int height = (int)log2(tree.size())+1;
-    int offsetX = screenWidth / 2; 
-    int offsetY = 100;
 
     for (int y = 0; y < height; y++) { // Iterate over levels
         for (int x = 0; x < std::pow(2, y); x++) { // Iterate over nodes in the level
             int temp = x + std::pow(2, y) - 1;
             if (temp >= tree.size()) break;
 
-            Vector2 parentPos = calculateNodePos({x, y}, offsetY, offsetX, height);
+            Vector2 parentPos = calculateNodePos({x, y}, height);
 
             drawNode(parentPos, std::to_string(tree[temp]), nodeRadius);
             
@@ -163,7 +173,7 @@ void drawHeap(std::vector<int>& tree) {
                 if ( 2 * temp + 1 < tree.size() ){
                     int leftChildX = 2 * x;
                     int leftChildY = y + 1;
-                    Vector2 leftChildPos = calculateNodePos({leftChildX, leftChildY}, offsetY, offsetX, height);
+                    Vector2 leftChildPos = calculateNodePos({leftChildX, leftChildY}, height);
                     Vector2 arrowStart = calculateArrowPosition(parentPos, leftChildPos, nodeRadius);
                     Vector2 arrowEnd = calculateArrowPosition(leftChildPos, parentPos, nodeRadius);
                     drawArrow(arrowStart, arrowEnd, BLACK);
@@ -171,7 +181,7 @@ void drawHeap(std::vector<int>& tree) {
                 if ( 2 * temp + 2 < tree.size() ){
                     int rightChildX = 2 * x + 1; // Horizontal position of right child
                     int rightChildY = y + 1; // Vertical position of right child
-                    Vector2 rightChildPos = calculateNodePos({rightChildX, rightChildY}, offsetY, offsetX, height);
+                    Vector2 rightChildPos = calculateNodePos({rightChildX, rightChildY}, height);
                     Vector2 arrowStart = calculateArrowPosition(parentPos, rightChildPos, nodeRadius);
                     Vector2 arrowEnd = calculateArrowPosition(rightChildPos, parentPos, nodeRadius);
                     drawArrow(arrowStart, arrowEnd, BLACK);
@@ -186,17 +196,44 @@ void swapHeapNode(HeapNode &a, HeapNode &b){
     std::swap(a.exist, b.exist);
 }
 
-void recalculateNodePos ( MinHeap* mHeap ){
+void recalculateAllNodePos ( MinHeap* mHeap ){
     int height = (int)log2(mHeap->size()) + 1;
     for (int i = 0; i < mHeap->size(); i++) {
         int x = i - (1 << (int)log2(i + 1)) + 1;
         int y = (int)log2(i + 1);
-        heapNode[i].pos = calculateNodePos({x, y}, 100, screenWidth / 2, height);
+        heapNode[i].pos = calculateNodePos({x, y}, height);
     }
 }
 
-Vector2 Vector2Normalize(Vector2 v) {
-    float length = sqrt(v.x * v.x + v.y * v.y);
-    if (length == 0) return {0, 0};
-    return {v.x / length, v.y / length};
+void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos, float duration, bool &isAnimating, int i ){
+    float dt = GetFrameTime();
+    elapsedTime[i] += dt;
+    float t = elapsedTime[i] / duration;
+    if ( t > 1.0f ){
+        t = 1.0f;
+        elapsedTime[i] = 0.0f;
+        isAnimating = false;
+    }
+    animatingPos = { 
+        originPos.x + (targetPos.x - originPos.x) * t, 
+        originPos.y + (targetPos.y - originPos.y) * t 
+    };
+}
+
+void updateTreeStructure(int &currentStep, bool &isAnimating){
+    if ( currentStep != 0 || !isAnimating ) return;
+
+    bool allFinished = true;
+
+    int n = heapNode.size();
+    for ( int i = 0; i < n; i++ ){
+        bool nodeAnimating = true;
+        updateNodePos( heapNode[i].pos, targetHeapNode[i].pos, originHeapNode[i].pos, 1.0f, nodeAnimating, i );
+        if ( nodeAnimating ) {
+            allFinished = false;
+        }
+    }
+    if ( allFinished ){
+        currentStep = 1;
+    }
 }

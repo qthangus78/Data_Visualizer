@@ -17,6 +17,9 @@ const int FPS = 60;
 Vector2 mouse;
 bool WindowClose = 0;
 Font customFont;
+Texture2D customTexture;
+Texture2D dice;
+
 myTexture BackButton;
 myTexture PlayButton;
 myTexture PauseButton;

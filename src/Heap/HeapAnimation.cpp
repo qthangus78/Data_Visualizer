@@ -1,32 +1,51 @@
 #include "Heap.h"
- 
+#include "tinyfiledialogs.h"
+
 //-----------------------
 //BUTTON MANAGER
 //-----------------------
 void ButtonManager::DrawButtons(){
     // PUSH
-    DrawRectangleRounded ( push.rect, roundness, (int)segments, push.color );
-    int pushX = push.rect.x + push.rect.width / 2 - MeasureText ( push.txt.c_str(), 20 ) / 2;
-    int pushY = push.rect.y + push.rect.height / 2 - 20 / 2;
-    DrawText ( push.txt.c_str(), pushX, pushY, 20, BLACK );
+    Vector2 textSize = MeasureTextEx ( customFont, push.txt.c_str(), fontSize, 2 );
+    DrawRectangleRounded ( push.rect, 0.2f, 0, push.color );
+    float pushX = push.rect.x + push.rect.width / 2 - textSize.x / 2;
+    float pushY = push.rect.y + push.rect.height / 2 - fontSize / 2;
+    DrawTextEx( customFont, push.txt.c_str(), { pushX, pushY }, fontSize, 2, WHITE );
     // REMOVE
-    DrawRectangleRounded ( remove.rect, roundness, (int)segments, remove.color );
-    int removeX = remove.rect.x + remove.rect.width / 2 - MeasureText ( remove.txt.c_str(), 20 ) / 2;
-    int removeY = remove.rect.y + remove.rect.height / 2 - 20 / 2;
-    DrawText ( remove.txt.c_str(), removeX, removeY, 20, BLACK );
+    textSize = MeasureTextEx ( customFont, remove.txt.c_str(), fontSize, 2 );
+    DrawRectangleRounded ( remove.rect, 0.2f, 0, remove.color );
+    float removeX = remove.rect.x + remove.rect.width / 2 - textSize.x / 2;
+    float removeY = remove.rect.y + remove.rect.height / 2 - fontSize / 2;
+    DrawTextEx( customFont, remove.txt.c_str(), { removeX, removeY }, fontSize, 2, WHITE );
     // CLEAR
-    DrawRectangleRounded ( clear.rect, roundness, (int)segments, clear.color );
-    int clearX = clear.rect.x + clear.rect.width / 2 - MeasureText ( clear.txt.c_str(), 20 ) / 2;
-    int clearY = clear.rect.y + clear.rect.height / 2 - 20 / 2;
-    DrawText ( clear.txt.c_str(), clearX, clearY, 20, BLACK );
+    textSize = MeasureTextEx ( customFont, clear.txt.c_str(), fontSize, 2 );
+    DrawRectangleRounded ( clear.rect, 0.2f, 0, clear.color );
+    float clearX = clear.rect.x + clear.rect.width / 2 - textSize.x / 2;
+    float clearY = clear.rect.y + clear.rect.height / 2 - fontSize / 2;
+    DrawTextEx( customFont, clear.txt.c_str(), { clearX, clearY }, fontSize, 2, WHITE );
     // TOP
-    DrawRectangleRounded ( top.rect, roundness, (int)segments, top.color );
-    int topX = top.rect.x + top.rect.width / 2 - MeasureText ( top.txt.c_str(), 20 ) / 2;
-    int topY = top.rect.y + top.rect.height / 2 - 20 / 2;
-    DrawText ( top.txt.c_str(), topX, topY, 20, BLACK );
+    textSize = MeasureTextEx ( customFont, top.txt.c_str(), fontSize, 2 );
+    DrawRectangleRounded ( top.rect, 0.2f, 0, top.color );
+    float topX = top.rect.x + top.rect.width / 2 - textSize.x / 2;
+    float topY = top.rect.y + top.rect.height / 2 - fontSize / 2;
+    DrawTextEx( customFont, top.txt.c_str(), { topX, topY }, fontSize, 2, WHITE );
+    // INITIALIZE
+    textSize = MeasureTextEx ( customFont, initialize.txt.c_str(), fontSize, 2 );
+    DrawRectangleRounded ( initialize.rect, 0.2f, 0, initialize.color );
+    float initializeX = initialize.rect.x + initialize.rect.width / 2 - textSize.x / 2;
+    float initializeY = initialize.rect.y + initialize.rect.height / 2 - fontSize / 2;
+    DrawTextEx ( customFont, initialize.txt.c_str(), {initializeX, initializeY}, fontSize, 2, WHITE );
 }
 
-void ButtonManager::HandleButtons(MinHeap* mHeap){
+void ButtonManager::HandleButtonsHover(){
+    push.color = CheckCollisionPointRec(GetMousePosition(), push.rect) ? YELLOW : BLUE;
+    remove.color = CheckCollisionPointRec(GetMousePosition(), remove.rect) ? YELLOW : BLUE;
+    clear.color = CheckCollisionPointRec(GetMousePosition(), clear.rect) ? YELLOW : BLUE;
+    top.color = CheckCollisionPointRec(GetMousePosition(), top.rect) ? YELLOW : BLUE;
+    initialize.color = CheckCollisionPointRec(GetMousePosition(), initialize.rect) ? YELLOW : BLUE;
+}
+
+void ButtonManager::HandleButtonsClick(MinHeap* mHeap){
     if ( CheckCollisionPointRec(GetMousePosition(), push.rect ) && IsMouseButtonPressed ( MOUSE_LEFT_BUTTON ) ){
         mHeap->setState(mHeap->getPush());
         notFound = false;
@@ -42,17 +61,29 @@ void ButtonManager::HandleButtons(MinHeap* mHeap){
         mHeap->setState(mHeap->getTop());
         notFound = false;   
     }
+    if ( CheckCollisionPointRec(GetMousePosition(), initialize.rect) && IsMouseButtonPressed ( MOUSE_LEFT_BUTTON )){
+        mHeap->setState(mHeap->getInitialize());
+        notFound = false;
+    }
     if ( CheckCollisionPointRec(GetMousePosition(), random.rect) && IsMouseButtonPressed ( MOUSE_LEFT_BUTTON )){
-        int temp = rand() % 999;
+        int temp;
+        if ( mHeap->mCurrent == mHeap->mInitialize )
+            temp = rand() % 31;
+        else temp = rand() % 999;
         strncpy(name, to_string(temp).c_str(), sizeof(name));
     }
 }
 
-void ButtonManager::DrawInputBox( int x, int y ){
+void ButtonManager::DrawLoadFile(){
+    DrawRectangleRounded( loadFile, 0.2f, 0, Fade(MAROON, 0.2f) );
+    DrawTextEx(customFont, "Load file", {loadFile.x + 10, loadFile.y + 10}, 30, 0, BLACK); 
+}
+
+void ButtonManager::DrawInputBox( float x, float y ){
 
     // Vẽ ô nhập
-    DrawRectangleRounded( {x, y - 60, 200, 50}, roundness, (int)segments, Fade(MAROON, 0.2f) );
-    DrawText(name, x + 10, y - 50, 20, BLACK); 
+    DrawRectangleRounded( {x, y - 60, 200, 50}, 0.2f, 0, Fade(MAROON, 0.2f) );
+    DrawTextEx(customFont, name, {x + 10, y - 50}, 30, 0, BLACK); 
 
     // Handle ô nhập
     int key = GetCharPressed();
@@ -78,19 +109,20 @@ void ButtonManager::DrawInputBox( int x, int y ){
 void ButtonManager::DrawBlinkingLine(int x, int y){
     blinkTime += GetFrameTime();
     if ((int)(blinkTime * 2) % 2 == 0) { // Blink every 0.5 seconds
-        int cursorX = x + 10 + MeasureText(name, 20);
-        DrawLine(cursorX, y - 50, cursorX, y - 30, BLACK); // Vertical blinking line
+        Vector2 textSize = MeasureTextEx( customFont, name, fontSize, 0 );
+        int cursorX = x + 10 + textSize.x;
+        DrawLine(cursorX, y - 50, cursorX, y - 20, BLACK); // Vertical blinking line
     }
 }
 
 void ButtonManager::DrawBlinkingText(string txt, int x, int y){
     blinkTime += GetFrameTime();
     if((int)blinkTime % 2 == 0){
-        DrawText(txt.c_str(), x, y - 90, 20, RED);
+        DrawTextEx( customFont, txt.c_str(), {x, y - 90}, fontSize, 2, RED);
     }
 }
 
-void ButtonManager::DrawRandom(int x, int y){
+void ButtonManager::DrawRandom(float x, float y){
     // Tính toán tọa độ vẽ xúc xắc 
     x += ( 200 - dice.width * 0.25 - ( 50 - dice.height * 0.25 ) / 2 );
     y = y - 60 + ( 50 - dice.height * 0.25 ) / 2;
@@ -112,27 +144,28 @@ void Push::draw(){
 
     DrawPartOfHeap(mHeap, animatingIdx, parentIdx, isAnimating, currentStep);
     if ( currentStep == 1 || currentStep == 3 )
-        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20);
+        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), nodeRadius);
     if ( currentStep == 3 )
-        drawNode(animatingPos2, std::to_string(mHeap->tree[parentIdx]), 20);
+        drawNode(animatingPos2, std::to_string(mHeap->tree[parentIdx]), nodeRadius);
     if ( currentStep == 4 ){
-        currentStep == 0;
+        currentStep == -1;
         isAnimating = false;
     }
 }
 
 void Push::update(){
-    buttons.HandleButtons(mHeap);
+    buttons.HandleButtonsClick(mHeap);
+    buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
         int value = atoi(buttons.name); 
 
-        currentStep = 0;
         isAnimating = false;
         handleInsert(value);
 
         buttons.name[0] = '\0';
         buttons.letterCount = 0;
     }
+    updateTreeStructure( currentStep, isAnimating );
     updateInsert();
     handleBubbleUp();
     updateBubbleUp();
@@ -147,33 +180,51 @@ void Push::handleInsert(int val){
     int x = animatingIdx - (1 << (int)log2(animatingIdx + 1)) + 1;
     int y = (int)log2(animatingIdx + 1);
     int height = (int)log2(mHeap->size()) + 1;
-    targetPos = calculateNodePos({x, y}, 100, screenWidth / 2, height);
+    targetPos = calculateNodePos({x, y}, height);
 
     // Khởi tạo vị trí ban đầu
     animatingPos = { screenWidth / 2, 600 };
+    originPos = animatingPos;
     heapNode[animatingIdx] = {val, targetPos, true};
 
-    if ( mHeap->size() == std::pow(2, height - 1))
-        recalculateNodePos ( mHeap );
-
-    currentStep = 1;
+    // Cập nhật vị trí các nút nếu cấu trúc cây thay đổi
+    if ( mHeap->size() >= 4 && mHeap->size() == std::pow(2, height - 1)){
+        // animatingIdx = -1;
+        parentIdx = -1;
+        int n = heapNode.size();
+        for ( int i = 0; i < n; i++ ){
+            originHeapNode[i] = heapNode[i];
+        }
+        recalculateAllNodePos ( mHeap );
+        for ( int i = 0; i < n; i++ ){
+            targetHeapNode[i] = heapNode[i];
+        }
+        currentStep = 0;
+    }
+    else{ currentStep = 1; }
     isAnimating = true;
+
 }
 
 void Push::updateInsert(){
     if (currentStep != 1 || !isAnimating) return;
 
-    Vector2 direction = Vector2Subtract(targetPos, animatingPos);
-    float distance = Vector2Length(direction);
+    updateNodePos ( animatingPos, targetPos, originPos, 0.5f, isAnimating );
 
-    if (distance > 5.0f) {
-        Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
-        animatingPos = Vector2Add(animatingPos, step);
-    } else {
-        animatingPos = targetPos;
-        isAnimating = false;
-        currentStep = 2; // Chuyển sang bước bubble-up
-    }
+    if ( !isAnimating )
+        currentStep = 2;
+
+    // Vector2 direction = Vector2Subtract(targetPos, animatingPos);
+    // float distance = Vector2Length(direction);
+
+    // if (distance > 5.0f) {
+    //     Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
+    //     animatingPos = Vector2Add(animatingPos, step);
+    // } else {
+    //     animatingPos = targetPos;
+    //     isAnimating = false;
+    //     currentStep = 2; // Chuyển sang bước bubble-up
+    // }
 }
 
 void Push::handleBubbleUp(){
@@ -181,10 +232,12 @@ void Push::handleBubbleUp(){
 
     parentIdx = mHeap->parent(animatingIdx);
     if ( parentIdx >= 0 && heapNode[parentIdx].val > heapNode[animatingIdx].val){
+        originPos = animatingPos;
         targetPos = heapNode[parentIdx].pos;
 
         targetPos2 = heapNode[animatingIdx].pos;
         animatingPos2 = targetPos;
+        originPos2 = animatingPos2;
 
         isAnimating = true;
         currentStep = 3;
@@ -206,42 +259,21 @@ void Push::handleBubbleUp(){
 void Push::updateBubbleUp(){
     if ( currentStep != 3 || !isAnimating ) return;
 
-    // Cập nhật vị trí của nút cha
-    Vector2 direction2 = Vector2Subtract(targetPos2, animatingPos2);
-    float distance2 = Vector2Length(direction2);
+    updateNodePos ( animatingPos, targetPos, originPos, 0.5f, isAnimating );
 
-    if ( distance2 > 5.0f ){
-        Vector2 step2 = Vector2Scale(Vector2Normalize(direction2), 5.0f);
-        animatingPos2 = Vector2Add(animatingPos2, step2);
-    }
-    else
-        animatingPos2 = targetPos2;
-    
-    // Cập nhật vị trí của nút con 
-    Vector2 direction = Vector2Subtract(targetPos, animatingPos);
-    float distance = Vector2Length(direction);
+    updateNodePos ( animatingPos2, targetPos2, originPos2, 0.5f, isAnimating );
 
-    if (distance > 5.0f) {
-        Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
-        animatingPos = Vector2Add(animatingPos, step);
-    }
-    else {
-        animatingPos = targetPos;
-        // Về lại bước 2 kiểm tra bubble up
-        isAnimating = false;
+    if ( !isAnimating )
         currentStep = 2;
-    }
-
 }
 
 void DrawPartOfHeap ( MinHeap* mHeap, int animatingIdx, int parentIdx, bool isAnimating, int currentStep ){
     for ( int i = 0; i < mHeap->size(); i++ ){
-        int nodeRadius = 20;
         int height = (int)log2(mHeap->size()) + 1;
         int y = (int)log2(i + 1);
 
         if ( isAnimating ){
-            if ( currentStep == 1 )
+            if ( currentStep == 0 || currentStep == 1 )
                 if ( i != animatingIdx )
                     drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
             if ( currentStep == 3 )
@@ -280,10 +312,9 @@ void Remove::draw(){
 
     DrawPartOfHeap(mHeap, animatingIdx, childIdx, isAnimating, currentStep);
     if ( currentStep == 1 || currentStep == 3 )
-        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), 20);
+        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), nodeRadius);
     if ( currentStep == 3 )
-        drawNode(animatingPos2, std::to_string(mHeap->tree[childIdx]), 20);
-
+        drawNode(animatingPos2, std::to_string(mHeap->tree[childIdx]), nodeRadius);
     
     // Tìm không thấy hoặc cây trống
     if (buttons.notFound) {
@@ -297,7 +328,8 @@ void Remove::draw(){
 }
 
 void Remove::update(){  
-    buttons.HandleButtons(mHeap);
+    buttons.HandleButtonsClick(mHeap);
+    buttons.HandleButtonsHover();
     if ( IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0' ){
         int value = atoi(buttons.name);
         animatingIdx = mHeap->search(value);
@@ -313,6 +345,7 @@ void Remove::update(){
         buttons.name[0] = '\0';
         buttons.letterCount = 0;
     }
+    updateTreeStructure( currentStep, isAnimating );
     updateRemove();
     handleBubbleDown();
     updateBubbleDown();
@@ -324,33 +357,44 @@ void Remove::handleRemove(int idx){
 
     animatingPos = heapNode[i].pos;
     targetPos = heapNode[idx].pos;
+    originPos = animatingPos;
 
     std::swap(mHeap->tree[idx], mHeap->tree[i]);
     swapHeapNode(heapNode[idx], heapNode[i]);
     heapNode[i] = {0, {0, 0}, false};
     mHeap->tree.pop_back();
 
-    recalculateNodePos ( mHeap );
+    // Cập nhật vị trí các nút nếu cấu trúc cây thay đổi
+    int height = (int)log2(mHeap->size()) + 1;
+    if ( mHeap->size() >= 3 && mHeap->size() == std::pow(2, height) - 1){
+        int n = heapNode.size();
+        for ( int i = 0; i < n; i++ ){
+            originHeapNode[i] = heapNode[i];
+        }
+        recalculateAllNodePos ( mHeap );
+        for ( int i = 0; i < n; i++ ){
+            targetHeapNode[i] = heapNode[i];
+        }
+        currentStep = 0;
+        std::cout << "Updating tree structure...\n";
+    }
+    else{ currentStep = 1; }
 
-    currentStep = 1;
     isAnimating = true;
 }
 
 
 void Remove::updateRemove(){
     if (currentStep != 1 || !isAnimating) return;
+
+    updateNodePos ( animatingPos, targetPos, originPos, duration, isAnimating );
     
-    Vector2 direction = Vector2Subtract(targetPos, animatingPos);
-    float distance = Vector2Length(direction);
-    
-    if (distance > 5.0f) {
-        Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
-        animatingPos = Vector2Add(animatingPos, step);
-    } else {
-        animatingPos = targetPos;
+    if ( !isAnimating ){
+        animatingIdx = childIdx;
+        currentStep = 2;
         isAnimating = false;
-        currentStep = 2; // Chuyển sang bước bubble-up
     }
+
 }
 
 void Remove::handleBubbleDown(){
@@ -365,16 +409,25 @@ void Remove::handleBubbleDown(){
         if ( r < mHeap->size() && heapNode[r].val < heapNode[childIdx].val )
             childIdx = r;
         if ( childIdx != animatingIdx ){
+
             targetPos = heapNode[childIdx].pos;
-    
-            targetPos2 = heapNode[animatingIdx].pos;
+            animatingPos = heapNode[animatingIdx].pos;
+            
             animatingPos2 = targetPos;
+            targetPos2 = animatingPos;
+
+            originPos = animatingPos;
+            originPos2 = animatingPos2;
     
             isAnimating = true;
             currentStep = 3;
     
+            // Cập nhật giá trị trong mảng
             std::swap(mHeap->tree[animatingIdx], mHeap->tree[childIdx]);
+
+            // Cập nhật vị trí trong mảng 
             swapHeapNode(heapNode[animatingIdx], heapNode[childIdx]);
+
             std::swap(animatingIdx, childIdx);
         }
         else {
@@ -395,32 +448,13 @@ void Remove::handleBubbleDown(){
 void Remove::updateBubbleDown(){
     if ( currentStep != 3 || !isAnimating ) return;
 
-    // Cập nhật vị trí của nút con
-    Vector2 direction2 = Vector2Subtract(targetPos2, animatingPos2);
-    float distance2 = Vector2Length(direction2);
+    // Cập nhật vị trí nút con
+    updateNodePos(animatingPos2, targetPos2, originPos2, duration, isAnimating );\
+    // Cập nhật vị trí nút cha
+    updateNodePos(animatingPos, targetPos, originPos, duration, isAnimating ); 
 
-    if ( distance2 > 5.0f ){
-        Vector2 step2 = Vector2Scale(Vector2Normalize(direction2), 5.0f);
-        animatingPos2 = Vector2Add(animatingPos2, step2);
-    }
-    else
-        animatingPos2 = targetPos2;
-    
-    // Cập nhật vị trí của nút cha
-    Vector2 direction = Vector2Subtract(targetPos, animatingPos);
-    float distance = Vector2Length(direction);
-
-    if (distance > 5.0f) {
-        Vector2 step = Vector2Scale(Vector2Normalize(direction), 5.0f);
-        animatingPos = Vector2Add(animatingPos, step);
-    }
-    else {
-        animatingPos = targetPos;
-        // Về lại bước 2 kiểm tra bubble up
-        isAnimating = false;
+    if ( !isAnimating )
         currentStep = 2;
-    }
-
 }
 
 //-----------------------
@@ -434,7 +468,8 @@ void ClearH::draw(){
 }
 
 void ClearH::update(){
-    buttons.HandleButtons(mHeap);
+    buttons.HandleButtonsClick(mHeap);
+    buttons.HandleButtonsHover();
     mHeap->clear();
     heapNode = std::vector<HeapNode>(31, {0, {0, 0}, false});
 }
@@ -452,12 +487,13 @@ void Top::draw(){
 }
 
 void Top::update(){
-    buttons.HandleButtons(mHeap);
+    buttons.HandleButtonsClick(mHeap);
+    buttons.HandleButtonsHover();
     mHeap->top();
 }
 
 void Top::DrawBlinkingTop(){
-    Vector2 pos = calculateNodePos({0, 0}, 100, screenWidth / 2, (int)log2(mHeap->size())+1);
+    Vector2 pos = calculateNodePos({0, 0}, (int)log2(mHeap->size())+1);
     blinkTime += GetFrameTime();
     if ((int)blinkTime % 2 == 0) { // Blink every 1 seconds
         DrawCircle( pos.x, pos.y, 20, YELLOW);
@@ -465,6 +501,71 @@ void Top::DrawBlinkingTop(){
         Vector2 textSize = MeasureTextEx(customFont, val.c_str(), 23, 2);
         DrawTextEx(customFont, val.c_str() ,{pos.x - textSize.x / 2, pos.y - textSize.y / 2}, 22, 2, BLACK);
     }
+}
+
+//-----------------------
+//INITIALIZE
+//-----------------------
+Initialize::Initialize(MinHeap* heap){ mHeap = heap; }
+
+void Initialize::handleInputFile(){
+    const char* filePath = tinyfd_openFileDialog("Open File", NULL, 0, NULL, NULL, 0);
+    if (filePath){
+        std::ifstream fin(filePath);
+        if (fin.is_open()){
+            mHeap->tree.clear();
+            heapNode.resize(31, {0, {0, 0}, false});
+            int value;
+            while (fin >> value){
+                mHeap->push(value);
+            }
+            fin.close();
+        }
+    }
+    mHeap->setState(mHeap->getWaiting());
+}
+
+void Initialize::draw(){
+    buttons.DrawButtons();
+    buttons.DrawInputBox(buttons.initialize.rect.x, buttons.initialize.rect.y);
+    buttons.DrawRandom(buttons.initialize.rect.x, buttons.initialize.rect.y);
+    buttons.DrawLoadFile();
+    drawHeap(mHeap->tree);
+}
+
+void Initialize::update(){
+    buttons.HandleButtonsClick(mHeap);
+    buttons.HandleButtonsHover();
+    if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
+        mHeap->tree.clear();
+        int value = atoi(buttons.name); 
+        for ( int i = 0; i < value; i++ ){
+            mHeap->push(rand() % 999);
+        }
+        buttons.name[0] = '\0';
+        buttons.letterCount = 0;
+        recalculateAllNodePos(mHeap);
+    }
+    if ( CheckCollisionPointRec(GetMousePosition(), buttons.loadFile) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+        handleInputFile();
+        recalculateAllNodePos(mHeap);
+    }
+    // handleInputFile();
+}
+
+//-----------------------
+//WAITING
+//-----------------------
+Waiting::Waiting(MinHeap* heap){ mHeap = heap; }  
+
+void Waiting::draw(){
+    buttons.DrawButtons();
+    drawHeap(mHeap->tree);
+}
+
+void Waiting::update(){
+    buttons.HandleButtonsClick(mHeap);
+    buttons.HandleButtonsHover();
 }
 
 void MinHeap::draw(){ if ( mCurrent ) mCurrent->draw(); }
