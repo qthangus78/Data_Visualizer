@@ -104,9 +104,8 @@ void GraphVisualizer::DrawDijkstraPseudoCode() {
 
 void GraphVisualizer::UpdateAdditionalInfoLines() {
     if (graph->dijkstraSource != -1) {
-        char buffer[20];
-        sprintf(buffer, "%d", graph->dijkstraSource);
-        algorithmBox.AddInfoLine("Source", buffer);
+        std::string sourceStr = std::to_string(graph->dijkstraSource);
+        algorithmBox.AddInfoLine("Source", sourceStr);
     }
 
     if (dijkstra_data.step_result.action == DijkstraStepResult::DONE) {
@@ -114,15 +113,15 @@ void GraphVisualizer::UpdateAdditionalInfoLines() {
     } 
     else {
         if (dijkstra_data.current_u != -1) {
-            char buffer[20];
-            sprintf(buffer, "%d", dijkstra_data.current_u);
-            algorithmBox.AddInfoLine("Current u", buffer);
+            std::string uStr = std::to_string(dijkstra_data.current_u);
+            algorithmBox.AddInfoLine("Current u", uStr);
         }
         
         if (dijkstra_data.step_result.action == DijkstraStepResult::RELAX_EDGE) {
-            char buffer[30];
-            sprintf(buffer, "%d -> %d", dijkstra_data.step_result.u, dijkstra_data.step_result.v);
-            algorithmBox.AddInfoLine("Relaxing edge", buffer);
+            std::string relaxStr = std::to_string(dijkstra_data.step_result.u) + 
+                                  " -> " + 
+                                  std::to_string(dijkstra_data.step_result.v);
+            algorithmBox.AddInfoLine("Relaxing edge", relaxStr);
         }
     }
 }
@@ -130,37 +129,47 @@ void GraphVisualizer::UpdateAdditionalInfoLines() {
 void GraphVisualizer::UpdateDijkstraInfoLines() {
     algorithmBox.ClearInfoLines();
 
-    algorithmBox.AddInfoLine("__SEPARATOR__", "");
+    // First add the table
     UpdateDijkstraTable();
-
+    
+    // Add a separator after the table
     algorithmBox.AddInfoLine("__SEPARATOR__", "");
+    
+    // Then add the additional information
     UpdateAdditionalInfoLines();
 }
 
 void GraphVisualizer::UpdateDijkstraTable() {
-    // Add header marker to indicate this is a table
-    algorithmBox.AddInfoLine("__TABLE_START__", "");
+    // Start a new table
+    algorithmBox.StartTable();
     
-    // Add table header
-    algorithmBox.AddInfoLine("Vertex", "Distance|Predecessor");
+    // Set the header with column titles
+    std::vector<std::string> header = {"Vertex", "Distance", "Predecessor"};
+    algorithmBox.SetTableHeader(header);
     
     // Add table data rows
     for (int v = 1; v <= graph->numNode; v++) {
-        // Create vertex string - use simple format without special chars
-        std::string vStr = std::to_string(v);
-        // Create distance and predecessor string
-        std::string distPredStr;
+        std::vector<std::string> row(3);
+        
+        // Column 1: Vertex number
+        row[0] = std::to_string(v);
+        
+        // Column 2 & 3: Distance and Predecessor
         if (dijkstra_data.distances[v] == INT_MAX) {
-            distPredStr = "INF|-";
+            row[1] = "INF";
+            row[2] = "-";
         } 
         else {
-            std::string predStr = "-";  // Default
+            // Distance
+            row[1] = std::to_string(dijkstra_data.distances[v]);
             
-            // For source vertex, predecessor is "-"
+            // Predecessor
             if (v == graph->dijkstraSource) {
-                // Keep default "-"
+                row[2] = "-";  // Source has no predecessor
             } else {
-                // For other vertices, find the previous vertex in shortest path
+                std::string predStr = "-";  // Default
+                
+                // Find the previous vertex in shortest path
                 for (const auto& edge : graph->Edges) {
                     // Check for direct edge that's part of shortest path
                     if (edge.v == v && 
@@ -175,16 +184,20 @@ void GraphVisualizer::UpdateDijkstraTable() {
                         break;
                     }
                 }
+                row[2] = predStr;
             }
-            distPredStr = std::to_string(dijkstra_data.distances[v]) + "|" + predStr;
         }
         
-        // Add the line to the table
-        algorithmBox.AddInfoLine(vStr.c_str(), distPredStr.c_str());
+        // Add the row to the table with highlighting for current_u
+        bool highlightRow = (v == dijkstra_data.current_u && 
+            (dijkstra_data.step_result.action == DijkstraStepResult::SELECT_U || 
+             dijkstra_data.step_result.action == DijkstraStepResult::RELAX_EDGE));
+
+        algorithmBox.AddTableRow(row, highlightRow);
     }
     
-    // Add end marker
-    algorithmBox.AddInfoLine("__TABLE_END__", "");
+    // End the table
+    algorithmBox.EndTable();
 }
 
 GraphVisualizer::DijkstraVisualizerData::DijkstraVisualizerData() {

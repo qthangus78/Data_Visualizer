@@ -1,6 +1,7 @@
 #pragma once 
 #include <raylib.h>
 #include <bits/stdc++.h>
+
 // using namespace std;
 
 enum class ScreenID {
@@ -31,55 +32,6 @@ public:
     bool CheckMouseCollision(); // Check if the mouse is over the texture
     void SetPosition(float xPos, float yPos); // Set position
     bool isPressed(); // Check if the button is pressed
-};
-
-class AnnouncementBox {
-public:
-    AnnouncementBox();
-    AnnouncementBox(Rectangle rect, const char* title);
-    
-    void SetTitle(const char* title);
-    void SetContent(const std::vector<char*>& content);
-    void SetHighlightLines(int startLine, int endLine);
-    
-    void AddInfoLine(const char* label, const char* value);
-    void ClearInfoLines();
-    
-    void Draw();
-    
-    bool HandleScrollingBar(float totalContentHeight, float maxContentHeight, float scrollY, float scrollHeight);
-    void DrawTable(float& infoY, int startIndex, int endIndex, float maxContentHeight, float baseY);
-
-private:
-    Rectangle rect;
-    const char* title;
-    std::vector<char*> content;
-    int highlightStartLine;
-    int highlightEndLine;
-
-    struct InfoLine {
-        std::string label;
-        std::string value;
-    };
-    std::vector<InfoLine> infoLines;
-    
-    Color backgroundColor;
-    Color borderColor;
-    Color titleColor;
-    Color textColor;
-    Color highlightColor;
-    Color highlightBgColor;
-    
-    float titleFontSize;
-    float contentFontSize;
-    float infoFontSize;
-    float lineHeight;
-    float indentation;
-
-    // Scrolling variables
-    float scrollOffset = 0.0f;
-    Rectangle scrollBarRect;
-    Rectangle scrollThumbRect;
 };
 
 void display_title(const char *Title, ScreenID lastScreenID);

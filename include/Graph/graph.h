@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GlobalVar.h"
+#include "AnnouncementBox.h"
 using namespace std;
 #include <vector>
 #include <queue>
