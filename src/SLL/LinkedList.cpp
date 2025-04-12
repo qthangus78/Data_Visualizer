@@ -10,11 +10,12 @@
 std::vector<button> code;
 void initCodeButton(){
     code.resize(7);
-    code[0] = {{850,430,500,36},{240,240,240,230},"",};
+    code[0] = {{860,430,500,36},{240,240,240,230},"",};
     for(int i=1;i<code.size(); i++){
         code[i] = {{code[i-1].rect.x,code[i-1].rect.y+code[i-1].rect.height,code[i-1].rect.width,code[i-1].rect.height},{240,240,240,230},""};
     }
 }
+const float deltaTime = 0.01f;
 //--------------------------------
 // ListNode
 //--------------------------------
@@ -172,6 +173,7 @@ SSL::SSL()
     mFind      = new Find(this);
     mClear = new Clear(this);
     mcurrent   = mNotInMode;
+    speed.Init({750,690});
 }
 
 SSL::~SSL(){
@@ -215,6 +217,10 @@ void SSL::clearStackRedo(){
     while(!redo.empty()) redo.pop();
 }
 bool SSL::getPause() {return IsPaused;}
+float SSL::getFraction() {return fraction;}
+void SSL::setFraction(float fraction){
+    this->fraction = fraction;
+}
 
 void SSL::insertHeadList(int x){ insertHeadAl(root,tail,x); }
 void SSL::insertTailList(int x){ insertTailAl(root,tail,x); }
@@ -371,15 +377,20 @@ void SSL::draw(){
     if(!IsPaused) PauseButton.Drawtexture();
     else PlayButton.Drawtexture();
     toggle.Draw();
+    speed.Draw();
     if(mcurrent) mcurrent->draw();
 }
 void SSL::handle(){
     initCodeButton();
-    UndoButton.SetPosition(460,680);
-    RedoButton.SetPosition(670,680);
-    PlayButton.SetPosition(560,665);
-    PauseButton.SetPosition(560,665);
-    toggle.Update(GetMousePosition());
+    UndoButton.SetPosition(440,680);
+    RedoButton.SetPosition(640,680);
+    PlayButton.SetPosition(540,665);
+    PauseButton.SetPosition(540,665);
+    Vector2 mouse = GetMousePosition();
+    bool isClick = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+    toggle.Update(mouse);
+    speed.Update();
+    fraction = speed.GetValue();
     if(PlayButton.isPressed()) {IsPaused = !IsPaused;}
     if(mcurrent) mcurrent->handle();
 }
@@ -696,7 +707,8 @@ void drawPos(std::vector<ShadedData> pos, float NodeRadiusRender, float FontSize
     }
 }
 void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums, float& progressNode, SSL* s){
-    if(!s->getPause())progressNode += GetFrameTime();
+    float fraction = s->getFraction();
+    if(!s->getPause()) progressNode += fraction*deltaTime;
     NodeRadiusRender = lerp(0, 33, progressNode);
     FontSize = lerp(0, FontNode, progressNode); 
     float fontText = lerp(0,22,progressNode);
@@ -708,7 +720,8 @@ void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums
     drawTextUp("vtx",fontText,pos);
 }
 void removeNode(float& NodeRadiusRender, float& FontSize, std::string str, Vector2 pos, float& progressNode, SSL* s){
-    if(!s->getPause())progressNode+=GetFrameTime();
+    float fraction = s->getFraction();
+    if(!s->getPause()) progressNode+=fraction*deltaTime;
     NodeRadiusRender = lerp(NODE_SIZE-4,0,progressNode);
     FontSize = lerp(FontNode,0,progressNode);
     float fontText = lerp(22,0,progressNode);

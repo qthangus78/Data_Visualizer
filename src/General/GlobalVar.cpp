@@ -25,6 +25,8 @@ myTexture PauseButton;
 myTexture ReplayButton;
 myTexture UndoButton;
 myTexture RedoButton;
+myTexture addButton;
+myTexture minusButton;
 Texture2D customTexture;
 Texture2D dice;
 
@@ -49,12 +51,15 @@ namespace buttonVar {
     button buttonGo     = {{300.0f, 580.0f, 60,40}, color::buttonFile, "Go"};
 }
 Edge EArrow = {100.0f, 3.0f, 20.0f};
-Vector2 startLinkedListPos = {50,150};
+Vector2 startLinkedListPos = {50,170};
 
 void LoadFontResource() {
     customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
+    SetTextureFilter(customFont.texture, TEXTURE_FILTER_BILINEAR);
     SSLFont = LoadFont("../resources/fonts/PublicSans-Bold.ttf");
+    SetTextureFilter(SSLFont.texture, TEXTURE_FILTER_BILINEAR);
     textCodeFont = LoadFont("../resources/fonts/PublicSans-Regular.ttf");
+    SetTextureFilter(textCodeFont.texture, TEXTURE_FILTER_BILINEAR);
 }
 
 void LoadButtonsResources() {
@@ -76,6 +81,10 @@ void LoadButtonsResources() {
     RedoButton.LoadTextureResources("../resources/images/Rotate-Right.png",
         "../resources/images/Rotate-Right-Select.png");
     customTexture = LoadTexture("../resources/images/back-normal.png");
+    addButton.LoadTextureResources("../resources/images/add-circle.png",
+        "../resources/images/add-circle-selected.png");
+    minusButton.LoadTextureResources("../resources/images/minus-circle.png",
+        "../resources/images/minus-circle-selected.png");
     dice = LoadTexture("../src/Heap/dice.png");
     
     cout << PauseButton.MainTexture.width << " " << PauseButton.MainTexture.height << endl;
