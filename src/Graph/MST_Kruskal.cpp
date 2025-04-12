@@ -37,7 +37,7 @@ void GraphVisualizer::initKruskal() {
     kruskal_data.current_edge_index = -1;
     kruskal_data.first_step = true;
     kruskal_data.elapsed_time = 0.0f;
-    kruskal_data.is_paused = false;
+    is_paused = true;
     kruskal_data.inited = true;
 }
 
@@ -77,7 +77,7 @@ void GraphVisualizer::GetKruskalStep() {
 void GraphVisualizer::DrawMST_StepByStep() {
     if (!graph || !kruskal_data.inited) return;
 
-    if (!kruskal_data.is_paused) {
+    if (!is_paused) {
         kruskal_data.elapsed_time += GetFrameTime();
         if (kruskal_data.elapsed_time >= kruskal_data.step_interval) {
             if (kruskal_data.first_step) {

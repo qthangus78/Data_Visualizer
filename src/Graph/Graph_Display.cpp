@@ -41,26 +41,44 @@ namespace Graph_display {
 
     void SetUpTextureButtons() {
         float centerX = GraphDisplayScreen.x + GraphDisplayScreen.width / 2;
-        PlayButton.x = centerX - PlayButton.MainTexture.width / 2;
-        PlayButton.y = GraphDisplayScreen.y + GraphDisplayScreen.height;
+
+        PlayButton.SetPosition(centerX - PlayButton.MainTexture.width / 2, 
+                GraphDisplayScreen.y + GraphDisplayScreen.height);
+
+        PauseButton.SetPosition(centerX - PlayButton.MainTexture.width / 2, 
+                GraphDisplayScreen.y + GraphDisplayScreen.height);
 
         const float BUTTON_SPACING = 50;  
         
-        UndoButton.x = PlayButton.x - BUTTON_SPACING - UndoButton.width;
-        UndoButton.y = PlayButton.y + 10;
+        UndoButton.SetPosition(PlayButton.x - BUTTON_SPACING - UndoButton.width, 
+                PlayButton.y + 10);
 
-        RedoButton.x = PlayButton.x + PlayButton.width + BUTTON_SPACING; 
-        RedoButton.y = PlayButton.y + 10;
+        RedoButton.SetPosition(PlayButton.x + PlayButton.width + BUTTON_SPACING, 
+                PlayButton.y + 10);
 
-        if (PlayButton.isPressed()) {
-            
+        if (myGraphVisualizer.isPaused() && PlayButton.isPressed()) {
+            myGraphVisualizer.Resume();
         }
+        else if (!myGraphVisualizer.isPaused() && PauseButton.isPressed()) {
+            myGraphVisualizer.Pause();
+        }
+
+        myGraphVisualizer.initSpeedControler({GraphDisplayScreen.x + GraphDisplayScreen.width + 20 + 150, 
+                PlayButton.y + 10 + 11});
+        myGraphVisualizer.UpdateSpeedControler();
     }
 
     void DrawTextureButtons() {
-        PlayButton.Drawtexture();
+        if (myGraphVisualizer.isPaused()) {
+            PlayButton.Drawtexture();
+        }
+        else {
+            PauseButton.Drawtexture();
+        }
         UndoButton.Drawtexture();
         RedoButton.Drawtexture();
+
+        myGraphVisualizer.DrawSpeedControler();
     }
 
     void Display() {

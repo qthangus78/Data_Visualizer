@@ -69,6 +69,15 @@ public:
     void initKruskal();
     bool isKruskalInited() const; 
 
+    // Add Speed methods
+    float GetSpeed() const;
+    void initSpeedControler(Vector2 pos);
+    void UpdateSpeedControler();
+    void DrawSpeedControler() const;
+
+    bool isPaused() const;
+    void Pause();
+    void Resume();
 private:
     int selectedNode = -1;
     float nodeRadius = 15.0f;
@@ -108,7 +117,7 @@ private:
         DijkstraStepResult step_result = {DijkstraStepResult::INIT};
         float elapsed_time = 0.0f;
         const float step_interval = 1.0f;
-        bool is_paused = false; 
+        // bool is_paused = false; 
         bool inited = false;
         DijkstraVisualizerData();
     } dijkstra_data;
@@ -129,7 +138,7 @@ private:
 
         float elapsed_time = 0.0f;
         const float step_interval = 1.0f;
-        bool is_paused = false;
+        // bool is_paused = false;
         bool inited = false;
         KruskalVisualizerData();
     } kruskal_data;
@@ -140,6 +149,9 @@ private:
     void UpdateDijkstraInfoLines();
     void UpdateDijkstraTable();
     void UpdateAdditionalInfoLines();
+
+    SpeedButtonSpinner SpeedControler;
+    bool is_paused = false;
 };
 
 namespace GraphAlgorithms {

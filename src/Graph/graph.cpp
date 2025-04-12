@@ -289,7 +289,33 @@ void GraphVisualizer::initEadesFactor() {
     convergent = false;
 }
 
+float GraphVisualizer::GetSpeed() const {
+    return SpeedControler.GetValue();
+}
 
+void GraphVisualizer::initSpeedControler(Vector2 pos) {
+    SpeedControler.Init(pos);
+}
+
+void GraphVisualizer::UpdateSpeedControler() {
+    SpeedControler.Update();
+}
+
+void GraphVisualizer::DrawSpeedControler() const {
+    SpeedControler.Draw();
+}
+
+bool GraphVisualizer::isPaused() const {
+    return is_paused;
+}   
+
+void GraphVisualizer::Pause() {
+    is_paused = true;
+}
+
+void GraphVisualizer::Resume() {
+    is_paused = false;
+}
 // GraphAlgorithms Implementation
 namespace GraphAlgorithms {
     int* par = nullptr;
@@ -530,7 +556,6 @@ Graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
 
     return myGraph;
 }
-
 
 void Handle_InputFile(const char* filePath, Graph* &G) {
     std::fstream fin(filePath);

@@ -12,7 +12,8 @@ void RunGraphVisualization_DIJKSTRA(GraphVisualizer &GV);
 namespace Graph_display {
     extern GraphMenu Gmenu;
     extern GraphVisualizer myGraphVisualizer;
+
     extern void SetUpTextureButtons();
     extern void DrawTextureButtons();
-    void Display();
+    extern void Display();
 }

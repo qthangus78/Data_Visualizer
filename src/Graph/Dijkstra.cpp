@@ -23,8 +23,8 @@ void GraphVisualizer::DrawDIJKSTRA_StepByStep() {
     }
 
     // Handle step interval
-    if (!dijkstra_data.is_paused) {
-        dijkstra_data.elapsed_time += GetFrameTime();
+    if (!is_paused) {
+        dijkstra_data.elapsed_time += GetFrameTime() * GetSpeed();
         if (dijkstra_data.elapsed_time >= dijkstra_data.step_interval) {
             if (dijkstra_data.first_step) {
                 dijkstra_data.first_step = false;
@@ -242,7 +242,7 @@ void GraphVisualizer::initDijkstra() {
     dijkstra_data.current_u = -1;
     dijkstra_data.current_neighbor_index = 0;
     dijkstra_data.elapsed_time = 0.0f;
-    dijkstra_data.is_paused = false;
+    is_paused = true;
     dijkstra_data.inited = true;
 }
 
