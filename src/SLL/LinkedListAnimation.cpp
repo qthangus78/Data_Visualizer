@@ -104,11 +104,8 @@ void Create::handleInputFile() {
     mSSL->setNumElement(pos.size());
 }
 void Create::randomAnimation(){
-    float deltaTime = GetFrameTime();
-    if (deltaTime > 0.1f) {
-        deltaTime = 0.016f; 
-    }
-    progress += deltaTime;
+    float fraction = mSSL->getFraction();
+    progress += fraction * deltaTime;
     NodeRadiusRender = lerp(0, NODE_SIZE, progress);
     FontSize = lerp(0, FontNode, progress);
     drawPos(pos,NodeRadiusRender,FontSize);
@@ -118,11 +115,8 @@ void Create::randomAnimation(){
     }
 }
 void Create::fileAnimation() {
-    float deltaTime = GetFrameTime();
-    if (deltaTime > 0.1f) {
-        deltaTime = 0.016f;
-    }
-    progress += deltaTime / 3.0f;
+    float fraction = mSSL->getFraction();
+    progress += fraction * deltaTime;
     NodeRadiusRender = lerp(0, NODE_SIZE, progress);
     FontSize = lerp(0, FontNode, progress);
     drawPos(pos,NodeRadiusRender,FontSize);
@@ -186,7 +180,7 @@ void Create::handle(){
 //--------------------------------
 Insert::Insert(SSL* s)
 :mSSL(s),InsertTailProcess(false),InsertHeadProcess(false),InsertIdxProcess(false),frameCounter(0),framecntInsert(0),currentAnimatingNode(nullptr),textIn(""),
-posTail({1200,50}),progressNode(0), progressArrow(0),textInIndex(""),valInsert(false),idxInsert(false), Font(0)
+posTail({1200,70}),progressNode(0), progressArrow(0),textInIndex(""),valInsert(false),idxInsert(false), Font(0)
 {
 InsertHead = {{ buttonVar::buttonIns.rect.x + 115,buttonVar::buttonIns.rect.y,120, static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Head"};
 InsertTail = {{ buttonVar::buttonDel.rect.x + 115,buttonVar::buttonDel.rect.y,120, static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Tail"};
@@ -353,7 +347,8 @@ void Insert::handleHeadCode(){
     }
     if(InsertHeadProcess && progressNode < 1.0f) curline = 0;
     else if(InsertHeadProcess && progressArrow < 1.0f) curline = 1;
-    if(curline == 1 && progressArrow >= 1.0f-GetFrameTime() && progressNode >= 1.0f-GetFrameTime()) curline = 2;
+    float fraction = mSSL->getFraction();
+    if(curline == 1 && progressArrow >= 1.0f-fraction*deltaTime && progressNode >= 1.0f-fraction*deltaTime) curline = 2;
 }
 void Insert::handleTailCode(){
     for(int i=0; i<codeTail.size(); i++){
@@ -392,7 +387,8 @@ void Insert::insertHeadAnimation(int x){
     std::vector<ShadedData> pos;
     handlePos(mSSL->getRoot(), startLinkedListPos,pos);
     if(progressNode >= 1.0f){
-        if(!mSSL->getPause())progressArrow += GetFrameTime();
+        float fraction = mSSL->getFraction();
+        if(!mSSL->getPause()) progressArrow +=fraction*deltaTime;
         ArrowLengthRender = lerp(NODE_SIZE,EArrow.length+NODE_SIZE,progressArrow);
         drawArrow2Node(startLinkedListPos, {startLinkedListPos.x+ArrowLengthRender,startLinkedListPos.y},color::edgeRendered);
     }
@@ -400,24 +396,23 @@ void Insert::insertHeadAnimation(int x){
     movesPos(pos,progressNode);
     drawTextUp("head",20,pos[0].pos);
     if(progressNode >= 1.0f && progressArrow >= 1.0f){
-        InsertHeadProcess = false;
-        progressNode = 0;
-        progressArrow = 0;
+        InsertHeadProcess = InsertIdxProcess = false;
+        progressNode = progressArrow = 0;
         mSSL->insertHeadList(x);
-        mSSL->setNumElement(mSSL->getNumElement()+1);
-        InsertIdxProcess = false;
+        mSSL->setNumElement(mSSL->getNumElement()+1);;
         ListNode* cur = mSSL->getRoot();
     }
 }
 void Insert::insertTailAnimation(ListNode*& tmp, Vector2& posTail) {
+    float fraction = mSSL->getFraction();
     std::string tailStr = std::to_string(mSSL->getTail()->data);
-    drawNode(posTail, std::to_string(mSSL->getTail()->data), NODE_SIZE,color::nodeNotInMode);
+    drawNode(posTail, tailStr, NODE_SIZE,color::nodeNotInMode);
     drawTextUp("vtx",20,posTail);
     if(tmp == mSSL->getRoot()) drawTextDown("pointer",22,startLinkedListPos);
     drawPartofLinkedListNotColor(mSSL->getRoot(), mSSL->getTail(), mSSL);
     drawPartofLinkedList(mSSL->getRoot(), tmp, mSSL);
     if(!tmp->next) {
-        if(curline!=0 && framecntInsert>=30) curline = 5;
+        if(curline != 0 && framecntInsert >= (int)speedNode/(2*fraction)) curline = 5;
         Vector2 startPos;
         int startPosVal;
         Vector2 endPos = posTail;
@@ -439,29 +434,28 @@ void Insert::insertTailAnimation(ListNode*& tmp, Vector2& posTail) {
             targetPos = { startLinkedListPos.x, mSSL->getPosEnd().y + ROW_OFFSET };
         }
         if(!mSSL->getPause()) {
-            progressNode += (GetFrameTime()/duration);
+            progressNode += (fraction*deltaTime);
         }
-        posTail = lerp({1200,50},targetPos,progressNode);
+        posTail = lerp({1200,70},targetPos,progressNode);
         if(fabs(posTail.x - targetPos.x) < 10 && fabs(posTail.y - targetPos.y) < 10) {
-            InsertTailProcess = false;
-            posTail = { 1200, 50 };  
+            InsertTailProcess = InsertIdxProcess = false;
+            posTail = { 1200, 70 };  
             progressNode = 0;
-            InsertIdxProcess = false;
             framecntInsert = 0;
         }
     }
     else {
-        if(!mSSL->getPause())framecntInsert++;
+        if(!mSSL->getPause()) framecntInsert++;
         if(mSSL->getRoot() && mSSL->getRoot()->next == mSSL->getTail()) curline = 0;
         else if(tmp == mSSL->getRoot()){
             curline = 1;
             curlinetmp = 2;
         }
-        else if(framecntInsert >= 30){
+        else if(framecntInsert >= (int) speedNode/(2*fraction)){
             curline = 3;
             curlinetmp = -1;
         }
-        if(framecntInsert >= 60 ) {
+        if(framecntInsert >= (int) speedNode/fraction) {
             framecntInsert = 0;
             tmp = tmp->next;
         if(tmp != mSSL->getRoot()->next){
@@ -471,13 +465,14 @@ void Insert::insertTailAnimation(ListNode*& tmp, Vector2& posTail) {
     }
 } 
 void Insert::insertIdxAnimation(ListNode*& tmp){
+    float fraction = mSSL->getFraction();
     if(curindex == idx){
         std::vector<ShadedData> movePos;
         handlePos(tmp,pos,movePos);
         if(progressNode>=1.0f){
             curline = 5;
             curlinetmp = 6;
-            if(!mSSL->getPause())progressArrow+=GetFrameTime();
+            if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
             Vector2 direct = Vector2Subtract(pos,prevpos);
             float length = Vector2Length(direct);
             float sin = direct.y/length, cos = direct.x/length;
@@ -523,11 +518,11 @@ void Insert::insertIdxAnimation(ListNode*& tmp){
             drawTextDown("pointer",22,startLinkedListPos);
             curline = 0;
         }
-        else if(framecntInsert>=30){
+        else if(framecntInsert >= (int)speedNode/(2*fraction)){
             curline = 1;
         }
         if(!mSSL->getPause()) framecntInsert++;
-        if(framecntInsert >= 60 ) {
+        if(framecntInsert >= speedNode/fraction) {
             curindex++;
             prevpos = pos;
             nodeNext(tmp,pos,framecntInsert);
@@ -842,6 +837,7 @@ Delete::DeleteType Delete::DetectCurrentMode(){
     return DeleteType::None;
 }
 void Delete::handleHeadCode(){
+    float fraction = mSSL->getFraction();
     for(int i=0; i<delHeadCode.size(); i++){
         code[i].text = delHeadCode[i];
     }
@@ -857,7 +853,7 @@ void Delete::handleHeadCode(){
     }
     if(DeleteHeadProcess && progressArrow < 0.3f) curline = 3;
     else if(DeleteHeadProcess && progressArrow < 1.0f) curline = 4;
-    if(curline == 4 && progressArrow >= 1.0f-GetFrameTime()) curline = 5;
+    if(curline == 4 && progressArrow >= 1.0f-fraction*deltaTime) curline = 5;
 }
 void Delete::handleTailCode(){
     for(int i=0; i<delTailCode.size(); i++) code[i].text = delTailCode[i];
@@ -970,8 +966,9 @@ void Delete::handleValMode(){
     }
 }
 void Delete::delHeadAnimation(){
+    float fraction = mSSL->getFraction();
     if(!mSSL->getRoot()->next){
-        if(!mSSL->getPause()) progressArrow+=GetFrameTime();
+        if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
         float fontText = lerp(22,0,progressNode);
         drawTextUp("head",fontText,startLinkedListPos);
         drawArrow(startLinkedListPos,{startLinkedListPos.x+ArrowLengthRender,startLinkedListPos.y},color::edgeRendered);
@@ -984,7 +981,7 @@ void Delete::delHeadAnimation(){
     handlePos(mSSL->getRoot(),startLinkedListPos,copy);
     if(progressArrow < 1.0f)
     {
-    if(!mSSL->getPause()) progressArrow += GetFrameTime();
+    if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
     ArrowLengthRender = lerp(0,EArrow.length,progressArrow);
     drawArrow(startLinkedListPos,{startLinkedListPos.x+EArrow.length,startLinkedListPos.y},color::edgeNotInMode);
     drawTextUp("head",22,startLinkedListPos);
@@ -1015,12 +1012,13 @@ void Delete::delHeadAnimation(){
     }
 }
 void Delete::delTailAnimation(ListNode*& cur){
+    float fraction = mSSL->getFraction();
     const int ARROW_LENGTH = EArrow.length;
     if(!mSSL->getPause()) framecntDel++;
-    if(cur == mSSL->getRoot() && framecntDel<=30) curline = 1;
-    else if(framecntDel >=30) curline = 2;
+    if(cur == mSSL->getRoot() && framecntDel <= (int)speedNode/(2*fraction)) curline = 1;
+    else if(framecntDel >= (int)speedNode/(2*fraction)) curline = 2;
     if(cur->next) drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
-    if(framecntDel >= 60 && cur->next) {
+    if(framecntDel >= (int)speedNode/fraction && cur->next) {
         prevpos = shadedPos.pos; 
         nodeNext(cur,shadedPos.pos,framecntDel);
         curline = 3;
@@ -1053,7 +1051,7 @@ void Delete::delTailAnimation(ListNode*& cur){
         prevpos = {0,0};
         DeleteTailProcess = false;
     }
-    else if (cur && cur->next && framecntDel >= 30 && framecntDel < 60) {
+    else if (cur && cur->next && framecntDel >= (int)speedNode/(2*fraction) && framecntDel < (int)speedNode/fraction) {
         if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth() - SCREEN_MARGIN) {
             drawArrow2Node(shadedPos.pos, { startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, color::edgeRendered);
             drawNode({ startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, std::to_string(cur->next->data), NODE_SIZE, color::nodeNotInMode);
@@ -1063,15 +1061,16 @@ void Delete::delTailAnimation(ListNode*& cur){
     }
 }
 void Delete::delAnimation(ListNode*& currentNode, int targetData) {
+    float fraction = mSSL->getFraction();
     if(!mSSL->getPause()) framecntDel++;
     if(currentNode->data!=targetData) drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
     const int ARROW_LENGTH = EArrow.length; 
-    if(currentNode == mSSL->getRoot() && framecntDel < 30) curline = 1;
-    else if(framecntDel >= 30){
+    if(currentNode == mSSL->getRoot() && framecntDel < (int)speedNode/(2*fraction)) curline = 1;
+    else if(framecntDel >= (int)speedNode/fraction){
         curline = 2;
         curlinetmp = -1;
     }
-    if (framecntDel >= 60 && currentNode->data != targetData) {
+    if (framecntDel >= (int)speedNode/fraction && currentNode->data != targetData) {
         prevpos = shadedPos.pos; 
         nodeNext(currentNode,shadedPos.pos,framecntDel);
         curline = 3;
@@ -1118,7 +1117,7 @@ void Delete::delAnimation(ListNode*& currentNode, int targetData) {
             drawNode(movePos[i].pos, std::to_string(movePos[i].node->data),NODE_SIZE,color::nodeNotInMode);
         }
         }
-    else if (currentNode && currentNode->next && framecntDel >= 30 && framecntDel < 60) {
+    else if (currentNode && currentNode->next && framecntDel >= (int)speedNode/(2*fraction) && framecntDel < (int)speedNode/fraction) {
         if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth() - SCREEN_MARGIN) {
             drawArrow2Node(shadedPos.pos, { startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, color::edgeRendered);
             drawNode({ startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, std::to_string(currentNode->next->data), NODE_SIZE, color::nodeNotInMode);
@@ -1355,6 +1354,7 @@ void Delete::handle(){
 Find::Find(SSL* s)
 : mSSL(s), frameCounter(0), textIn(""), framecntFind(0), FindProcess(false), shadedPos({0,0}) {}
 void Find::findAnimation(ListNode*& root) {
+    float fraction = mSSL->getFraction();
     if (!root) {
         FindProcess = false;
         shadedPos = { {0, 0}, nullptr };
@@ -1366,15 +1366,15 @@ void Find::findAnimation(ListNode*& root) {
     if(!mSSL->getPause()) framecntFind++;
     drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
     const int ARROW_LENGTH = EArrow.length; 
-    if(root == mSSL->getRoot() && framecntFind<30) curline = 1;
-    if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth()-SCREEN_MARGIN && framecntFind>=30 && framecntFind < 60 && root->next) {
+    if(root == mSSL->getRoot() && framecntFind < (int)speedNode/(2*fraction)) curline = 1;
+    if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth()-SCREEN_MARGIN && framecntFind >= (int)speedNode/(2*fraction) && framecntFind < (int)speedNode/fraction && root->next) {
         drawArrow2Node(shadedPos.pos,{ startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET },color::edgeRendered);
         curline = 2;
-    } else if(shadedPos.pos.x + EArrow.length + NODE_SIZE < GetScreenWidth()-SCREEN_MARGIN && framecntFind>=30 && framecntFind < 60 && root->next) {
+    } else if(shadedPos.pos.x + EArrow.length + NODE_SIZE < GetScreenWidth()-SCREEN_MARGIN && framecntFind >= (int)speedNode/(2*fraction) && framecntFind < (int)speedNode/fraction && root->next) {
         drawArrow(shadedPos.pos,{ shadedPos.pos.x+EArrow.length, shadedPos.pos.y},color::edgeRendered);
         curline = 2;
     }
-    if (framecntFind >= 60) {
+    if (framecntFind >= (int)speedNode/fraction) {
         nodeNext(root,shadedPos.pos,framecntFind);
         curline = 3;
     }
@@ -1389,6 +1389,7 @@ void Find::findAnimation(ListNode*& root) {
     }
 }
 void Find::handleCodeLine(){
+    float fraction = mSSL->getFraction();
     for(int i=0; i<codeLines.size(); i++){
         code[i].text = codeLines[i];
     }
@@ -1397,7 +1398,7 @@ void Find::handleCodeLine(){
         curlinetmp = -1;
         return;
     }
-    if(currentAnimatingNode && !currentAnimatingNode->next && framecntFind>0 && framecntFind<=30) {
+    if(currentAnimatingNode && !currentAnimatingNode->next && framecntFind>0 && framecntFind<=(int)speedNode/(2*fraction)) {
         curline = 4;
         curlinetmp = 2;
     }
@@ -1539,6 +1540,7 @@ void Clear::handle(){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getFind());
         mSSL->setExistVal(mSSL->getRoot());
+        buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getnotInMode());

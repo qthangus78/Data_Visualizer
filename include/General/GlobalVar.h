@@ -25,9 +25,43 @@ extern myTexture PauseButton;
 extern myTexture ReplayButton;
 extern myTexture UndoButton;
 extern myTexture RedoButton;
+extern myTexture addButton;
+extern myTexture minusButton;
 extern ScreenID currentScreenID;
 extern Texture2D customTexture;
 extern Texture2D dice;
+
+struct SpeedButtonSpinner {
+    float value = 1.0f;
+    const float minValue = 0.5f;
+    const float maxValue = 4.0f;
+    const float step = 0.5f;
+    Vector2 position;
+    void Init(Vector2 pos) {
+        position = pos;
+        Vector2 leftCenter = {position.x - 44, position.y-7};
+        Vector2 rightCenter = {position.x + 44, position.y-7};
+        addButton.SetPosition(rightCenter.x,rightCenter.y);
+        minusButton.SetPosition(leftCenter.x,leftCenter.y);
+    }
+    void Update() {
+            if(minusButton.isPressed()) value = std::max(minValue, value - step);
+            if(addButton.isPressed()) value = std::min(maxValue, value + step);
+    }
+    void Draw() const {
+        addButton.Drawtexture();
+        minusButton.Drawtexture();
+        char text[10];
+        snprintf(text, sizeof(text), "x%.1f", value);
+        Vector2 textSize = MeasureTextEx(customFont, text, 24, 1);
+        Vector2 textPos = { position.x + 20 - textSize.x / 2, position.y + 15 - textSize.y / 2 };
+        DrawTextEx(customFont, text, textPos, 24, 1, BLACK);
+
+    }
+    float GetValue() const {
+        return value;
+    }
+};
 
 
 //--------------------------------
