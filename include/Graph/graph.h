@@ -45,6 +45,57 @@ struct DijkstraStepResult {
     int u, v;
 };
 
+struct DijkstraState {
+    std::vector<int> distances;      // Distances at this step
+    std::vector<bool> processed;     // Processed flags at this step
+    int current_u;                   // Current vertex at this step
+    int current_neighbor_index;
+    bool first_step;       // Current neighbor index at this step
+    DijkstraStepResult step_result;  // Step result at this step
+    
+    // Constructor to capture current state
+    DijkstraState(const std::vector<int>& dist, const std::vector<bool>& proc, 
+                 int u, int neighbor_idx, bool _first_step, DijkstraStepResult result) 
+        : distances(dist), processed(proc), current_u(u), 
+          current_neighbor_index(neighbor_idx), first_step(_first_step), step_result(result) {}
+};
+
+struct DijkstraVisualizerData {
+    vector<int> distances;
+    vector<bool> processed;
+    int current_u = -1;
+    int current_neighbor_index = 0;
+    bool first_step = true;
+    vector<char*> codes;
+
+    DijkstraStepResult step_result = {DijkstraStepResult::INIT};
+    float elapsed_time = 0.0f;
+    const float step_interval = 1.0f;
+    // bool is_paused = false; 
+    bool inited = false;
+
+    // history stack to DijkstraVisualizerData
+    std::vector<DijkstraState> history;
+
+    DijkstraVisualizerData();
+};
+
+
+struct KruskalVisualizerData {
+    vector<int> parent;
+    vector<pair<int, int>> edges;  // {weight, edge_index}
+    int current_edge_index = -1;
+    bool first_step = true;
+    vector<bool> in_mst;
+    vector<char*> codes;
+
+    float elapsed_time = 0.0f;
+    const float step_interval = 1.0f;
+    // bool is_paused = false;
+    bool inited = false;
+    KruskalVisualizerData();
+}; 
+
 class GraphVisualizer {
 public:
     GraphVisualizer(){}
@@ -59,9 +110,13 @@ public:
     void DrawDIJKSTRA() const;
     void initEadesFactor();
 
+
     // Add Dijkstra visualization methods
     void initDijkstra();
     void DrawDIJKSTRA_StepByStep();
+    bool UndoDijkstra();
+    bool RedoDijkstra();
+    DijkstraStepResult GetDijkstraStepResult() const;
 
 
     // Add MST visualization methods
@@ -78,6 +133,7 @@ public:
     bool isPaused() const;
     void Pause();
     void Resume();
+
 private:
     int selectedNode = -1;
     float nodeRadius = 15.0f;
@@ -103,45 +159,17 @@ private:
     void DrawNode(int u, bool special = false) const;
     void DrawDijkstraPseudoCode();  // Add this line
 
-    // Add Dijkstra visualization properties
+    // Dijkstra visualization properties
     int selectNextDijkstraU();
     void GetDijkstraStep();
-    struct DijkstraVisualizerData {
-        vector<int> distances;
-        vector<bool> processed;
-        int current_u = -1;
-        int current_neighbor_index = 0;
-        bool first_step = true;
-        vector<char*> codes;
+    DijkstraVisualizerData dijkstra_data;
 
-        DijkstraStepResult step_result = {DijkstraStepResult::INIT};
-        float elapsed_time = 0.0f;
-        const float step_interval = 1.0f;
-        // bool is_paused = false; 
-        bool inited = false;
-        DijkstraVisualizerData();
-    } dijkstra_data;
 
-   
-
-    // Add Kruskal visualization properties
+    // Kruskal visualization properties
     void GetKruskalStep();
     int findSet(int v);
-    bool unionSets(int a, int b);
-    struct KruskalVisualizerData {
-        vector<int> parent;
-        vector<pair<int, int>> edges;  // {weight, edge_index}
-        int current_edge_index = -1;
-        bool first_step = true;
-        vector<bool> in_mst;
-        vector<char*> codes;
-
-        float elapsed_time = 0.0f;
-        const float step_interval = 1.0f;
-        // bool is_paused = false;
-        bool inited = false;
-        KruskalVisualizerData();
-    } kruskal_data;
+    bool unionSets(int a, int b); 
+    KruskalVisualizerData kruskal_data;
 
 
     // Add announcement box for algorithms

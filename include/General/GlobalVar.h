@@ -27,6 +27,7 @@ extern myTexture UndoButton;
 extern myTexture RedoButton;
 extern myTexture addButton;
 extern myTexture minusButton;
+extern myTexture repeatButton;
 extern ScreenID currentScreenID;
 extern Texture2D customTexture;
 extern Texture2D dice;

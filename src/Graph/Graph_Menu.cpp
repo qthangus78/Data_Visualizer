@@ -117,7 +117,7 @@ void GraphMenu::HandleInput() {
             activeEdgeField = ActiveEdgeField::NONE;
         }
 
-        fileSelected = CheckCollisionPointRec(mouse, fileBtn.rect);
+        fileSelected = ((selectedOption == MenuOption::CREATE) && CheckCollisionPointRec(mouse, fileBtn.rect));
         confirmPressed = CheckCollisionPointRec(mouse, confirmBtn.rect);
     }
 

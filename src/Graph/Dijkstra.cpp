@@ -22,17 +22,36 @@ void GraphVisualizer::DrawDIJKSTRA_StepByStep() {
         return;
     }
 
-    // Handle step interval
+    // Handle step interval and input
     if (!is_paused) {
         dijkstra_data.elapsed_time += GetFrameTime() * GetSpeed();
         if (dijkstra_data.elapsed_time >= dijkstra_data.step_interval) {
             if (dijkstra_data.first_step) {
                 dijkstra_data.first_step = false;
                 dijkstra_data.step_result = {DijkstraStepResult::INIT};
+                
+                // Save initial state to history
+                dijkstra_data.history.push_back(DijkstraState(
+                    dijkstra_data.distances,
+                    dijkstra_data.processed,
+                    dijkstra_data.current_u,
+                    dijkstra_data.current_neighbor_index,
+                    dijkstra_data.first_step,
+                    dijkstra_data.step_result
+                ));
             } else {
                 GetDijkstraStep();
             }
             dijkstra_data.elapsed_time -= dijkstra_data.step_interval;
+        }
+    }
+
+    if (is_paused) {
+        if (UndoButton.isPressed()) {
+            UndoDijkstra();
+        }
+        else if (RedoButton.isPressed()) {
+            RedoDijkstra();
         }
     }
 
@@ -200,7 +219,7 @@ void GraphVisualizer::UpdateDijkstraTable() {
     algorithmBox.EndTable();
 }
 
-GraphVisualizer::DijkstraVisualizerData::DijkstraVisualizerData() {
+DijkstraVisualizerData::DijkstraVisualizerData() {
     codes = {
         "for v in Graph:",
         "    d[v] = infinity",
@@ -238,6 +257,10 @@ void GraphVisualizer::initDijkstra() {
     algorithmBox = AnnouncementBox(codeBox, "Dijkstra's Algorithm");
     algorithmBox.SetContent(dijkstra_data.codes);
     
+    // Clear history
+    dijkstra_data.history.clear();
+    
+    dijkstra_data.step_result = {DijkstraStepResult::INIT};
     dijkstra_data.first_step = true;
     dijkstra_data.current_u = -1;
     dijkstra_data.current_neighbor_index = 0;
@@ -261,6 +284,17 @@ int GraphVisualizer::selectNextDijkstraU() {
 
 void GraphVisualizer::GetDijkstraStep() {
     if (!graph || !dijkstra_data.inited) return;
+    
+    // Save current state before making changes
+    dijkstra_data.history.push_back(DijkstraState(
+        dijkstra_data.distances,
+        dijkstra_data.processed,
+        dijkstra_data.current_u,
+        dijkstra_data.current_neighbor_index,
+        dijkstra_data.first_step,
+        dijkstra_data.step_result
+    ));
+    
     bool all_processed = true;
     for (int vertex = 1; vertex <= graph->numNode; ++vertex) {
         if (!dijkstra_data.processed[vertex]) {
@@ -303,4 +337,38 @@ void GraphVisualizer::GetDijkstraStep() {
         dijkstra_data.current_neighbor_index++;
         dijkstra_data.step_result = {DijkstraStepResult::RELAX_EDGE, dijkstra_data.current_u, v};
     }
+}
+
+bool GraphVisualizer::UndoDijkstra() {
+    // Check if there's any history to go back to
+    if (dijkstra_data.history.empty()) {
+        return false;  // Can't undo further
+    }
+    
+    // Get the previous state
+    DijkstraState prevState = dijkstra_data.history.back();
+    dijkstra_data.history.pop_back();
+    
+    // Restore algorithm state
+    dijkstra_data.distances = prevState.distances;
+    dijkstra_data.processed = prevState.processed;
+    dijkstra_data.current_u = prevState.current_u;
+    dijkstra_data.current_neighbor_index = prevState.current_neighbor_index;
+    dijkstra_data.first_step = prevState.first_step;
+    dijkstra_data.step_result = prevState.step_result;
+    
+    return true;
+}
+
+bool GraphVisualizer::RedoDijkstra() {
+    if (dijkstra_data.step_result.action == DijkstraStepResult::DONE) {
+        return false;
+    }
+    
+    GetDijkstraStep();
+    return true;
+}
+
+DijkstraStepResult GraphVisualizer::GetDijkstraStepResult() const {
+    return dijkstra_data.step_result;
 }

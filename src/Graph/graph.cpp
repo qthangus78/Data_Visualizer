@@ -182,11 +182,11 @@ void GraphVisualizer::DrawEdge(const Graph::Edge& edge, int special) const {
     float thickness;
     switch (special) {
         case 2:  // Currently being visited
-            edgeColor = RED;
+            edgeColor = BLUE;
             thickness = 3.0f;
             break;
         case 1:  // Part of Dijkstra tree
-            edgeColor = BLUE;
+            edgeColor = RED;
             thickness = 2.0f;
             break;
         default: // Normal edge
@@ -226,10 +226,10 @@ void GraphVisualizer::DrawEdge(const Graph::Edge& edge, int special) const {
         Color textColor;
         switch (special) {
             case 2:
-                textColor = RED;
+                textColor = BLUE;
                 break;
             case 1:
-                textColor = BLUE;
+                textColor = RED;
                 break;
             default:
                 textColor = Color{138, 178, 166, 255};
@@ -515,7 +515,7 @@ Graph* GenerateRandomConnectedGraph(int numNodes, int numEdges, bool isDirected,
         std::uniform_int_distribution<> dis(0, treeNodes.size() - 1);
         int u = treeNodes[dis(gen)];
 
-        int weight = (gen() % 10);
+        int weight = 1 + (gen() % 10);
         myGraph->AddEdge(u, v, weight);
         inTree[v] = true;
         edgesAdded++;

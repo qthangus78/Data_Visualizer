@@ -47,6 +47,9 @@ namespace Graph_display {
 
         PauseButton.SetPosition(centerX - PlayButton.MainTexture.width / 2, 
                 GraphDisplayScreen.y + GraphDisplayScreen.height);
+            
+        repeatButton.SetPosition(centerX - PlayButton.MainTexture.width / 2, 
+                GraphDisplayScreen.y + GraphDisplayScreen.height);  
 
         const float BUTTON_SPACING = 50;  
         
@@ -63,21 +66,30 @@ namespace Graph_display {
             myGraphVisualizer.Pause();
         }
 
+        if (repeatButton.isPressed() && myGraphVisualizer.GetDijkstraStepResult().action == DijkstraStepResult::DONE) {
+            myGraphVisualizer.initDijkstra();           
+        }
+
         myGraphVisualizer.initSpeedControler({GraphDisplayScreen.x + GraphDisplayScreen.width + 20 + 150, 
                 PlayButton.y + 10 + 11});
         myGraphVisualizer.UpdateSpeedControler();
+
+
     }
 
     void DrawTextureButtons() {
-        if (myGraphVisualizer.isPaused()) {
+        if (myGraphVisualizer.GetDijkstraStepResult().action == DijkstraStepResult::DONE) {
+            repeatButton.Drawtexture();
+        }
+        else if (myGraphVisualizer.isPaused()) {
             PlayButton.Drawtexture();
         }
         else {
             PauseButton.Drawtexture();
         }
+
         UndoButton.Drawtexture();
         RedoButton.Drawtexture();
-
         myGraphVisualizer.DrawSpeedControler();
     }
 

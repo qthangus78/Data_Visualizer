@@ -27,6 +27,8 @@ myTexture UndoButton;
 myTexture RedoButton;
 myTexture addButton;
 myTexture minusButton;
+myTexture repeatButton;
+
 Texture2D customTexture;
 Texture2D dice;
 
@@ -87,7 +89,8 @@ void LoadButtonsResources() {
         "../resources/images/minus-circle-selected.png");
     dice = LoadTexture("../src/Heap/dice.png");
     
-    //cout << PauseButton.MainTexture.width << " " << PauseButton.MainTexture.height << endl;
+    repeatButton.LoadTextureResources("../resources/images/Repeat-normal.png",
+        "../resources/images/Repeat-selected.png");
 }
 
 void UnloadFontResource() {

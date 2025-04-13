@@ -4,7 +4,7 @@ bool GraphVisualizer::isKruskalInited() const {
     return kruskal_data.inited; 
 }
 
-GraphVisualizer::KruskalVisualizerData::KruskalVisualizerData() {
+KruskalVisualizerData::KruskalVisualizerData() {
     codes = {
         "Sort edges by weight",
         "Initialize disjoint sets",
