@@ -564,16 +564,31 @@ void drawButtons() {
 }
 // Xử lý hover 4 nút
 void handleButtonsHover(){
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect))
+    if (CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect))
+    {
         buttonVar::buttonCreate.buCol   = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect))
+        buttonVar::buttonCreate.buCol.a = 128;
+    }
+    else if (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect))
+    {
         buttonVar::buttonIns.buCol     = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect))
+        buttonVar::buttonIns.buCol.a = 128;
+    }
+    else if (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect))
+    {
         buttonVar::buttonDel.buCol     = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect))
+        buttonVar::buttonDel.buCol.a = 128;
+    }
+    else if (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect))
+    {
         buttonVar::buttonF.buCol       = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))
+        buttonVar::buttonF.buCol.a = 128;
+    }
+    else if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))
+    {
         buttonVar::buttonClear.buCol   = color::buttonColorHovered;
+        buttonVar::buttonClear.buCol.a = 128;
+    }
     else if(CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect)){
         buttonVar::buttonGo.buCol = color::buttonFileHovered;
     }

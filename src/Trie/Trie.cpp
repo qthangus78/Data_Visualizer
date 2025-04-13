@@ -12,11 +12,9 @@ TrieNode::TrieNode() {
     isWord = false;
     subtreeSize = 1;
     character = '\0';
-    color = WHITE;
+    colorText = WHITE;
+    colorNode = color::nodeNotInMode;
     posCur = posPrev = { 0,0 };
-    //for (int i = 0; i < 26; i++) {
-    //    children['a'+ i] = nullptr;
-    //}
 }
 
 void InsertTrie(TrieNode*& root, const string& key, queue<Step> steps)
@@ -53,33 +51,38 @@ void InsertTrie(TrieNode*& root, const string& key, queue<Step> steps)
     steps.push({"Marking current node as end of word.",5, cur,false});
 }
 
-bool FindTrie(TrieNode*& root, const string& key)
+bool FindTrie(TrieNode*& root, const string& key, queue<Step> steps)
 {
     if (root == nullptr) {
         return false;
+        steps.push({ "no trie",1,root,false });
     }
 
     TrieNode* cur = root;
     
     for (char character : key)
     {
+        steps.push({ "Processing character " + string(1,character), 2 , cur,false });
         if (cur->children.find(character) == cur->children.end())
         {
             return false;
+            steps.push({ "Character " + string(1,character) + " not found. return false",3, cur->children[character], false });
+        }
+        else
+        {
+            steps.push({ "Character " + string(1,character) + " found. Move next character",4, cur->children[character], false });
         }
 
         cur = cur->children[character];
     }
 
+    steps.push({ "check if the last character end the word",5, cur,false });
     return cur->isWord;
 }
 
 bool isEmpty(TrieNode* root)
 {
-    for (int i = 0; i < 26; i++)
-        if (root->children[i])
-            return false;
-    return true;
+    return root->children.empty();
 }
 
 TrieNode* DeleteTrie(TrieNode* root, const string& key, int depth)
@@ -94,7 +97,7 @@ TrieNode* DeleteTrie(TrieNode* root, const string& key, int depth)
             root->isWord = false;
         }
 
-        if (isEmpty(root))
+        if (isEmpty(root) && depth !=0)
         {
             delete root;
             root = nullptr;
@@ -104,9 +107,18 @@ TrieNode* DeleteTrie(TrieNode* root, const string& key, int depth)
     }
 
     char character = key[depth];
-    root->children[character] = DeleteTrie(root->children[character], key, depth + 1);
+    if (root->children.count(character))
+    {
+        root->children[character] = DeleteTrie(root->children[character], key, depth + 1);
 
-    if (isEmpty(root) && root->isWord == false) {
+        // If child was deleted, remove the pointer from the map
+        if (!root->children[character])
+        {
+            root->children.erase(character);
+        }
+    }
+ 
+    if (isEmpty(root) && root->isWord == false && depth != 0) {
         delete (root);
         root = NULL;
     }
@@ -128,6 +140,24 @@ void InputFileTrie(const string& file_name, TrieNode*& root, queue<Step> steps)
     while (getline(file, line))
     {
         InsertTrie(root, line, steps);
+    }
+}
+
+void ClearTrie(TrieNode*& root, int depth)
+{
+    if (!root or root->children.empty()) return;
+
+
+    for (auto& [_, child] : root->children)
+    {
+        ClearTrie(child, depth +1);
+    }
+
+    root->children.clear();
+    if (depth != 0)
+    {
+        delete root;
+        root = nullptr;
     }
 }
 

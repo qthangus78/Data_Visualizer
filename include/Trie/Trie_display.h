@@ -81,7 +81,7 @@ public:
 	bool isAnimated = false;
 	float elapsed = 10.0f, progress = 1;
 
-	Rectangle inputRect = { buttonVar::buttonIns.rect.x + 130,buttonVar::buttonIns.rect.y,130, static_cast<float>(button::sizeH) };
+	Rectangle inputRect = {};
 
 
 	//Trie
@@ -91,19 +91,27 @@ public:
 	//void ProcessInsert();
 
 	bool Find(const string& c);
+
+	bool Delete(const string&);
+
+	void Clear();
 	
 	//Utility
-	void drawNodeTrie(Vector2 pos, const char& character, Color colorNode,float radius);
-	void animateTrie(float duration, Vector2 start, Vector2 end);
+	void drawNodeTrie(Vector2 pos, const char& character, Color colorNode,Color colorText,float radius);
+	//void animateTrie(float duration, Vector2 start, Vector2 end);
 
 	string handleTypeBox(Rectangle rect);
-
 	void drawTypeBox(Rectangle rect);
 
 	void HandleButtonClickTrie();
 	
-	void drawFindResult(bool isFound);
-	void FindDisplay(bool isFound);
+	void drawFindResult(bool isFound, const string& key);
+	void FindDisplay(TrieNode* root,const string& key, Color);
+
+	void drawDeleteResult(bool isFound, const string& key);
+
+	void drawClearResult();
+	
 
 	//Visualizer
 	int CalculateSubtreeSize(TrieNode* node);
@@ -113,6 +121,8 @@ public:
 	void drawTrieNodes(TrieNode* root, float &lerp);
 	void drawTrieEdges(TrieNode* root, float& lerp);
 	void drawTrie(TrieNode* root, float& lerp);
+
+	void resetColorNode(TrieNode* root, Color );
 
 	void Handle();
 

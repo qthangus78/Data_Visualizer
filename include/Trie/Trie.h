@@ -27,7 +27,7 @@ public:
     //Used for drawing
     int subtreeSize;
     Vector2 posCur, posPrev;
-    Color color;
+    Color colorNode, colorText;
     char character;
     
 
@@ -46,13 +46,15 @@ struct Step{
 //----------------------
 void InsertTrie(TrieNode*& root, const string& key,queue<Step> steps);
 
-bool FindTrie(TrieNode*& root, const string& key);
+bool FindTrie(TrieNode*& root, const string& key, queue<Step>steps);
 
 bool isEmpty(TrieNode* root);
 
 TrieNode* DeleteTrie(TrieNode* root, const string& key, int depth = 0);
 
 void InputFileTrie(const string& file_name, TrieNode*& root, queue<Step> steps);
+
+void ClearTrie(TrieNode*& root, int depth = 0);
 
 //Draw
 

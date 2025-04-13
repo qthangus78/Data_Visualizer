@@ -48,17 +48,35 @@ void Trie::Insert(const string& c)
 
 bool Trie::Find(const string& c)
 {
-	return FindTrie(root, c);
+	return FindTrie(root, c, steps);
+}
+
+bool Trie::Delete(const string& c)
+{
+	bool isExist = Find(c);
+	if (isExist)
+	{
+		DeleteTrie(root, c, 0);
+		return true;
+	}else
+	{
+		return false;
+	}
+}
+
+void Trie::Clear()
+{
+	ClearTrie(root);
 }
 
 //Utility------------------------
 //trie small draw
-void Trie::drawNodeTrie(Vector2 pos, const char& character, Color colorNode, float radius)
+void Trie::drawNodeTrie(Vector2 pos, const char& character, Color colorNode, Color colorText, float radius)
 {
-	DrawCircleV(pos, radius, color::nodeNotInMode);
+	DrawCircleV(pos, radius, colorNode);
 	char text[2] = { character, '\0' };
 	Vector2 textSize = MeasureTextEx(customFont, text, 23, 2);
-	DrawTextEx(customFont, text, { pos.x - textSize.x / 2, pos.y - textSize.y / 2 }, 22, 2, colorNode);
+	DrawTextEx(customFont, text, { pos.x - textSize.x / 2, pos.y - textSize.y / 2 }, 22, 2, colorText);
 }
 
 //button draw
@@ -124,17 +142,17 @@ void Trie::HandleButtonClickTrie()
 }
 
 //function draw
-void Trie::FindDisplay(bool isFound)
+void Trie::FindDisplay(TrieNode* root,const string& key, Color colorN)
 {
-	if (isFound)
+	for (char character : key)
 	{
-
+		root->children[character]->colorNode = colorN;
+		root = root->children[character];
 	}
 }
-void Trie::drawFindResult(bool isFound) {
+void Trie::drawFindResult(bool isFound, const string&key ) {
 	//drawTextCode(curline, curlinetmp);
-	Rectangle inputRect = { buttonVar::buttonF.rect.x + 115,buttonVar::buttonF.rect.y,120, (float)button::sizeH };
-	drawTypeBox(inputRect);
+	
 	if (root->children.empty() && frameCounter < 30) {
 		DrawTextEx(SSLFont, "Empty List", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
 	}
@@ -166,6 +184,36 @@ void Trie::drawFindResult(bool isFound) {
 	}
 }
 
+void Trie::drawDeleteResult(bool isFound, const string& key) {
+
+	if (root->children.empty() && frameCounter < 30) {
+		DrawTextEx(SSLFont, "Empty List", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+	}
+	else {
+		//if (FindProcess) findAnimation(currentAnimatingNode); else
+		if (root && isFound && frameCounter < 30 /* && !FindProcess*/) {
+			DrawTextEx(SSLFont, "Value Deleted", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
+		}
+		else
+		{
+			if (frameCounter < 30 /* && FindProcess */) {
+				DrawTextEx(SSLFont, "Value not Found", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+			}
+		}
+	}
+}
+
+void Trie::drawClearResult()
+{
+	if (root->children.empty() && frameCounter < 30) {
+		DrawTextEx(SSLFont, "Empty List", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+	}
+	else {
+		if (root && frameCounter < 30 /* && !FindProcess*/) {
+			DrawTextEx(SSLFont, "Cleared", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
+		}
+	}
+}
 //Visualizer-----------------
 
 int Trie::CalculateSubtreeSize(TrieNode* node) {
@@ -235,10 +283,10 @@ void Trie::MarkNodesEdges(TrieNode* root, float x, float y, float spread, int de
 
 		if (child)
 		{
-			if (child->isWord) child->color = GREEN;
+			if (child->isWord) child->colorText = GREEN;
 			else
 			{
-				child->color = RAYWHITE;
+				child->colorText = RAYWHITE;
 			}
 
 			child->character = character;
@@ -260,7 +308,7 @@ void Trie::Visualize(TrieNode* root)
 void Trie::drawTrieNodes(TrieNode* root, float& progress)
 {
 	Vector2 pos = lerp(root->posPrev,root->posCur,progress);
-	drawNodeTrie(pos, root->character, root->color, 25);
+	drawNodeTrie(pos, root->character, root->colorNode, root->colorText, 25);
 
 	for (auto& child : root->children)
 	{
@@ -281,6 +329,15 @@ void Trie::drawTrie(TrieNode* root, float& progress)
 {
 	drawTrieEdges(root, progress);
 	drawTrieNodes(root, progress);
+}
+
+void Trie::resetColorNode(TrieNode* root, Color colorN)
+{
+	for (auto& child : root->children)
+	{
+		child.second->colorNode = colorN;
+		resetColorNode(child.second, colorN);
+	}
 }
 
 //void Trie::animateTrie(float duration, Vector2 start, Vector2 end) {
@@ -314,8 +371,6 @@ void Trie::Handle()
 		if (!word.empty())
 		{
 			Insert(word);
-			//Edges.clear();
-			//Nodes.clear();
 			Visualize(root);
 			elapsed = 0;
 		}
@@ -329,8 +384,36 @@ void Trie::Handle()
 		if (!word.empty())
 		{
 			isFound = Find(word);
+			if (isFound)
+			{
+				resetColorNode(root, color::nodeNotInMode);
+				FindDisplay(root, word, { 170, 180, 60, 255 });
+			}
 		}
 
+		break;
+
+	case FunctionNumber::DeleteFunct:
+		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
+		state = curFunct;
+		word = handleTypeBox(inputRect);
+		if (!word.empty())
+		{
+			isFound = Delete(word);
+			if (isFound)
+			{
+				Visualize(root);
+				elapsed = 0;
+			}
+		}
+
+		break;
+
+	case FunctionNumber::ClearFunct:
+		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
+		state = curFunct;
+		Clear();
+		Visualize(root);
 		break;
 	}
 
@@ -353,10 +436,6 @@ void Trie::Draw()
 		drawTrie(root, );
 	}*/
 
-	/*if (elapsed < duration)
-	{
-		progress = elapsed / duration;
-	}*/
 
 	drawTrie(root, progress);
 
@@ -366,20 +445,24 @@ void Trie::Draw()
 	switch (curFunct)
 	{
 	case FunctionNumber::Input:
+		inputRect = { buttonVar::buttonIns.rect.x + 130,buttonVar::buttonIns.rect.y,130, static_cast<float>(button::sizeH) };
 		drawTypeBox(inputRect);
 		break;
 
 	case FunctionNumber::FindFunct:
-		//drawTypeBox(inputRect);
-		drawFindResult(isFound);
+		inputRect = { buttonVar::buttonF.rect.x + 130,buttonVar::buttonF.rect.y,130, (float)button::sizeH };
+		drawTypeBox(inputRect);
+		drawFindResult(isFound,word);
 		break;
 
 	case FunctionNumber::DeleteFunct:
-
+		inputRect = { buttonVar::buttonDel.rect.x + 130,buttonVar::buttonDel.rect.y,130, static_cast<float>(button::sizeH) };
+		drawTypeBox(inputRect);
+		drawDeleteResult(isFound, word);
 		break;
 
 	case FunctionNumber::ClearFunct:
-
+		drawClearResult();
 		break;
 	}
 }
