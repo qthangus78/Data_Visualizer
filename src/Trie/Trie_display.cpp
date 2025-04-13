@@ -1,17 +1,58 @@
 #include "Trie_display.h"
 
-//Trie
+//Trie-------------------------
 Trie::Trie() {
 	root = new TrieNode();
 }
 
 void Trie::Insert(const string& c)
 {
-	InsertTrie(root, c);
+	InsertTrie(root, c, steps);
+}
+//void Trie::ProcessInsert()
+//{
+//	static bool waitForNext = true;
+//
+//	// Wait for space to go to the next step
+//	if (!steps.empty() && IsKeyPressed(KEY_SPACE)) {
+//		waitForNext = false;
+//	}
+//
+//	if (!steps.empty() && !waitForNext)
+//	{
+//		Step step = steps.front();
+//		steps.pop();
+//
+//		// Update the current line to highlight
+//		curLine = step.line;
+//		curText = step.description;
+//
+//		// Visual update
+//		if (step.node != nullptr)
+//		{
+//			if (step.isNewNode)
+//			{
+//				step.node->color = BLUE;
+//				step.node->animationProgress = 0.0f; // Let Draw handle animation
+//			}
+//			else
+//			{
+//				step.node->color = YELLOW;
+//				step.node->animationProgress = 1.0f;
+//			}
+//		}
+//
+//		waitForNext = true;
+//	}
+//}
+
+bool Trie::Find(const string& c)
+{
+	return FindTrie(root, c);
 }
 
-//Utility
-
+//Utility------------------------
+//trie small draw
 void Trie::drawNodeTrie(Vector2 pos, const char& character, Color colorNode, float radius)
 {
 	DrawCircleV(pos, radius, color::nodeNotInMode);
@@ -20,6 +61,7 @@ void Trie::drawNodeTrie(Vector2 pos, const char& character, Color colorNode, flo
 	DrawTextEx(customFont, text, { pos.x - textSize.x / 2, pos.y - textSize.y / 2 }, 22, 2, colorNode);
 }
 
+//button draw
 string Trie::handleTypeBox(Rectangle rect)
 {
 	// Get char pressed (unicode character) on the queue
@@ -57,30 +99,74 @@ string Trie::handleTypeBox(Rectangle rect)
 	//if (isMouseOnText) frameCounter++;
 	//else frameCounter = 0;
 }
-
 void Trie::drawTypeBox(Rectangle rect)
 {
-	DrawRectangleRounded(rect, 0.3f, 30, color::buttonColorHovered);
+	DrawRectangleRounded(rect, 0.3f, 30, WHITE);
 	drawTextIn(textIn, rect, frameCounter);
 }
 
+//buttonhandle
 void Trie::HandleButtonClickTrie()
 {
 	if (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 		curFunct = FunctionNumber::Input;
 	}
 	if (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-		
+		curFunct = FunctionNumber::DeleteFunct;
 	}
 	if (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-		
+		curFunct = FunctionNumber::FindFunct;
+
 	}
 	if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-		
+		curFunct = FunctionNumber::ClearFunct;
 	}
 }
 
-//Visualizer
+//function draw
+void Trie::FindDisplay(bool isFound)
+{
+	if (isFound)
+	{
+
+	}
+}
+void Trie::drawFindResult(bool isFound) {
+	//drawTextCode(curline, curlinetmp);
+	Rectangle inputRect = { buttonVar::buttonF.rect.x + 115,buttonVar::buttonF.rect.y,120, (float)button::sizeH };
+	drawTypeBox(inputRect);
+	if (root->children.empty() && frameCounter < 30) {
+		DrawTextEx(SSLFont, "Empty List", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+	}
+	else {
+		//if (FindProcess) findAnimation(currentAnimatingNode); else
+		if (root && isFound && frameCounter < 30 /* && !FindProcess*/) {
+			DrawTextEx(SSLFont, "Value Found", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
+		}else 
+		{
+			if (frameCounter < 30 /* && FindProcess */) {
+				DrawTextEx(SSLFont, "Value not Found", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+			}
+		}
+		//if (!FindProcess) drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
+		//if (shadedPos.node && shadedPos.pos.x != 0 && shadedPos.pos.y != 0) {
+		//	std::string str = std::to_string(shadedPos.node->data);
+		//	drawNode(shadedPos.pos, str, NODE_SIZE, color::nodeRendered);
+		//	drawTextDown("pointer", 20, shadedPos.pos);
+		//	if (frameCounter < 30 /* && FindProcess */ ) {
+		//		DrawTextEx(SSLFont, "Value Found", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+		//	}
+		//}
+
+
+
+
+
+
+	}
+}
+
+//Visualizer-----------------
 
 int Trie::CalculateSubtreeSize(TrieNode* node) {
 	if (node == nullptr) return 0;
@@ -115,7 +201,6 @@ int Trie::CalculateSubtreeSize(TrieNode* node) {
 	node->subtreeSize = size;
 	return size;
 }
-
 void Trie::MarkNodesEdges(TrieNode* root, float x, float y, float spread, int depth)
 {
 	//depth for future usage
@@ -124,11 +209,16 @@ void Trie::MarkNodesEdges(TrieNode* root, float x, float y, float spread, int de
 		return;
 	}
 
-	if (depth == 0) //pushback only root
-		Nodes.push_back({ { { x,y }, '\0'}, BLACK });
+	if (depth == 0) //only root is '\0'
+	{
+		root->posPrev = { x,y };
+		root->character = '\0';
+	}
+
+	root->posCur = { x,y };
 
 	vector<pair<char, TrieNode*>> sortedChildren(root->children.begin(), root->children.end());
-	sort(sortedChildren.begin(), sortedChildren.end());
+	std::sort(sortedChildren.begin(), sortedChildren.end());
 
 	int childCount = 0;
 	int childNumber = root->subtreeSize;
@@ -143,32 +233,71 @@ void Trie::MarkNodesEdges(TrieNode* root, float x, float y, float spread, int de
 			yNew += (child->subtreeSize / 2.0f - buffer) * spread;
 		}
 
-
-
-		Edges.push_back({ {x,y}, {xNew,yNew} });
-		if (child && child->isWord)
+		if (child)
 		{
-			Nodes.push_back({ {{ xNew,yNew }, character }, GREEN });
-		}
-		else
-		{
-			Nodes.push_back({ {{ xNew,yNew }, character }, RAYWHITE });
+			if (child->isWord) child->color = GREEN;
+			else
+			{
+				child->color = RAYWHITE;
+			}
 
+			child->character = character;
+			child->posPrev = child->posCur;
 		}
+
 
 		MarkNodesEdges(child, xNew, yNew, spread, depth + 1); //
 
 		if (child) childCount += child->subtreeSize; 
 	}
 }
-
 void Trie::Visualize(TrieNode* root)
 {
 	CalculateSubtreeSize(root);
 	MarkNodesEdges(root, screenWidth / 10, screenHeight / 2, spread, 0);
 }
 
+void Trie::drawTrieNodes(TrieNode* root, float& progress)
+{
+	Vector2 pos = lerp(root->posPrev,root->posCur,progress);
+	drawNodeTrie(pos, root->character, root->color, 25);
 
+	for (auto& child : root->children)
+	{
+		drawTrieNodes(child.second, progress);
+	}
+}
+void Trie::drawTrieEdges(TrieNode* root, float& progress)
+{
+	for (auto& child : root->children)
+	{
+		Vector2 posHead = lerp(root->posPrev, root->posCur,  progress);
+		Vector2 posTail = lerp(child.second->posPrev, child.second->posCur, progress);
+		drawArrow(posTail, posHead,color::edgeNotInMode);
+		drawTrieEdges(child.second, progress);
+	}
+}
+void Trie::drawTrie(TrieNode* root, float& progress)
+{
+	drawTrieEdges(root, progress);
+	drawTrieNodes(root, progress);
+}
+
+//void Trie::animateTrie(float duration, Vector2 start, Vector2 end) {
+//
+//	float elapsed = 0.0f;
+//	while (elapsed < duration)
+//	{
+//		BeginDrawing();
+//		ClearBackground({ 192, 245, 242, 100 });
+//
+//		float progress = elapsed / duration;
+//		drawTrie(root, progress);
+//
+//		EndDrawing();
+//		elapsed += GetFrameTime();
+//	}
+//}
 
 void Trie::Handle()
 {
@@ -179,19 +308,39 @@ void Trie::Handle()
 	switch (curFunct)
 	{
 	case FunctionNumber::Input:
+		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
+		state = curFunct;
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
 		{
 			Insert(word);
-			Edges.clear();
-			Nodes.clear();
+			//Edges.clear();
+			//Nodes.clear();
 			Visualize(root);
+			elapsed = 0;
 		}
 			
+		break;
+
+	case FunctionNumber::FindFunct:
+		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
+		state = curFunct;
+		word = handleTypeBox(inputRect);
+		if (!word.empty())
+		{
+			isFound = Find(word);
+		}
+
 		break;
 	}
 
 	//Trie
+	if (elapsed <= duration)
+	{
+		progress = elapsed / duration;
+		elapsed += GetFrameTime();
+	}
+
 	
 
 }
@@ -199,13 +348,17 @@ void Trie::Handle()
 void Trie::Draw()
 {
 	//Trie
-	for (auto edge : Edges) {
-		drawArrow(edge.first, edge.second, color::edgeNotInMode);
-	}
+	/*if (!isAnimated)
+	{
+		drawTrie(root, );
+	}*/
 
-	for (auto node : Nodes) {
-		drawNodeTrie(node.first.first, node.first.second,node.second, 25);
-	}
+	/*if (elapsed < duration)
+	{
+		progress = elapsed / duration;
+	}*/
+
+	drawTrie(root, progress);
 
 	//button
 	drawButtons();
@@ -214,6 +367,19 @@ void Trie::Draw()
 	{
 	case FunctionNumber::Input:
 		drawTypeBox(inputRect);
+		break;
+
+	case FunctionNumber::FindFunct:
+		//drawTypeBox(inputRect);
+		drawFindResult(isFound);
+		break;
+
+	case FunctionNumber::DeleteFunct:
+
+		break;
+
+	case FunctionNumber::ClearFunct:
+
 		break;
 	}
 }

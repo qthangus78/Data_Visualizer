@@ -26,14 +26,25 @@ public:
 
     //Used for drawing
     int subtreeSize;
+    Vector2 posCur, posPrev;
+    Color color;
+    char character;
+    
 
     TrieNode();
+};
+
+struct Step{
+    string description;
+    int line;
+    TrieNode* node;
+    bool isNewNode;
 };
 
 //-----------------------
 //      Function chinh
 //----------------------
-void InsertTrie(TrieNode*& root, const string& key);
+void InsertTrie(TrieNode*& root, const string& key,queue<Step> steps);
 
 bool FindTrie(TrieNode*& root, const string& key);
 
@@ -41,7 +52,7 @@ bool isEmpty(TrieNode* root);
 
 TrieNode* DeleteTrie(TrieNode* root, const string& key, int depth = 0);
 
-void InputFileTrie(const string& file_name, TrieNode*& root);
+void InputFileTrie(const string& file_name, TrieNode*& root, queue<Step> steps);
 
 //Draw
 
