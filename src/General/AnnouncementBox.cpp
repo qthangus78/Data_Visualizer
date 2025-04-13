@@ -51,8 +51,8 @@ void Table::Draw(Rectangle rect, float& yPosition, float maxContentHeight, float
     
     // Draw header if it exists
     if (!header.empty()) {
-        // Skip if not visible
-        if (yPosition + lineHeight >= baseY && yPosition <= baseY + maxContentHeight) {
+        bool headerVisible = (yPosition + lineHeight > baseY && yPosition < baseY + maxContentHeight);
+        if (headerVisible) {
             // Draw header background
             DrawRectangle(startX, yPosition, tableWidth, lineHeight, headerBgColor);
             
@@ -73,39 +73,37 @@ void Table::Draw(Rectangle rect, float& yPosition, float maxContentHeight, float
                 DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
             }
         }
-        
+
         yPosition += lineHeight;
     }
     
     // Draw rows
     for (const auto& row : rows) {
-        // Skip if not visible
-        if (yPosition + lineHeight < baseY || yPosition > baseY + maxContentHeight) {
-            yPosition += lineHeight;
-            continue;
-        }
+        bool isVisible = (yPosition + lineHeight > baseY && yPosition < baseY + maxContentHeight);
         
-        // Draw row background
-        DrawRectangle(startX, yPosition, tableWidth, lineHeight, rowBgColor);
-        
-        // Draw row borders
-        DrawLine(startX, yPosition, startX + tableWidth, yPosition, borderColor);
-        DrawLine(startX, yPosition + lineHeight, startX + tableWidth, yPosition + lineHeight, borderColor);
-        
-        // Draw cells and vertical borders
-        float xPos = startX;
-        DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
-        
-        // Draw row background with appropriate color
-        Color rowBgColor = row.highlighted ? Color{255, 220, 220, 255} : Color{245, 245, 245, 255};
-        DrawRectangle(rect.x + 20, yPosition, rect.width - 50, lineHeight, rowBgColor);
-        for (int i = 0; i < row.data.size() && i < columnWidths.size(); i++) {
-            DrawTextEx(customFont, row.data[i].c_str(), 
-                      (Vector2){xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
-
-            xPos += columnWidths[i];
+        if (isVisible) {
+            // Draw row only if visible
+            Color rowBgColor = row.highlighted ? Color{255, 220, 220, 255} : Color{245, 245, 245, 255};
+            DrawRectangle(startX, yPosition, tableWidth, lineHeight, rowBgColor);
+            
+            // Draw borders
+            DrawLine(startX, yPosition, startX + tableWidth, yPosition, borderColor);
+            DrawLine(startX, yPosition + lineHeight, startX + tableWidth, yPosition + lineHeight, borderColor);
+            
+            float xPos = startX;
             DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
+            
+            // Draw cells
+            for (int i = 0; i < row.data.size() && i < columnWidths.size(); i++) {
+                DrawTextEx(customFont, row.data[i].c_str(), 
+                         (Vector2){xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
+                
+                xPos += columnWidths[i];
+                DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
+            }
         }
+        
+        // Always increment position to properly calculate total height
         yPosition += lineHeight;
     }
     
@@ -201,46 +199,68 @@ bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxCont
         return false;
     }
     
-    // Calculate thumb height and position
-    float scrollThumbHeight = needsScrollBar ? (scrollHeight / totalContentHeight) * scrollHeight : 0;
+    // Calculate maximum scroll offset
+    float maxScrollOffset = totalContentHeight - maxContentHeight;
+    
+    // Clamp current scrollOffset to valid range
+    scrollOffset = fmax(0, fmin(scrollOffset, maxScrollOffset));
+    std::cout << "scrollOffset " << scrollOffset << std::endl;
+    
+    // Calculate thumb height to represent visible portion
+    float thumbRatio = maxContentHeight / totalContentHeight;
+    float scrollThumbHeight = scrollHeight * thumbRatio;
     scrollThumbHeight = fmax(20.0f, scrollThumbHeight); // Minimum size for thumb
     
-    float scrollThumbY = scrollY + (scrollOffset / totalContentHeight) * scrollHeight;
+    // Calculate thumb position based on scroll offset
+    float scrollableTrackHeight = scrollHeight - scrollThumbHeight;
+    float scrollRatio = (maxScrollOffset > 0) ? (scrollOffset / maxScrollOffset) : 0;
+    float scrollThumbY = scrollY + (scrollRatio * scrollableTrackHeight);
     
     // Set the member variables for rectangles
     scrollBarRect = (Rectangle){rect.x + rect.width - 15, scrollY, 10, scrollHeight};
     scrollThumbRect = (Rectangle){rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
     
     // Handle mouse wheel for scrolling
-    if (needsScrollBar && CheckCollisionPointRec(GetMousePosition(), rect)) {
+    if (CheckCollisionPointRec(GetMousePosition(), rect)) {
         float wheel = GetMouseWheelMove();
         if (wheel != 0) {
+            // Scroll faster when holding shift
+            if (IsKeyDown(KEY_LEFT_SHIFT)) {
+                wheel *= 3.0f;
+            }
+            
             scrollOffset -= wheel * 20;
-            scrollOffset = fmax(0, fmin(scrollOffset, totalContentHeight - maxContentHeight));
+            scrollOffset = fmax(0, fmin(scrollOffset, maxScrollOffset));
         }
     }
     
-    // Handle scroll bar dragging - using instance variables now
-    if (needsScrollBar) {
-        if (CheckCollisionPointRec(GetMousePosition(), scrollThumbRect)) {
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                isDragging = true;
-                dragOffset = GetMousePosition().y - scrollThumbY;
-            }
-        }
-        
-        if (isDragging) {
-            if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
-                float newThumbY = GetMousePosition().y - dragOffset;
-                newThumbY = fmax(scrollY, fmin(newThumbY, scrollY + scrollHeight - scrollThumbHeight));
-                scrollOffset = ((newThumbY - scrollY) / scrollHeight) * totalContentHeight;
-            } else {
-                isDragging = false;
-            }
+    // Handle scroll bar dragging
+    if (CheckCollisionPointRec(GetMousePosition(), scrollThumbRect)) {
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            isDragging = true;
+            dragOffset = GetMousePosition().y - scrollThumbY;
         }
     }
     
-    return needsScrollBar;
+    if (isDragging) {
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+            float newThumbY = GetMousePosition().y - dragOffset;
+            
+            // Constrain to scroll track
+            newThumbY = fmax(scrollY, fmin(newThumbY, scrollY + scrollHeight - scrollThumbHeight));
+            
+            // Calculate new scrollOffset based on thumb position
+            float dragRatio = (newThumbY - scrollY) / scrollableTrackHeight;
+            scrollOffset = dragRatio * maxScrollOffset;
+            
+            // Double-check bounds
+            scrollOffset = fmax(0, fmin(scrollOffset, maxScrollOffset));
+        } else {
+            isDragging = false;
+        }
+    }
+    
+    return true;
 }
 
 void AnnouncementBox::StartTable() {
@@ -260,7 +280,6 @@ void AnnouncementBox::AddTableRow(const std::vector<std::string>& rowData, bool 
         table.AddRow(rowData, highlight);
     }
 }
-
 
 void AnnouncementBox::EndTable() {
     isTableMode = false;
@@ -331,15 +350,22 @@ void AnnouncementBox::Draw() {
         DrawTextEx(customFont, content[i], (Vector2){rect.x + 15, y + 5}, contentFontSize, 1.0f, txtColor);
     }
     
-    // Draw divider line
-    float lineY = codeY + content.size() * lineHeight;
-    
     // Draw info section
-    float infoY = lineY + 20;
+    float infoY = codeY + content.size() * lineHeight + 20;
     
     for (int i = 0; i < infoLines.size(); i++, infoY += lineHeight) {
         const auto& info = infoLines[i];
-        
+
+        // Special handling for table markers - PROCESS REGARDLESS OF VISIBILITY
+        if (info.label == "__TABLE_START__") {
+            // float tableStartY = infoY + lineHeight / 2;
+            infoY += lineHeight / 2;
+            // Always draw the table, let the table handle its own visibility
+            table.Draw(rect, infoY, maxContentHeight, rect.y + 50, customFont);
+            
+            continue;
+        }
+
         // Skip if not visible
         if (infoY + lineHeight < rect.y + 50 || infoY > rect.y + 50 + maxContentHeight) {
             continue;
@@ -352,15 +378,7 @@ void AnnouncementBox::Draw() {
                     infoY + lineHeight/2, Color{100, 100, 100, 150});
             continue;
         }
-        
-        // Check for table markers
-        if (info.label == "__TABLE_START__") {
-            infoY += lineHeight / 2; // Add a bit of space before the table
-            table.Draw(rect, infoY, maxContentHeight, rect.y + 50, customFont);
-            infoY -= lineHeight; 
-            continue;
-        }
-        
+                
         // Regular info line
         std::string buffer = info.label + ": " + info.value;
         DrawTextEx(customFont, buffer.c_str(), (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);

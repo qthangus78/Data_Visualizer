@@ -60,6 +60,16 @@ struct DijkstraState {
           current_neighbor_index(neighbor_idx), first_step(_first_step), step_result(result) {}
 };
 
+struct KruskalState {
+    std::vector<int> parent;
+    std::vector<bool> in_mst;
+    int current_edge_index;
+    bool first_step;
+    
+    KruskalState(const std::vector<int>& p, const std::vector<bool>& m, int idx, bool fs)
+        : parent(p), in_mst(m), current_edge_index(idx), first_step(fs) {}
+};
+
 struct DijkstraVisualizerData {
     vector<int> distances;
     vector<bool> processed;
@@ -76,10 +86,8 @@ struct DijkstraVisualizerData {
 
     // history stack to DijkstraVisualizerData
     std::vector<DijkstraState> history;
-
     DijkstraVisualizerData();
 };
-
 
 struct KruskalVisualizerData {
     vector<int> parent;
@@ -93,6 +101,8 @@ struct KruskalVisualizerData {
     const float step_interval = 1.0f;
     // bool is_paused = false;
     bool inited = false;
+
+    std::vector<KruskalState> history;
     KruskalVisualizerData();
 }; 
 
@@ -111,18 +121,22 @@ public:
     void initEadesFactor();
 
 
-    // Add Dijkstra visualization methods
+    // Dijkstra visualization methods
     void initDijkstra();
     void DrawDIJKSTRA_StepByStep();
     bool UndoDijkstra();
     bool RedoDijkstra();
     DijkstraStepResult GetDijkstraStepResult() const;
-
+    // End Dijkstra visualization methods
 
     // Add MST visualization methods
     void DrawMST_StepByStep();
     void initKruskal();
     bool isKruskalInited() const; 
+    bool isKruskalFinished() const;
+    bool UndoKruskal();
+    bool RedoKruskal();
+    // End MST visualization methods
 
     // Add Speed methods
     float GetSpeed() const;
@@ -157,19 +171,23 @@ private:
     Vector2 CenteringForce(int u) const;
     void DrawEdge(const Graph::Edge& edge, int special = 0) const;
     void DrawNode(int u, bool special = false) const;
-    void DrawDijkstraPseudoCode();  // Add this line
+    // End Eades algorithm parameters
 
     // Dijkstra visualization properties
     int selectNextDijkstraU();
     void GetDijkstraStep();
+    void DrawDijkstraPseudoCode(); 
     DijkstraVisualizerData dijkstra_data;
+    // End Dijkstra visualization properties
 
 
     // Kruskal visualization properties
     void GetKruskalStep();
     int findSet(int v);
     bool unionSets(int a, int b); 
+    void DrawKruskalPseudoCode();
     KruskalVisualizerData kruskal_data;
+    // End Kruskal visualization properties
 
 
     // Add announcement box for algorithms
@@ -178,6 +196,10 @@ private:
     void UpdateDijkstraTable();
     void UpdateAdditionalInfoLines();
 
+    void UpdateKruskalTable();
+    void UpdateKruskalInfoLines();
+
+    // Add speed controler
     SpeedButtonSpinner SpeedControler;
     bool is_paused = false;
 };

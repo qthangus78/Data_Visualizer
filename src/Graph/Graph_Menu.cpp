@@ -147,7 +147,7 @@ void GraphMenu::HandleInput() {
             toField.input += (char)key;
         }
         else if (activeEdgeField == ActiveEdgeField::WEIGHT && weightType == GraphWeightType::WEIGHTED && 
-                 weightField.input.size() <= 4) {
+                weightField.input.size() <= 4) {
             weightField.input += (char)key;
         }
     }

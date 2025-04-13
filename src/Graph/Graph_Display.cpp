@@ -66,19 +66,29 @@ namespace Graph_display {
             myGraphVisualizer.Pause();
         }
 
-        if (repeatButton.isPressed() && myGraphVisualizer.GetDijkstraStepResult().action == DijkstraStepResult::DONE) {
-            myGraphVisualizer.initDijkstra();           
+        if (repeatButton.isPressed()) {
+            if (Gmenu.selectedOption == GraphMenu::MenuOption::DIJKSTRA
+                && myGraphVisualizer.GetDijkstraStepResult().action == DijkstraStepResult::DONE) {
+                myGraphVisualizer.initDijkstra();    
+            }
+            if (Gmenu.selectedOption == GraphMenu::MenuOption::MST_KRUSKAL
+                && myGraphVisualizer.isKruskalFinished()) {
+                myGraphVisualizer.initKruskal();
+            }
         }
 
         myGraphVisualizer.initSpeedControler({GraphDisplayScreen.x + GraphDisplayScreen.width + 20 + 150, 
                 PlayButton.y + 10 + 11});
         myGraphVisualizer.UpdateSpeedControler();
-
-
     }
 
     void DrawTextureButtons() {
-        if (myGraphVisualizer.GetDijkstraStepResult().action == DijkstraStepResult::DONE) {
+        if (Gmenu.selectedOption == GraphMenu::MenuOption::DIJKSTRA 
+            && myGraphVisualizer.GetDijkstraStepResult().action == DijkstraStepResult::DONE) {
+            repeatButton.Drawtexture();
+        }
+        else if (Gmenu.selectedOption == GraphMenu::MenuOption::MST_KRUSKAL
+            && myGraphVisualizer.isKruskalFinished()) {
             repeatButton.Drawtexture();
         }
         else if (myGraphVisualizer.isPaused()) {
@@ -98,12 +108,11 @@ namespace Graph_display {
         display_title("Graphs", ScreenID::StartMenuScreen);
         DrawRectangleRec(GraphDisplayScreen, {238, 241, 218, 255}); // rgb(51, 145, 154)
 
-        // Draw mytexture
-        SetUpTextureButtons();
-        DrawTextureButtons();
-
         Gmenu.Handle(myGraphVisualizer);
         Gmenu.Draw();
+
+        SetUpTextureButtons();
+        DrawTextureButtons();
 
         if (myGraphVisualizer.checkGraph()) {
             if (Gmenu.selectedOption == GraphMenu::MenuOption::CREATE) {
