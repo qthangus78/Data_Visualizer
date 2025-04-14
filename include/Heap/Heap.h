@@ -27,28 +27,30 @@ class ButtonManager{
         float fontSize = 30.0f;
         char name[4] = "\0";
         int letterCount = 0;
-        float blinkTime = 0.0f;
         bool notFound = false;
-        Button push = { {10, screenHeight - 60, 200, 50}, "PUSH", BLUE };
-        Button remove = { {20 + push.rect.width, screenHeight - 60, 200, 50}, "REMOVE", BLUE };
-        Button clear = { {30 + remove.rect.width * 2, screenHeight - 60, 200, 50}, "CLEAR", BLUE };
-        Button top = { {40 + clear.rect.width * 3, screenHeight - 60, 200, 50}, "TOP", BLUE };
-        Button initialize = { {50 + top.rect.width * 4, screenHeight - 60, 200, 50}, "INITIALIZE", BLUE };
-        Rectangle loadFile = { 50 + top.rect.width * 4, screenHeight - 180, 200, 50 };
-        Button size;
+        Button push = { {10, 385, 200, 50}, "PUSH", BLUE };
+        Button remove = { {10, 385 + 60, 200, 50}, "REMOVE", BLUE };
+        Button clear = { {10, 385 + 60*2, 200, 50}, "CLEAR", BLUE };
+        Button top = { {10, 385 + 60*3, 200, 50}, "TOP", BLUE };
+        Button initialize = { {10, 385 + 60*4, 200, 50}, "INITIALIZE", BLUE };
+        Rectangle loadFile = { 220, 385 + 60*5, 200, 50 };
         Button random;
+        // Button size;
 
-
+        void DrawButton(Button &button);
         void DrawButtons();
         void HandleButtonsClick(MinHeap* mHeap);
         void HandleButtonsHover();
         void DrawInputBox(float x, float y);
-        void DrawBlinkingLine(int x, int y);
-        void DrawBlinkingText( string txt, int x, int y );
+        void DrawBlinkingLine(float x, float y);
+        void DrawBlinkingText( string txt, float x, float y );
         void DrawRandom(float x, float y);
         void DrawLoadFile();
+        void DrawBackground();
 };
 
+extern bool isPaused;
+extern float blinkTime;
 extern std::vector<float> elapsedTime;
 extern std::vector<HeapNode> targetHeapNode;
 extern std::vector<HeapNode> originHeapNode;
@@ -99,6 +101,7 @@ public:
 
     // State
     void setState(IStateHeap* state);
+    IStateHeap* getState();
     IStateHeap* getPush();
     IStateHeap* getRemove();
     IStateHeap* getTop();
@@ -111,12 +114,39 @@ public:
     void update();
 };
 
+class PushState{
+public:
+    std::vector<int> tree;
+    std::vector<HeapNode> heapNode;
+    std::vector<HeapNode> originHeapNode;
+    std::vector<HeapNode> targetHeapNode;
+    int animatingIdx;
+    int parentIdx;
+    Vector2 animatingPos;
+    Vector2 targetPos;
+    Vector2 originPos;
+    Vector2 animatingPos2;
+    Vector2 targetPos2;
+    Vector2 originPos2;
+    int currentStep;
+    bool isAnimating;
+
+    PushState();
+    ~PushState();
+};
+
 class Push : public IStateHeap{
-private:
+public:
     MinHeap *mHeap;
     int currentStep = -1;
     bool isAnimating = false;
-public:
+    float blinkTime1 = 0.0f;
+    float blinkTime2 = 0.0f;
+
+    std::stack<PushState> undoStack;
+    void saveState();
+    void handleUndo();
+
     Vector2 animatingPos;
     Vector2 targetPos;
     Vector2 originPos;
@@ -134,7 +164,9 @@ public:
 
     void handleInsert(int val);
     void updateInsert();
+    void updateTreeStructure();
     void handleBubbleUp();
+    void drawBlinkingNode();
     void updateBubbleUp();
 };
 
@@ -151,6 +183,7 @@ public:
     Vector2 animatingPos2;
     Vector2 originPos2;
     Vector2 targetPos2;
+    int tempIdx = -1;
     int animatingIdx = -1;
     int childIdx = -1;
 
@@ -158,6 +191,7 @@ public:
     void draw() override;
     void update() override;
 
+    void updateTreeStructure();
     void handleRemove(int idx);
     void updateRemove();
     void handleBubbleDown();
@@ -175,11 +209,9 @@ public:
 
 class Top : public IStateHeap{
 private:
-    float blinkTime = 0.0f;
     MinHeap *mHeap;
 public:
     Top(MinHeap* heap);
-    void DrawBlinkingTop();
     void draw() override;
     void update() override;
 };
@@ -209,14 +241,7 @@ Vector2 calculateNodePos ( Vector2 pos, int height);
 void drawHeap(std::vector<int>& tree);
 void DrawPartOfHeap ( MinHeap* mHeap, int animatingIdx, int parentIdx, bool isAnimating, int curentStep );
 
-Vector2 Vector2Normalize(Vector2 v);
 void swapHeapNode(HeapNode &a, HeapNode &b);
 void recalculateAllNodePos ( MinHeap* mHeap );
 void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos, float duration, bool &isAnimating, int i = 0 );
-void updateTreeStructure( int &currentStep, bool &isAnimating );
-
-
-
-
-
-
+void DrawBlinkingNode(Vector2 pos, int val, float &blinkTime);

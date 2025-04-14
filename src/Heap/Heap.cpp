@@ -1,16 +1,17 @@
 #include "Heap.h"
 
+bool isPaused = false;
+float blinkTime = 0.0f;
 std::vector<float> elapsedTime ( 31, 0.0f );
 std::vector<HeapNode> targetHeapNode ( 31, {0, {0, 0}, false} );
 std::vector<HeapNode> originHeapNode ( 31, {0, {0, 0}, false} );
 std::vector<HeapNode> heapNode ( 31, {0, {0, 0}, false} );
-int offsetX = screenWidth / 2;
-int offsetY = 100;
+int offsetX = 912;
+int offsetY = 200;
 int nodeRadius = 20;
 float duration = 0.5f;
 
 MinHeap::MinHeap(){
-
     tree = std::vector<int> ( 0 );
     mPush = new Push(this);
     mRemove = new Remove(this);
@@ -56,8 +57,8 @@ void MinHeap::push ( int val ){
     tree.push_back(val);
     int idx = tree.size() - 1;
     if ( !heapNode[idx].exist ){
-        int x = idx - ( 1 << (int)log2(idx + 1)) + 1;
-        int y = (int)log2(idx + 1);
+        float x = idx - ( 1 << (int)log2(idx + 1)) + 1;
+        float y = (int)log2(idx + 1);
         int height = (int)log2(tree.size())+1;
         Vector2 pos = calculateNodePos ( {x, y}, height );
         heapNode[idx] = { val, pos, true };
@@ -123,6 +124,7 @@ void MinHeap::fileInput(std::ifstream& fin){
 }   
 
 void MinHeap::setState(IStateHeap* state) { mCurrent = state; }
+IStateHeap* MinHeap::getState() { return mCurrent; }
 IStateHeap* MinHeap::getPush(){ return mPush; }
 IStateHeap* MinHeap::getRemove(){ return mRemove; }
 IStateHeap* MinHeap::getTop(){ return mTop; }
@@ -220,20 +222,47 @@ void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos
     };
 }
 
-void updateTreeStructure(int &currentStep, bool &isAnimating){
-    if ( currentStep != 0 || !isAnimating ) return;
+void DrawPartOfHeap ( MinHeap* mHeap, int animatingIdx, int parentIdx, bool isAnimating, int currentStep ){
+    for ( int i = 0; i < mHeap->size(); i++ ){
+        int height = (int)log2(mHeap->size()) + 1;
+        int y = (int)log2(i + 1);
 
-    bool allFinished = true;
+        if ( isAnimating ){
+            if ( currentStep == 0 || currentStep == 1 )
+                if ( i != animatingIdx )
+                    drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
+            if ( currentStep == 2 )
+                drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
+            if ( currentStep == 4 )
+                if ( i != animatingIdx && i != parentIdx )
+                    drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
+        }
+        else
+            drawNode(heapNode[i].pos, to_string(heapNode[i].val), nodeRadius);
 
-    int n = heapNode.size();
-    for ( int i = 0; i < n; i++ ){
-        bool nodeAnimating = true;
-        updateNodePos( heapNode[i].pos, targetHeapNode[i].pos, originHeapNode[i].pos, 1.0f, nodeAnimating, i );
-        if ( nodeAnimating ) {
-            allFinished = false;
+        if ( y < height - 1 ){
+            int leftChild = 2*i + 1;
+            if ( leftChild < mHeap->size() ){
+                Vector2 arrowStart = calculateArrowPosition(heapNode[i].pos, heapNode[leftChild].pos, nodeRadius);
+                Vector2 arrowEnd = calculateArrowPosition(heapNode[leftChild].pos, heapNode[i].pos, nodeRadius);
+                drawArrow(arrowStart, arrowEnd, BLACK);
+            }
+            int rightChild = 2*i + 2;
+            if ( rightChild < mHeap->size() ){
+                Vector2 arrowStart = calculateArrowPosition(heapNode[i].pos, heapNode[rightChild].pos, nodeRadius);
+                Vector2 arrowEnd = calculateArrowPosition(heapNode[rightChild].pos, heapNode[i].pos, nodeRadius);
+                drawArrow(arrowStart, arrowEnd, BLACK);
+            }
         }
     }
-    if ( allFinished ){
-        currentStep = 1;
+}
+
+void DrawBlinkingNode(Vector2 pos, int val, float &blinkTime){
+    blinkTime += GetFrameTime();
+    if ((int)(blinkTime * 2) % 2 == 0) { // Blink every 0.5 seconds
+        DrawCircle( pos.x, pos.y, nodeRadius, YELLOW);
+        string value = to_string(val);
+        Vector2 textSize = MeasureTextEx(customFont, value.c_str(), 23, 2);
+        DrawTextEx(customFont, value.c_str() ,{pos.x - textSize.x / 2, pos.y - textSize.y / 2}, 22, 2, BLACK);
     }
 }
