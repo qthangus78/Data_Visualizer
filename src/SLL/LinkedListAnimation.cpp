@@ -240,14 +240,13 @@ void Create::handle(){
         mSSL->setState(mSSL->getFind());
         mSSL->setExistVal(mSSL->getRoot());
         cur = CreateType::None;
-        buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250,buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y;
     }
     if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getClear());
         mSSL->setExistVal(mSSL->getRoot());
-        mSSL->clearStackUndo();
-        mSSL->clearStackRedo();
         cur = CreateType::None;
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
     if(UndoButton.isPressed()){
         mSSL->handleUndo();
@@ -822,18 +821,16 @@ void Insert::handle(){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
         mSSL->setState(mSSL->getDel());
         ResetInsertState();
-        buttonVar::buttonGo    = {{buttonVar::buttonDel.rect.x+250, buttonVar::buttonDel.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
         mSSL->setState(mSSL->getFind());
         ResetInsertState();
-        buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250, buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.y;
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && mousePressed) {
         mSSL->setState(mSSL->getClear());
         ResetInsertState();
-        mSSL->clearStackUndo();
-        mSSL->clearStackRedo();
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
     SSL::command command;
     if (cur == InsertType::Head || cur == InsertType::Tail) {
@@ -1151,6 +1148,7 @@ void Delete::handleHeadMode(){
     switch (prev)
     {
     case DeleteType::None:
+    
         buttonVar::buttonGo.rect.y = DeleteHead.rect.y;
         break;
     case DeleteType::Tail:
@@ -1557,13 +1555,12 @@ void Delete::handle(){
     if (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
         mSSL->setState(mSSL->getFind());
         ResetDeleteState();
-        buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250,buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y;
     }
     if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && mousePressed) {
         mSSL->setState(mSSL->getClear());
         ResetDeleteState();
-        mSSL->clearStackUndo();
-        mSSL->clearStackRedo();
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
     SSL::command command;
     if(!DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess){
@@ -1851,7 +1848,6 @@ void Find::handle(){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
         mSSL->setState(mSSL->getDel());
         ResetFindState();
-        buttonVar::buttonGo    = {{buttonVar::buttonDel.rect.x+250, buttonVar::buttonDel.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
         mSSL->setState(mSSL->getnotInMode());
@@ -1860,8 +1856,7 @@ void Find::handle(){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getClear());
         ResetFindState();
-        mSSL->clearStackUndo();
-        mSSL->clearStackRedo();
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
     int key = GetKeyPressed();
     if(key >= '0' && key <= '9' && !FindProcess) {
@@ -1917,27 +1912,35 @@ Clear::Clear(SSL* s)
 void Clear::draw(){
     drawTextCode(-1,-1);
     drawButtons();
+    DrawButton(buttonVar::buttonGo.rect,buttonVar::buttonGo.text,buttonVar::buttonGo.buCol,SSLFont,22);
+    drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
 }
 void Clear::handle(){
-    mSSL->delAllList();
-    mSSL->setNumElement(0);
     handleButtonsHover();
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        mSSL->delAllList();
+        mSSL->setNumElement(0);
+    }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getCreate());
         mSSL->setExistVal(mSSL->getRoot());
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250;
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getInsert());
         mSSL->setExistVal(mSSL->getRoot());
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250;
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getDel());
         mSSL->setExistVal(mSSL->getRoot());
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250;
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getFind());
         mSSL->setExistVal(mSSL->getRoot());
-        buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250, buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y,60;
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         mSSL->setState(mSSL->getnotInMode());

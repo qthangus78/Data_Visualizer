@@ -604,19 +604,27 @@ void handleButtonsClick(SSL* SSL){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getCreate());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getInsert());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getDel());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
         buttonVar::buttonGo    = {{buttonVar::buttonDel.rect.x+250, buttonVar::buttonDel.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getFind());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
         buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
@@ -624,6 +632,7 @@ void handleButtonsClick(SSL* SSL){
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
         SSL->clearStackRedo();
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
 }
 // Vẽ blinking lines trong input
