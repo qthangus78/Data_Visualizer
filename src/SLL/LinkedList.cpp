@@ -720,7 +720,7 @@ void drawPos(std::vector<ShadedData> pos, float NodeRadiusRender, float FontSize
 void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums, float& progressNode, SSL* s){
     float fraction = s->getFraction();
     if(!s->getPause()) progressNode += fraction*deltaTime;
-    NodeRadiusRender = lerp(0, 33, progressNode);
+    NodeRadiusRender = lerp(0, NODE_SIZE, progressNode);
     FontSize = lerp(0, FontNode, progressNode); 
     float fontText = lerp(0,22,progressNode);
     DrawCircleV(pos, NodeRadiusRender, color::nodeRendered);

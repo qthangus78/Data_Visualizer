@@ -15,6 +15,16 @@ extern std::vector<button> code;
 const Rectangle CodeBox = {960,430,400,252};
 extern const float deltaTime;
 void initCodeButton();
+struct ListNode {
+    int data;
+    ListNode* next;
+    ListNode(int x);
+};
+
+struct ShadedData {
+    Vector2 pos;
+    ListNode* node;
+};
 //--------------------------------
 // Các hàm thao tác LinkedList
 //--------------------------------
@@ -185,7 +195,6 @@ private:
     button fileInput, random;
     std::vector<ShadedData> pos;
     bool randomProcess, fileProcess;
-    float NodeRadiusRender, ArrowLengthRender, FontSize;
     float progress, progressGo;
     CreateType prev = CreateType::None, cur = CreateType::None;
     bool inProcess = false;
@@ -213,17 +222,15 @@ private:
     int frameCounter, framecntInsert;
     std::string textIn, textInIndex;
     button InsertHead, InsertTail, InsertIndex, Index, Value;
-    float NodeRadiusRender, ArrowLengthRender, FontSize, Font;
     bool InsertTailProcess, InsertHeadProcess, InsertIdxProcess, inProcess;
     ListNode* currentAnimatingNode;
     Vector2 posTail, pos, prevpos;
     float progressNode, progressAppear, progressArrow;
-    float duration = 2.0f;
+    float Font;
     Rectangle inputRect,idxRect,valRect;
     bool valInsert, idxInsert;
-    bool inIndex = true;
-    int nums,idx = 0,curindex=0,curline=-1,curlinetmp=-1;
-    bool overValue = false;
+    int nums, idx = 0, curindex=0, curline=-1, curlinetmp=-1;
+    bool overValue = false, inIndex = true;
     stack<pair<ListNode*,Vector2>> st;
     std::vector<std::string> codeHead = {
         "Vertex vtx = new Vertex(v)",
@@ -282,10 +289,9 @@ private:
     std::string tmpText;
     bool existVal, DeleteValProcess, DeleteHeadProcess, DeleteTailProcess, inProcess;
     ListNode* currentAnimatingNode;
-    float NodeRadiusRender, ArrowLengthRender, FontSize;
     ShadedData shadedPos;
     button DeleteHead, DeleteTail, DeleteVal;
-    float progressNode, progressArrow, progressAppear;
+    float progressNode, progressArrow, progressAppear,ArrowLengthRender;
     Rectangle inputRect;
     int curline = -1, curlinetmp = -1;
     Vector2 prevpos = {0,0};
@@ -370,8 +376,12 @@ public:
 class Clear : public IState{
 private:
     SSL* mSSL;
+    std::vector<ShadedData> node;
+    float progress;
+    bool clearProcess;
 public:
     Clear(SSL* s);
+    void ClearAnimation();
     void draw() override;
     void handle() override;
 };
