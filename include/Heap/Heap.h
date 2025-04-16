@@ -4,6 +4,7 @@
 #include <raylib.h>
 #include <utility>
 #include <string>
+#include <stack>
 #include "GlobalVar.h"
 #include "LinkedList.h"
 #include "button.h"
@@ -34,6 +35,7 @@ class ButtonManager{
         Button top = { {10, 385 + 60*3, 200, 50}, "TOP", BLUE };
         Button initialize = { {10, 385 + 60*4, 200, 50}, "INITIALIZE", BLUE };
         Rectangle loadFile = { 220, 385 + 60*5, 200, 50 };
+        Button Stepbystep = { {10, 385 + 60*5, 200, 50 }, "Step by step", BLUE };
         Button random;
         // Button size;
 
@@ -49,6 +51,7 @@ class ButtonManager{
         void DrawBackground();
 };
 
+extern bool isStepbystep;
 extern bool isPaused;
 extern float blinkTime;
 extern std::vector<float> elapsedTime;
@@ -116,6 +119,9 @@ public:
 
 class PushState{
 public:
+    int blinkingStep;
+    int beginLine;
+    int endLine;
     std::vector<int> tree;
     std::vector<HeapNode> heapNode;
     std::vector<HeapNode> originHeapNode;
@@ -135,17 +141,44 @@ public:
     ~PushState();
 };
 
+// class Command{
+//     public:
+//         virtual ~Command(){}
+//         virtual void Execute() = 0;
+//         virtual void Undo() = 0;
+// };
+    
+// class Push;
+
+// class PushCommand : public Command{
+//     private:
+//         PushState state;
+//         Push* push;
+//         int val;
+//     public:
+//         PushCommand(Push* p, PushState pS) : push(p), state(pS) {}
+//         void Execute() override;
+//         void Undo() override;
+// };
+
 class Push : public IStateHeap{
 public:
+    int beginLine = -1;
+    int endLine = -1;
     MinHeap *mHeap;
     int currentStep = -1;
     bool isAnimating = false;
     float blinkTime1 = 0.0f;
     float blinkTime2 = 0.0f;
 
+    bool isUndoing = false;
+    bool isRedoing = false;
     std::stack<PushState> undoStack;
+    std::stack<PushState> redoStack;
     void saveState();
     void handleUndo();
+    void handleRedo();
+    AnnouncementBox pseudoCode;
 
     Vector2 animatingPos;
     Vector2 targetPos;
@@ -163,19 +196,63 @@ public:
     void update() override;
 
     void handleInsert(int val);
-    void updateInsert();
     void updateTreeStructure();
+    void updateInsert();
     void handleBubbleUp();
-    void drawBlinkingNode();
+    void drawBlinkingNode(float duration);
     void updateBubbleUp();
+
+    void getState(PushState &state){
+        beginLine = state.beginLine;
+        endLine = state.endLine;
+
+        mHeap->tree = state.tree;
+        heapNode = state.heapNode;
+        originHeapNode = state.originHeapNode;
+        targetHeapNode = state.targetHeapNode;
+        animatingIdx = state.animatingIdx;
+        parentIdx = state.parentIdx;
+
+        animatingPos = state.animatingPos;
+        targetPos = state.targetPos;
+        originPos = state.originPos;
+
+        animatingPos2 = state.animatingPos2;
+        targetPos2 = state.targetPos2;
+        originPos2 = state.originPos2;
+
+        currentStep = state.currentStep;
+        isAnimating = state.isAnimating;
+
+        blinkTime1 = 0.0f;
+        blinkTime2 = 0.0f;
+        for ( int i = 0; i < elapsedTime.size(); i++ ){
+            elapsedTime[i] = 0.0f;
+        }
+    }
 };
 
 class Remove : public IStateHeap{
 private:
+    int beginLine = -1;
+    int endLine = -1;
     MinHeap *mHeap;
     int currentStep = -1;
     bool isAnimating = false;
+    float blinkTime1 = 0.0f;
+    float blinkTime2 = 0.0f;
+    int blinkingStep = -1;
 public:
+    bool isUndoing = false;
+    bool isRedoing = false;
+    std::stack<PushState> undoStack;
+    std::stack<PushState> redoStack;
+    void saveState();
+    void handleUndo();
+    void handleRedo();
+    void getState(PushState &state);
+    AnnouncementBox pseudoCode;
+
     Vector2 animatingPos;
     Vector2 targetPos;
     Vector2 originPos;
@@ -191,10 +268,11 @@ public:
     void draw() override;
     void update() override;
 
-    void updateTreeStructure();
     void handleRemove(int idx);
     void updateRemove();
+    void updateTreeStructure();
     void handleBubbleDown();
+    void drawBlinkingNode(float duration);
     void updateBubbleDown();
 };
 
@@ -202,6 +280,7 @@ class ClearH : public IStateHeap{
 private:
     MinHeap *mHeap;
 public:
+    AnnouncementBox pseudoCode;
     ClearH(MinHeap* heap);
     void draw() override;
     void update() override;
@@ -211,6 +290,7 @@ class Top : public IStateHeap{
 private:
     MinHeap *mHeap;
 public:
+    AnnouncementBox pseudoCode;
     Top(MinHeap* heap);
     void draw() override;
     void update() override;
@@ -220,6 +300,7 @@ class Initialize : public IStateHeap{
 private:
     MinHeap *mHeap;
 public:
+    AnnouncementBox pseudoCode;
     Initialize(MinHeap* heap);
     void handleInputFile();
     void draw() override;

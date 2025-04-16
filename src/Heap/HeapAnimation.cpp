@@ -25,9 +25,14 @@ void ButtonManager::DrawButtons(){
     DrawButton(top);
     // INITIALIZE
     DrawButton(initialize);
-    // PLAY
-    // PAUSE
-    
+    // Step by step
+    if ( !CheckCollisionPointRec(GetMousePosition(), Stepbystep.rect))
+        if ( isStepbystep )
+            Stepbystep.color = YELLOW;
+        else
+            Stepbystep.color = BLUE;
+    DrawButton(Stepbystep);
+
     if ( isPaused ){
         PlayButton.SetPosition(912.5f - PlayButton.width / 2, 650);
         PlayButton.Drawtexture();
@@ -43,9 +48,6 @@ void ButtonManager::DrawButtons(){
 
     RedoButton.SetPosition(912.5f + 50, 650 + ( PlayButton.height - RedoButton.height ) / 2);
     RedoButton.Drawtexture();
-    if ( RedoButton.CheckMouseCollision() && RedoButton.isPressed()){
-        std::cout << "Redo button pressed!" << std::endl;
-    }
 }
 
 void ButtonManager::HandleButtonsHover(){
@@ -54,6 +56,7 @@ void ButtonManager::HandleButtonsHover(){
     clear.color = CheckCollisionPointRec(GetMousePosition(), clear.rect) ? YELLOW : BLUE;
     top.color = CheckCollisionPointRec(GetMousePosition(), top.rect) ? YELLOW : BLUE;
     initialize.color = CheckCollisionPointRec(GetMousePosition(), initialize.rect) ? YELLOW : BLUE;
+    Stepbystep.color = CheckCollisionPointRec(GetMousePosition(), Stepbystep.rect) ? YELLOW : BLUE;
 }
 
 void ButtonManager::HandleButtonsClick(MinHeap* mHeap){
@@ -89,6 +92,12 @@ void ButtonManager::HandleButtonsClick(MinHeap* mHeap){
         strncpy(name, to_string(temp).c_str(), sizeof(name));
         blinkTime = 0.0f;
     }
+    if ( CheckCollisionPointRec(GetMousePosition(), Stepbystep.rect) && IsMouseButtonPressed ( MOUSE_LEFT_BUTTON )){
+        isStepbystep = !isStepbystep;
+        notFound = false;
+        blinkTime = 0.0f;
+    }
+    
 }
 
 void ButtonManager::DrawLoadFile(){
@@ -151,7 +160,7 @@ void ButtonManager::DrawRandom(float x, float y){
 
 void ButtonManager::DrawBackground(){
     Rectangle rect = { 5, 60, 420, screenHeight - 65 };
-    DrawRectangleRounded( rect, 0.05f, 0, Fade(DARKGREEN, 0.8f) );
+    DrawRectangleRounded( rect, 0.05f, 0, Fade(BEIGE, 0.5f) );
     Rectangle rect2 = { 430, 60, screenWidth - 435, screenHeight - 65 };
     DrawRectangleRounded( rect2, 0.05f, 0, Fade(BEIGE, 0.5f) );
     Rectangle rect3 = { 430, 600, screenWidth - 435, screenHeight - 605 };
@@ -178,6 +187,8 @@ PushState::~PushState(){
 
 void Push::saveState(){
     PushState state;
+    state.beginLine = beginLine;
+    state.endLine = endLine;
     state.tree = mHeap->tree;
     state.heapNode = heapNode;
     state.originHeapNode = originHeapNode;
@@ -193,28 +204,23 @@ void Push::saveState(){
     state.currentStep = currentStep;
     state.isAnimating = isAnimating;
     undoStack.push(state);
-    std::cout << "State saved!" << std::endl;
 }
 
 void Push::handleUndo(){
     if (undoStack.empty()) return;
     PushState prevState = undoStack.top();
     undoStack.pop();
-    mHeap->tree = prevState.tree;
-    heapNode = prevState.heapNode;
-    originHeapNode = prevState.originHeapNode;
-    targetHeapNode = prevState.targetHeapNode;
-    animatingIdx = prevState.animatingIdx;
-    parentIdx = prevState.parentIdx;
-    animatingPos = prevState.animatingPos;
-    targetPos = prevState.targetPos;
-    originPos = prevState.originPos;
-    animatingPos2 = prevState.animatingPos2;
-    targetPos2 = prevState.targetPos2;
-    originPos2 = prevState.originPos2;
-    currentStep = prevState.currentStep;
-    isAnimating = prevState.isAnimating;
-    recalculateAllNodePos(mHeap);
+    redoStack.push(prevState);
+    getState(prevState);
+    
+}
+
+void Push::handleRedo(){
+    if(redoStack.empty()) return;
+    PushState nextState = redoStack.top();
+    redoStack.pop();
+    undoStack.push(nextState);
+    getState(nextState);
 }
 
 Push::Push(MinHeap* heap){ mHeap = heap; }
@@ -227,11 +233,17 @@ void Push::draw(){
 
     DrawPartOfHeap(mHeap, animatingIdx, parentIdx, isAnimating, currentStep);
     if ( currentStep == 1 || currentStep == 4 )
-    drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), nodeRadius);
+        drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), nodeRadius);
     if ( currentStep == 4 )
-    drawNode(animatingPos2, std::to_string(mHeap->tree[parentIdx]), nodeRadius);
-
-    drawBlinkingNode();
+        drawNode(animatingPos2, std::to_string(mHeap->tree[parentIdx]), nodeRadius);
+    pseudoCode.Draw();
+    if ( currentStep == 2 ){
+        if ( !isPaused )
+            drawBlinkingNode( 1.5f );
+        if ( isUndoing || isRedoing )
+            drawBlinkingNode( 3600.0f );
+    }
+    pseudoCode.SetHighlightLines(beginLine, endLine);
 }
 
 void Push::update(){
@@ -249,36 +261,89 @@ void Push::update(){
     }
 
     if ( isPaused && PlayButton.isPressed()){
+        isRedoing = false;
+        isUndoing = false;
         isPaused = !isPaused;
+
+        if ( currentStep == 1 ){
+            saveState();
+            isAnimating = true;
+            currentStep = 2;
+        }
+        else if (currentStep == 2) {
+            saveState();
+            blinkTime1 = 0.0f;
+            blinkTime2 = 0.0f;
+            isAnimating = true;
+            currentStep = 3;
+        }
+        else if (currentStep == 4 && isStepbystep) {
+            saveState();
+            isAnimating = true;
+            currentStep = 2;
+        }
     }
     if ( !isPaused && PauseButton.isPressed()){
         isPaused = !isPaused;
     }
     if ( UndoButton.isPressed() ){
-        handleUndo();
+        isUndoing = true;
+        isRedoing = false;
         isPaused = true;
+        handleUndo();
     }
+    if ( RedoButton.isPressed() ){
+        isRedoing = true;
+        isUndoing = false;
+        isPaused = true;
+        handleRedo();
+    }
+
+    pseudoCode.rect = { 5, 60, 420, 320 };
+    pseudoCode.SetTitle("PUSH OPERATION");
+    pseudoCode.SetContent({"i = A.heap_size",
+                           "A[i] = value",
+                           "while ( i > 0 ){",
+                           "   p = PARENT(i)", 
+                           "   if A[p] > A[i]", 
+                           "      swap ( A[i], A[p] )", 
+                           "      i = p" ,
+                           "   else", 
+                           "      break", 
+                           "}" } );
+
     if ( isPaused ) return;
-    
-    updateTreeStructure();
-    updateInsert();
-    handleBubbleUp();
-    updateBubbleUp();
+
+    switch(currentStep){
+        case 0:
+            updateTreeStructure();
+            break;
+        case 1:
+            updateInsert();
+            break;
+        case 2:
+            break;
+        case 3:
+            handleBubbleUp();
+            break;
+        case 4:
+            updateBubbleUp();
+            break;
+        default:
+            break;
+    }
 }
 
 // Tiền xử lý cấu trúc cây, vị trí đưa nút từ vị trí ngẫu nhiên vào cây 
 void Push::handleInsert(int val){
-    // if ( isPaused ) return;
-
-    
     // Thêm giá trị vào cây HeapHeap
     mHeap->tree.push_back(val);
     animatingIdx = mHeap->size() - 1;
     
     // Tính toán vị trí mục tiêu
-    int x = animatingIdx - (1 << (int)log2(animatingIdx + 1)) + 1;
-    int y = (int)log2(animatingIdx + 1);
-    int height = (int)log2(mHeap->size()) + 1;
+    float x = animatingIdx - (1 << (int)log2(animatingIdx + 1)) + 1;
+    float y = (int)log2(animatingIdx + 1);
+    float height = (int)log2(mHeap->size()) + 1;
     targetPos = calculateNodePos({x, y}, height);
     
     // Khởi tạo vị trí ban đầu
@@ -304,17 +369,11 @@ void Push::handleInsert(int val){
         isAnimating = true;
     }
 
-    saveState();
     
 }
 
 // Step 0: Cập nhật vị trí các nút trong cây
 void Push::updateTreeStructure(){
-    // if ( isPaused ) return;
-
-    if ( currentStep != 0 || !isAnimating ) return;
-    
-    
     bool allFinished = true;
     int n = heapNode.size();
     for ( int i = 0; i < n; i++ ){
@@ -332,49 +391,56 @@ void Push::updateTreeStructure(){
 
 // Step 1: Cập nhật vị trí nút đang thêm vào
 void Push::updateInsert(){
-    // if ( isPaused ) return;
-
-    if (currentStep != 1 || !isAnimating) return;
-    
-    
+    beginLine = 0;
+    endLine = 1;
+    // pseudoCode.SetHighlightLines(beginLine, endLine);
     updateNodePos ( animatingPos, targetPos, originPos, 1.0f, isAnimating );
     
     if ( !isAnimating ){
-        saveState();
-        isAnimating = true;
-        currentStep = 2;
+        if ( isStepbystep ){
+            isPaused = true;
+        }
+        else {
+            saveState();
+            isAnimating = true;
+            currentStep = 2;
+        }
     }
 }
 
 // Step 2: Vẽ nhấp nháy nút đang thêm vào và nút cha của nó
-void Push::drawBlinkingNode(){
-    // if ( isPaused ) return;
+void Push::drawBlinkingNode( float duration ){
 
-    if ( currentStep != 2 || !isAnimating ) return;
-
-    
     DrawBlinkingNode(heapNode[animatingIdx].pos, heapNode[animatingIdx].val, blinkTime1);
     parentIdx = mHeap->parent(animatingIdx);
-    if ( parentIdx >= 0 )
+    if ( parentIdx >= 0 ){
         DrawBlinkingNode(heapNode[parentIdx].pos, heapNode[parentIdx].val, blinkTime2);
+    }
+    if ( animatingIdx == 0 ){
+        beginLine = 2;
+        endLine = 2;
+    }
+    else{
+        beginLine = 4;
+        endLine = 4;
+    }
+    // pseudoCode.SetHighlightLines(beginLine, endLine);
 
-    if ( blinkTime1 > 1.5f ){
-        saveState();
-        blinkTime1 = 0.0f;
-        blinkTime2 = 0.0f;
-        isAnimating = false;
-        currentStep = 3;
+    if ( blinkTime1 > duration ){
+        if ( isStepbystep )
+            isPaused = true;
+        else{
+            saveState();
+            blinkTime1 = 0.0f;
+            blinkTime2 = 0.0f;
+            isAnimating = false;
+            currentStep = 3;
+        }
     }
 }
 
 // Step 3: Kiểm tra xem có cần hoán đổi vị trí với nút cha không
 void Push::handleBubbleUp(){
-    // if ( isPaused ) return;
-
-    if ( currentStep != 3 || isAnimating ) return;
-
-    
-    // parentIdx = mHeap->parent(animatingIdx);
     if ( parentIdx >= 0 && heapNode[parentIdx].val > heapNode[animatingIdx].val){
         originPos = animatingPos;
         targetPos = heapNode[parentIdx].pos;
@@ -383,41 +449,59 @@ void Push::handleBubbleUp(){
         animatingPos2 = targetPos;
         originPos2 = animatingPos2;
         
-        isAnimating = true;
-        currentStep = 4;
-        saveState();
+        
         
         std::swap(mHeap->tree[animatingIdx], mHeap->tree[parentIdx]);
         
         swapHeapNode(heapNode[animatingIdx], heapNode[parentIdx]);
         
         std::swap(animatingIdx, parentIdx);
+
+        // saveState();
+
+        isAnimating = true;
+        currentStep = 4;
     }
     else {
         animatingIdx = -1;
         parentIdx = -1;
         isAnimating = false;
         currentStep = -1;
+        if ( parentIdx < 0 ){
+            beginLine = -1;
+            endLine = -1;
+        }
+        else{
+            beginLine = 8;
+            endLine = 8;
+        }
+        // pseudoCode.SetHighlightLines(beginLine, endLine);
         while ( !undoStack.empty())
             undoStack.pop();
+        while ( !redoStack.empty())
+            redoStack.pop();
+        recalculateAllNodePos ( mHeap );
     }
 }
 
 // Step 4: Cập nhật vị trí nút đang thêm vào và nút cha của nó
 void Push::updateBubbleUp(){
-    // if ( isPaused ) return;
-
-    if ( currentStep != 4 || !isAnimating ) return;
-
-    
+    beginLine = 5;
+    endLine = 6;
+    // pseudoCode.SetHighlightLines(beginLine, endLine);
     updateNodePos ( animatingPos, targetPos, originPos, 1.0f, isAnimating );
     
     updateNodePos ( animatingPos2, targetPos2, originPos2, 1.0f, isAnimating );
     
     if ( !isAnimating ){
-        saveState();
-        isAnimating = true;
-        currentStep = 2;
+        if ( isStepbystep ){
+            isPaused = true;
+        }
+        else {
+            saveState();
+            isAnimating = true;
+            currentStep = 2;
+        }
     }
 }
 
@@ -426,6 +510,77 @@ void Push::updateBubbleUp(){
 //-----------------------
 Remove::Remove(MinHeap* heap) { mHeap = heap; }
 
+void Remove::saveState(){
+    PushState state;
+    state.blinkingStep = blinkingStep;
+    state.beginLine = beginLine;
+    state.endLine = endLine;
+    state.tree = mHeap->tree;
+    state.heapNode = heapNode;
+    state.originHeapNode = originHeapNode;
+    state.targetHeapNode = targetHeapNode;
+    state.animatingIdx = animatingIdx;
+    state.parentIdx = childIdx;
+    state.animatingPos = animatingPos;
+    state.targetPos = targetPos;
+    state.originPos = originPos;
+    state.animatingPos2 = animatingPos2;
+    state.targetPos2 = targetPos2;
+    state.originPos2 = originPos2;
+    state.currentStep = currentStep;
+    if ( currentStep == 1 || currentStep == 2 || currentStep == 4 )
+        state.isAnimating = true;
+    else 
+        state.isAnimating = false;
+    undoStack.push(state);
+}
+
+void Remove::getState(PushState &state){
+    blinkingStep = state.blinkingStep;
+    beginLine = state.beginLine;
+    endLine = state.endLine;
+
+    mHeap->tree = state.tree;
+    heapNode = state.heapNode;
+    originHeapNode = state.originHeapNode;
+    targetHeapNode = state.targetHeapNode;
+    animatingIdx = state.animatingIdx;
+    childIdx = state.parentIdx;
+
+    animatingPos = state.animatingPos;
+    targetPos = state.targetPos;
+    originPos = state.originPos;
+
+    animatingPos2 = state.animatingPos2;
+    targetPos2 = state.targetPos2;
+    originPos2 = state.originPos2;
+
+    currentStep = state.currentStep;
+    isAnimating = state.isAnimating;
+
+    blinkTime1 = 0.0f;
+    blinkTime2 = 0.0f;
+    for ( int i = 0; i < elapsedTime.size(); i++ ){
+        elapsedTime[i] = 0.0f;
+    }
+}
+
+void Remove::handleUndo(){
+    if (undoStack.empty()) return;
+    PushState prevState = undoStack.top();
+    undoStack.pop();
+    redoStack.push(prevState);
+    getState(prevState);
+}
+
+void Remove::handleRedo(){
+    if(redoStack.empty()) return;
+    PushState nextState = redoStack.top();
+    redoStack.pop();
+    undoStack.push(nextState);
+    getState(nextState);
+}
+
 void Remove::draw(){
     buttons.DrawBackground();
     buttons.DrawButtons();
@@ -433,11 +588,16 @@ void Remove::draw(){
     buttons.DrawRandom(buttons.remove.rect.x, buttons.remove.rect.y);
 
     DrawPartOfHeap(mHeap, animatingIdx, childIdx, isAnimating, currentStep);
-    if ( currentStep == 0 || currentStep == 3 )
+    if ( currentStep == 0 || currentStep == 4 )
         drawNode(animatingPos, std::to_string(mHeap->tree[animatingIdx]), nodeRadius);
-    if ( currentStep == 3 )
+    if ( currentStep == 2 ){
+        if ( !isPaused )
+            drawBlinkingNode( 1.5f );
+        if ( isUndoing || isRedoing )
+            drawBlinkingNode( 3600.0f );
+    }
+    if ( currentStep == 4 )
         drawNode(animatingPos2, std::to_string(mHeap->tree[childIdx]), nodeRadius);
-    
     // Tìm không thấy hoặc cây trống
     if (buttons.notFound) {
         std::string txt;
@@ -447,6 +607,8 @@ void Remove::draw(){
             txt = "Value not found!";
         buttons.DrawBlinkingText(txt, buttons.remove.rect.x, buttons.remove.rect.y );
     }
+    pseudoCode.SetHighlightLines(beginLine, endLine);
+    pseudoCode.Draw();
 }
 
 void Remove::update(){  
@@ -457,6 +619,7 @@ void Remove::update(){
         animatingIdx = mHeap->search(value);
 
         if ( animatingIdx != -1 ){
+            saveState();
             handleRemove(animatingIdx);
             buttons.notFound = false;
         }
@@ -467,10 +630,60 @@ void Remove::update(){
         buttons.name[0] = '\0';
         buttons.letterCount = 0;
     }
-    updateTreeStructure();
-    updateRemove();
-    handleBubbleDown();
-    updateBubbleDown();
+
+    if ( isPaused && PlayButton.isPressed()){
+        isPaused = !isPaused;
+    }
+    if ( !isPaused && PauseButton.isPressed()){
+        isPaused = !isPaused;
+    }
+    if ( UndoButton.isPressed() ){
+        isUndoing = true;
+        isRedoing = false;
+        isPaused = true;
+        handleUndo();
+        std::cout << "Undo" << std::endl;
+    }
+    if ( RedoButton.isPressed() ){
+        isRedoing = true;
+        isUndoing = false;
+        isPaused = true;
+        handleRedo();
+    }
+
+    pseudoCode.rect = { 5, 60, 420, 320 };
+    pseudoCode.SetTitle("REMOVE OPERATION");
+    pseudoCode.SetContent({"swap ( A[i], A[A.heap_size - 1] )",
+                           "while ( smallest < A.heap_size )",
+                           "   l = LEFT(i), r = RIGHT(i), smallest = i",
+                           "   if l < A.heap_size and A[l] < A[smallest]",
+                           "      smallest = l",
+                           "   if r < A.heap_size and A[r] < A[smallest]",
+                           "      smallest = r",
+                           "   if smallest != i",
+                           "      swap ( A[i], A[smallest] )",
+                           "      i = smallest",} );
+
+    if ( isPaused ) return;
+
+    switch ( currentStep ){
+        case 0:
+            updateRemove();
+            break;
+        case 1:
+            updateTreeStructure();
+            break;
+        case 2:
+            break;
+        case 3:
+            handleBubbleDown();
+            break;
+        case 4:
+            updateBubbleDown();
+            break;
+        default:
+            break;
+    }
 }
 
 void Remove::handleRemove(int idx){
@@ -482,7 +695,9 @@ void Remove::handleRemove(int idx){
     originPos = animatingPos;
 
     std::swap(mHeap->tree[idx], mHeap->tree[i]);
+
     swapHeapNode(heapNode[idx], heapNode[i]);
+
     heapNode[i] = {0, {0, 0}, false};
     mHeap->tree.pop_back();
 
@@ -490,13 +705,14 @@ void Remove::handleRemove(int idx){
     isAnimating = true;
 }
 
-
+// STEP 0
 void Remove::updateRemove(){
-    if (currentStep != 0 || !isAnimating) return;
-
+    beginLine = 0;
+    endLine = 0;
     updateNodePos ( animatingPos, targetPos, originPos, duration, isAnimating );
     
     if ( !isAnimating ){
+        saveState();
         // Cập nhật vị trí các nút nếu cấu trúc cây thay đổi
         int height = (int)log2(mHeap->size()) + 1;
         if ( mHeap->size() >= 3 && mHeap->size() == std::pow(2, height) - 1){
@@ -520,82 +736,154 @@ void Remove::updateRemove(){
 
 }
 
+// STEP 1
 void Remove::updateTreeStructure(){
-    if ( currentStep != 1 || !isAnimating ) return;
-        bool allFinished = true;
-        int n = heapNode.size();
-        for ( int i = 0; i < n; i++ ){
-            bool nodeAnimating = true;
-            updateNodePos( heapNode[i].pos, targetHeapNode[i].pos, originHeapNode[i].pos, 1.0f, nodeAnimating, i );
-            if ( nodeAnimating ) {
-                allFinished = false;
-            }
+    beginLine = -1;
+    endLine = -1;
+    bool allFinished = true;
+    int n = heapNode.size();
+    for ( int i = 0; i < n; i++ ){
+        bool nodeAnimating = true;
+        updateNodePos( heapNode[i].pos, targetHeapNode[i].pos, originHeapNode[i].pos, 1.0f, nodeAnimating, i );
+        if ( nodeAnimating ) {
+            allFinished = false;
         }
+    }
     if ( allFinished ){
+        saveState();
         currentStep = 2;
         isAnimating = false;
+        blinkingStep = 0;
         std::swap(tempIdx, animatingIdx);
     }
 }
 
-void Remove::handleBubbleDown(){
-    if ( currentStep != 2 || isAnimating ) return;
-
+// STEP 2
+void Remove::drawBlinkingNode(float duration){
+    int n = mHeap->size();
     int l = mHeap->left(animatingIdx);
     int r = mHeap->right(animatingIdx);
     childIdx = animatingIdx;
-    if ( childIdx < mHeap->size() ){
-        if ( l < mHeap->size() && heapNode[l].val < heapNode[childIdx].val )
-            childIdx = l;
-        if ( r < mHeap->size() && heapNode[r].val < heapNode[childIdx].val )
-            childIdx = r;
-        if ( childIdx != animatingIdx ){
-
-            targetPos = heapNode[childIdx].pos;
-            animatingPos = heapNode[animatingIdx].pos;
-            
-            animatingPos2 = targetPos;
-            targetPos2 = animatingPos;
-
-            originPos = animatingPos;
-            originPos2 = animatingPos2;
+    if ( l < n && heapNode[l].val < heapNode[childIdx].val )
+        childIdx = l;
+    if ( r < n && heapNode[r].val < heapNode[childIdx].val )
+        childIdx = r;
     
-            isAnimating = true;
-            currentStep = 3;
-    
-            // Cập nhật giá trị trong mảng
-            std::swap(mHeap->tree[animatingIdx], mHeap->tree[childIdx]);
-
-            // Cập nhật vị trí trong mảng 
-            swapHeapNode(heapNode[animatingIdx], heapNode[childIdx]);
-
-            std::swap(animatingIdx, childIdx);
+    if ( blinkingStep == 0 ){
+        if ( l < n ){
+            beginLine = endLine = 3;
+            DrawBlinkingNode(heapNode[l].pos, heapNode[l].val, blinkTime1);
+        }
+        if ( r < n ){
+            beginLine = endLine = 6;
+            DrawBlinkingNode(heapNode[r].pos, heapNode[r].val, blinkTime2);
+        }
+        if ( l < n && r < n ){
+            beginLine = 3;
+            endLine = 6;
         }
         else {
-            animatingIdx = -1;
-            childIdx = -1;
-            isAnimating = false;
-            currentStep = 4;
+            beginLine = endLine = -1;
+            currentStep = 3;
+        }
+        if ( blinkTime1 > duration ){
+            saveState();
+            blinkTime1 = 0.0f;
+            blinkTime2 = 0.0f;
+            if ( childIdx != animatingIdx ){
+                blinkingStep = 1;
+            }
+            else {
+                blinkingStep = 2;
+            }
         }
     }
-    else{
-        animatingIdx = -1;
-        childIdx = -1;
-        isAnimating = false;
-        currentStep = 4;
+    else if ( blinkingStep == 1 ){
+        if ( childIdx == l ){
+            beginLine = 4;
+            endLine = 4;
+        }
+        else if ( childIdx == r ){
+            beginLine = 6;
+            endLine = 6;
+        }
+        DrawBlinkingNode(heapNode[animatingIdx].pos, heapNode[animatingIdx].val, blinkTime1);
+        DrawBlinkingNode(heapNode[childIdx].pos, heapNode[childIdx].val, blinkTime2);
+        if ( blinkTime1 > duration ){
+            saveState();
+            blinkTime1 = 0.0f;
+            blinkTime2 = 0.0f;
+            isAnimating = false;
+            currentStep = 3;
+        }
+    }
+    else if ( blinkingStep == 2 ){
+        beginLine = 8;
+        endLine = 8;
+        DrawBlinkingNode(heapNode[animatingIdx].pos, heapNode[animatingIdx].val, blinkTime1);
+        if ( blinkTime1 > duration ){
+            saveState();
+            blinkTime1 = 0.0f;
+            blinkTime2 = 0.0f;
+            blinkingStep = -1;
+            isAnimating = false;
+            currentStep = 3;
+        }
     }
 }
 
-void Remove::updateBubbleDown(){
-    if ( currentStep != 3 || !isAnimating ) return;
+// STEP 3
+void Remove::handleBubbleDown(){
+    if ( childIdx < mHeap->size() && childIdx != animatingIdx ){
 
+        targetPos = heapNode[childIdx].pos;
+        animatingPos = heapNode[animatingIdx].pos;
+        
+        animatingPos2 = targetPos;
+        targetPos2 = animatingPos;
+
+        originPos = animatingPos;
+        originPos2 = animatingPos2;
+
+        isAnimating = true;
+        currentStep = 4;
+
+        // Cập nhật giá trị trong mảng
+        std::swap(mHeap->tree[animatingIdx], mHeap->tree[childIdx]);
+
+        // Cập nhật vị trí trong mảng 
+        swapHeapNode(heapNode[animatingIdx], heapNode[childIdx]);
+
+        std::swap(animatingIdx, childIdx);
+    }
+    else {
+        beginLine = -1;
+        endLine = -1;
+        animatingIdx = -1;
+        childIdx = -1;
+        isAnimating = false;
+        currentStep = -1;
+        while ( !undoStack.empty())
+            undoStack.pop();
+        while ( !redoStack.empty())
+            redoStack.pop();
+    }
+}
+
+// STEP 4
+void Remove::updateBubbleDown(){
+    beginLine = 8;
+    endLine = 9;
     // Cập nhật vị trí nút con
     updateNodePos(animatingPos2, targetPos2, originPos2, duration, isAnimating );
     // Cập nhật vị trí nút cha
     updateNodePos(animatingPos, targetPos, originPos, duration, isAnimating ); 
 
-    if ( !isAnimating )
+    if ( !isAnimating ){
+        saveState();
+        blinkingStep = 0;
         currentStep = 2;
+    }
 }
 
 //-----------------------
@@ -607,6 +895,7 @@ void ClearH::draw(){
     buttons.DrawBackground();
     buttons.DrawButtons();
     drawHeap(mHeap->tree);
+    pseudoCode.Draw();
 }
 
 void ClearH::update(){
@@ -614,6 +903,10 @@ void ClearH::update(){
     buttons.HandleButtonsHover();
     mHeap->clear();
     heapNode = std::vector<HeapNode>(31, {0, {0, 0}, false});
+
+    pseudoCode.rect = { 5, 60, 420, 320 };
+    pseudoCode.SetTitle("CLEAR OPERATION");
+    pseudoCode.SetContent({"A.clear"});
 }
 
 //-----------------------
@@ -629,11 +922,16 @@ void Top::draw(){
         DrawBlinkingNode(heapNode[0].pos, mHeap->top(), blinkTime);
     else
         buttons.DrawBlinkingText("Empty tree!", buttons.top.rect.x, buttons.top.rect.y + 40 );
+    pseudoCode.Draw();
 }
 
 void Top::update(){
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
+
+    pseudoCode.rect = { 5, 60, 420, 320 };
+    pseudoCode.SetTitle("TOP OPERATION");
+    pseudoCode.SetContent({"return A[0]"});
 }
 
 //-----------------------
@@ -665,6 +963,7 @@ void Initialize::draw(){
     buttons.DrawRandom(buttons.initialize.rect.x, buttons.initialize.rect.y);
     buttons.DrawLoadFile();
     drawHeap(mHeap->tree);
+    pseudoCode.Draw();
 }
 
 void Initialize::update(){
@@ -686,7 +985,11 @@ void Initialize::update(){
         handleInputFile();
         recalculateAllNodePos(mHeap);
     }
-    // handleInputFile();
+    pseudoCode.rect = { 5, 60, 420, 320 };
+    pseudoCode.SetTitle("INITIALIZE OPERATION");
+    pseudoCode.SetContent({"A.heap_size = A.length",
+                           "for i = floor(A.length / 2) downto 1",
+                           "   MinHeapify( A, i )" } );
 }
 
 //-----------------------

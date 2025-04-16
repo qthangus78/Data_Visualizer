@@ -35,6 +35,7 @@ public:
 
 class AnnouncementBox {
 public:
+    Rectangle rect;
     AnnouncementBox();
     AnnouncementBox(Rectangle rect, const char* title);
     
@@ -48,7 +49,6 @@ public:
     void Draw();
     
 private:
-    Rectangle rect;
     const char* title;
     vector<char*> content;
     int highlightStartLine;

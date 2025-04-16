@@ -1,5 +1,6 @@
 #include "Heap.h"
 
+bool isStepbystep = false;
 bool isPaused = false;
 float blinkTime = 0.0f;
 std::vector<float> elapsedTime ( 31, 0.0f );
