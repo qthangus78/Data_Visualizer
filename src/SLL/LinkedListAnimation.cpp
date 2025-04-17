@@ -1956,7 +1956,7 @@ void Clear::handle(){
     ToggleSwitch toggle = mSSL->getToggle();
     toggle.Update(GetMousePosition());
     mSSL->setToggle(toggle);
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    if(mSSL->getRoot() && CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
         handlePos(mSSL->getRoot(),startLinkedListPos,node);
         clearProcess = true;
