@@ -174,7 +174,7 @@ SSL::SSL()
     mFind      = new Find(this);
     mClear = new Clear(this);
     mcurrent   = mNotInMode;
-    speed.Init({870,690});
+    
 }
 
 SSL::~SSL(){
@@ -386,6 +386,7 @@ void SSL::draw(){
     if(mcurrent) mcurrent->draw();
 }
 void SSL::handle(){
+    speed.Init({870,690});
     initCodeButton();
     UndoButton.SetPosition(590,680);
     RedoButton.SetPosition(760,680);
