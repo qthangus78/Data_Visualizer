@@ -1,50 +1,48 @@
 #include "Trie_display.h"
 
+//toggle--------------------------
+Trie::ToggleSwitch::ToggleSwitch()
+{
+	bounds = { 50,20,140,40 };
+	isStepByStep = true;
+	toggleRadius = 40 * 0.8f;
+	toggleX = bounds.x + 5;
+	labelAlpha = 1.0f;
+	labelAlphaReverse = 0.0f;
+}
+void Trie::ToggleSwitch::Update(Vector2 mouse, Trie& trie)
+{
+	if (CheckCollisionPointRec(mouse, bounds) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+		isStepByStep = !isStepByStep;
+		//trie.progressNode = trie.progressTrie = 1;
+		//trie.elapsedTrie = trie.durationTrie; trie.elapsedNode = trie.durationTrie;
+	}
+	float targetX = isStepByStep ? bounds.x + 5 : bounds.x + bounds.width - toggleRadius - 5;
+	toggleX += (targetX - toggleX) * 0.15f;
+	float targetAlpha = isStepByStep ? 1.0f : 0.0f;
+	float targetAlphaReverse = isStepByStep ? 0.0f : 1.0f;
+	labelAlpha += (targetAlpha - labelAlpha) * 0.1f;
+	labelAlphaReverse += (targetAlphaReverse - labelAlphaReverse) * 0.1f;
+}
+void Trie::ToggleSwitch::Draw() {
+	DrawRectangleRoundedLinesEx(bounds, 0.5f, 20, 4, DARKGRAY);
+	DrawCircleV({ toggleX + toggleRadius / 2, bounds.y + bounds.height / 2 }, toggleRadius / 2 + 3.0f, DARKBLUE);
+	DrawCircleV({ toggleX + toggleRadius / 2, bounds.y + bounds.height / 2 }, toggleRadius / 2, WHITE);
+	DrawTextEx(SSLFont, "Step by step", { bounds.x + 40, bounds.y + 10 }, 17, 1, Fade(BLACK, labelAlpha));
+	DrawTextEx(SSLFont, "Run at once", { bounds.x + bounds.width - 135, bounds.y + 15 }, 17, 1, Fade(BLACK, labelAlphaReverse));
+}
+
+
 //Trie-------------------------
 Trie::Trie() {
 	root = new TrieNode();
+	root->isNewNode = false;
 }
 
 void Trie::Insert(const string& c)
 {
 	InsertTrie(root, c, steps);
 }
-//void Trie::ProcessInsert()
-//{
-//	static bool waitForNext = true;
-//
-//	// Wait for space to go to the next step
-//	if (!steps.empty() && IsKeyPressed(KEY_SPACE)) {
-//		waitForNext = false;
-//	}
-//
-//	if (!steps.empty() && !waitForNext)
-//	{
-//		Step step = steps.front();
-//		steps.pop();
-//
-//		// Update the current line to highlight
-//		curLine = step.line;
-//		curText = step.description;
-//
-//		// Visual update
-//		if (step.node != nullptr)
-//		{
-//			if (step.isNewNode)
-//			{
-//				step.node->color = BLUE;
-//				step.node->animationProgress = 0.0f; // Let Draw handle animation
-//			}
-//			else
-//			{
-//				step.node->color = YELLOW;
-//				step.node->animationProgress = 1.0f;
-//			}
-//		}
-//
-//		waitForNext = true;
-//	}
-//}
 
 bool Trie::Find(const string& c)
 {
@@ -56,7 +54,7 @@ bool Trie::Delete(const string& c)
 	bool isExist = Find(c);
 	if (isExist)
 	{
-		DeleteTrie(root, c, 0);
+		DeleteTrieOrigin(root, c, 0, steps, toggle.isStepByStep);
 		return true;
 	}else
 	{
@@ -66,7 +64,7 @@ bool Trie::Delete(const string& c)
 
 void Trie::Clear()
 {
-	ClearTrie(root);
+	ClearTrie(root, 0 ,steps, toggle.isStepByStep);
 }
 
 //Utility------------------------
@@ -123,6 +121,7 @@ void Trie::drawTypeBox(Rectangle rect)
 	drawTextIn(textIn, rect, frameCounter);
 }
 
+
 //buttonhandle
 void Trie::HandleButtonClickTrie()
 {
@@ -142,14 +141,6 @@ void Trie::HandleButtonClickTrie()
 }
 
 //function draw
-void Trie::FindDisplay(TrieNode* root,const string& key, Color colorN)
-{
-	for (char character : key)
-	{
-		root->children[character]->colorNode = colorN;
-		root = root->children[character];
-	}
-}
 void Trie::drawFindResult(bool isFound, const string&key ) {
 	//drawTextCode(curline, curlinetmp);
 	
@@ -206,10 +197,10 @@ void Trie::drawDeleteResult(bool isFound, const string& key) {
 void Trie::drawClearResult()
 {
 	if (root->children.empty() && frameCounter < 30) {
-		DrawTextEx(SSLFont, "Empty List", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
+		DrawTextEx(SSLFont, "Empty Trie", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
 	}
 	else {
-		if (root && frameCounter < 30 /* && !FindProcess*/) {
+		if (frameCounter < 30 /* && !FindProcess*/) {
 			DrawTextEx(SSLFont, "Cleared", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
 		}
 	}
@@ -290,13 +281,19 @@ void Trie::MarkNodesEdges(TrieNode* root, float x, float y, float spread, int de
 			}
 
 			child->character = character;
-			child->posPrev = child->posCur;
+			if (toggle.isStepByStep && child->isNewNode)
+			{
+				//child->posPrev = root->posCur;
+				child->posPrev = {xNew,yNew};
+				//child->isNewNode = false;
+			}
+			else child->posPrev = child->posCur;
 		}
 
 
 		MarkNodesEdges(child, xNew, yNew, spread, depth + 1); //
 
-		if (child) childCount += child->subtreeSize; 
+		if (child) childCount += child->subtreeSize;
 	}
 }
 void Trie::Visualize(TrieNode* root)
@@ -305,32 +302,61 @@ void Trie::Visualize(TrieNode* root)
 	MarkNodesEdges(root, screenWidth / 10, screenHeight / 2, spread, 0);
 }
 
-void Trie::drawTrieNodes(TrieNode* root, float& progress)
+void Trie::calculatePosTrie(TrieNode* root)
 {
-	Vector2 pos = lerp(root->posPrev,root->posCur,progress);
-	drawNodeTrie(pos, root->character, root->colorNode, root->colorText, 25);
+	
+	//root->pos = lerp(root->posPrev, root->posCur, progressTrie);
+	//if (toggle.isStepByStep && root->isNewNode)
+	//{
+	//	root->pos = lerp(root->posPrev, root->posCur, progressNode);
+	//	//root->pos = root->posPrev;
+	//}
+
+	root->pos = lerp(root->posPrev, root->posCur, progressTrie);
+	
+	for (auto& child : root->children)
+	{
+		calculatePosTrie(child.second);
+	}
+}
+
+void Trie::drawTrieNodes(TrieNode* root)
+{
+	if (!root->isNewNode)
+	drawNodeTrie(root->pos, root->character, root->colorNode, root->colorText, 25);
 
 	for (auto& child : root->children)
 	{
-		drawTrieNodes(child.second, progress);
+		drawTrieNodes(child.second);
 	}
 }
-void Trie::drawTrieEdges(TrieNode* root, float& progress)
+void Trie::drawTrieEdges(TrieNode* root)
 {
 	for (auto& child : root->children)
 	{
-		Vector2 posHead = lerp(root->posPrev, root->posCur,  progress);
-		Vector2 posTail = lerp(child.second->posPrev, child.second->posCur, progress);
-		drawArrow(posTail, posHead,color::edgeNotInMode);
-		drawTrieEdges(child.second, progress);
+		if (!child.second->isNewNode)
+		drawArrow(root->pos, child.second->pos,color::edgeNotInMode);
+		drawTrieEdges(child.second);
 	}
 }
-void Trie::drawTrie(TrieNode* root, float& progress)
+void Trie::drawTrie(TrieNode* root)
 {
-	drawTrieEdges(root, progress);
-	drawTrieNodes(root, progress);
+	drawTrieEdges(root);
+	drawTrieNodes(root);
 }
 
+void Trie::highlightWord(TrieNode* root, const string& key, Color colorN)
+{
+	for (char character : key)
+	{
+		changeColorNode(root->children[character], colorN);
+		root = root->children[character];
+	}
+}
+void Trie::changeColorNode(TrieNode* node, Color colorN)
+{
+	node->colorNode = colorN;
+}
 void Trie::resetColorNode(TrieNode* root, Color colorN)
 {
 	for (auto& child : root->children)
@@ -340,46 +366,147 @@ void Trie::resetColorNode(TrieNode* root, Color colorN)
 	}
 }
 
-//void Trie::animateTrie(float duration, Vector2 start, Vector2 end) {
-//
-//	float elapsed = 0.0f;
-//	while (elapsed < duration)
-//	{
-//		BeginDrawing();
-//		ClearBackground({ 192, 245, 242, 100 });
-//
-//		float progress = elapsed / duration;
-//		drawTrie(root, progress);
-//
-//		EndDrawing();
-//		elapsed += GetFrameTime();
-//	}
-//}
+void Trie::processStepbyStep(queue<Step>& steps)
+{
+	if (!steps.empty())
+	{
+
+		if (!toggle.isStepByStep)
+		{
+			Step curStep = steps.front();
+			steps.pop();
+			curStep.node->isNewNode = false;
+			return;
+		}
+		else if (progressNode >= 1)
+		{
+			Step curStep = steps.front();
+			steps.pop();
+			TrieNode* curNode = curStep.node;
+			switch (curStep.function)
+			{
+			case functionStep::moving:
+				//DrawText(); use for pseudo code
+				changeColorNode(root, color::nodeNotInMode);
+				resetColorNode(root, color::nodeNotInMode);
+				changeColorNode(curNode, DARKBLUE);
+				break;
+
+			case functionStep::createnode:
+				//pseudo code
+				changeColorNode(root, color::nodeNotInMode);
+				resetColorNode(root, color::nodeNotInMode);
+				curStep.node->isNewNode = false;
+				changeColorNode(curNode, GREEN);
+				break;
+
+			case functionStep::markword:
+				changeColorNode(root, color::nodeNotInMode);
+				resetColorNode(root, color::nodeNotInMode);
+				changeColorNode(curNode, YELLOW);
+				break;
+
+			case functionStep::invalid:
+				changeColorNode(root, color::nodeNotInMode);
+				resetColorNode(root, color::nodeNotInMode);
+				changeColorNode(curNode, RED);
+				break;
+
+			case functionStep::erase:
+				changeColorNode(root, color::nodeNotInMode);
+				resetColorNode(root, color::nodeNotInMode);
+
+				
+				delete curNode->children[curStep.character];
+				curNode->children[curStep.character] = nullptr;
+
+				curNode->children.erase(curStep.character);
+
+				if (steps.empty())
+				{
+					Visualize(root);
+					elapsedTrie = 0;
+					progressTrie = 0; //0 de ko bi giut animation
+				}
+
+				break;
+		}
+
+			elapsedNode = 0;
+			progressNode = 0;
+
+
+		}
+
+	}
+
+	//bool hasCurStep = false;
+	//if (IsKeyPressed(KEY_SPACE)) {
+	//	if (!steps.empty()) {
+	//		curStep = steps.front();
+	//		steps.pop();
+	//		hasCurStep = true;
+	//	}
+	//	else {
+	//		hasCurStep = false;
+	//	}
+	//}
+	// 
+	//if (hasCurStep) {
+	//	DrawStep(currentStep); 
+	//}
+
+}
+
+void Trie::resetState()
+{
+	if (state != curFunct)
+	{
+		resetColorNode(root, color::nodeNotInMode);
+		progressTrie = progressNode = 1; //reset animation khi doi function dot ngot
+	}
+	state = curFunct;
+}
 
 void Trie::Handle()
 {
+	//Trie
+	if (progressNode < 1 /*elapsedNode < durationNode */)
+	{
+		progressNode = elapsedNode / durationNode;
+		elapsedNode += GetFrameTime();
+	}
+
+	if (progressTrie < 1 /*elapsedTrie < durationTrie*/)
+	{
+		progressTrie = elapsedTrie / durationTrie;
+		elapsedTrie += GetFrameTime();
+	}
+
 	//button
 	handleButtonsHover();
 	HandleButtonClickTrie();
+	toggle.Update(mouse, *this);
 
 	switch (curFunct)
 	{
 	case FunctionNumber::Input:
-		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
-		state = curFunct;
+		resetState();
+
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
 		{
 			Insert(word);
 			Visualize(root);
-			elapsed = 0;
+			elapsedTrie = elapsedNode = 0;
+			progressTrie = progressNode = 0; //0 de ko bi giut animation
 		}
-			
+
 		break;
 
 	case FunctionNumber::FindFunct:
-		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
-		state = curFunct;
+		resetState();
+
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
 		{
@@ -387,15 +514,15 @@ void Trie::Handle()
 			if (isFound)
 			{
 				resetColorNode(root, color::nodeNotInMode);
-				FindDisplay(root, word, { 170, 180, 60, 255 });
+				highlightWord(root, word, { 170, 180, 60, 255 });
 			}
 		}
 
 		break;
 
 	case FunctionNumber::DeleteFunct:
-		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
-		state = curFunct;
+		resetState();
+
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
 		{
@@ -403,44 +530,37 @@ void Trie::Handle()
 			if (isFound)
 			{
 				Visualize(root);
-				elapsed = 0;
+				elapsedTrie = elapsedNode= 0;
+				progressTrie =progressTrie= 0; //0 de ko bi giut animation
 			}
 		}
 
 		break;
 
 	case FunctionNumber::ClearFunct:
-		if (state != curFunct) elapsed = duration; //reset elapsed aka animation khi doi function dot ngot
-		state = curFunct;
-		Clear();
-		Visualize(root);
+		resetState();
+		if (!root->children.empty() && steps.empty())
+		{
+			Clear();
+			Visualize(root);
+		}
 		break;
 	}
 
-	//Trie
-	if (elapsed <= duration)
-	{
-		progress = elapsed / duration;
-		elapsed += GetFrameTime();
-	}
+	calculatePosTrie(root);
 
-	
+	processStepbyStep(steps);
 
 }
 
 void Trie::Draw()
 {
-	//Trie
-	/*if (!isAnimated)
-	{
-		drawTrie(root, );
-	}*/
-
-
-	drawTrie(root, progress);
+	//trie
+	drawTrie(root);
 
 	//button
 	drawButtons();
+	toggle.Draw();
 
 	switch (curFunct)
 	{
@@ -462,6 +582,7 @@ void Trie::Draw()
 		break;
 
 	case FunctionNumber::ClearFunct:
+		inputRect = { buttonVar::buttonClear.rect.x + 130,buttonVar::buttonClear.rect.y,130, static_cast<float>(button::sizeH) };
 		drawClearResult();
 		break;
 	}

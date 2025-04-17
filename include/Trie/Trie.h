@@ -26,7 +26,9 @@ public:
 
     //Used for drawing
     int subtreeSize;
-    Vector2 posCur, posPrev;
+    Vector2 pos, posPrev, posCur;
+    bool isNewNode;
+    bool isDeleted;
     Color colorNode, colorText;
     char character;
     
@@ -38,23 +40,34 @@ struct Step{
     string description;
     int line;
     TrieNode* node;
-    bool isNewNode;
+    int function;
+    char character;
+};
+
+enum functionStep {
+    moving = 1,
+    createnode = 2,
+    markword = 3,
+    invalid = 4,
+    erase = 5,
 };
 
 //-----------------------
 //      Function chinh
 //----------------------
-void InsertTrie(TrieNode*& root, const string& key,queue<Step> steps);
+void InsertTrie(TrieNode*& root, const string& key,queue<Step>& steps);
 
-bool FindTrie(TrieNode*& root, const string& key, queue<Step>steps);
+bool FindTrie(TrieNode*& root, const string& key, queue<Step>& steps);
+
+void deleteNode(TrieNode* root, bool isStepbyStep);
 
 bool isEmpty(TrieNode* root);
 
-TrieNode* DeleteTrie(TrieNode* root, const string& key, int depth = 0);
+TrieNode* DeleteTrieOrigin(TrieNode* root, const string& key, int depth, queue<Step>& steps, bool isStepbyStep);
 
 void InputFileTrie(const string& file_name, TrieNode*& root, queue<Step> steps);
 
-void ClearTrie(TrieNode*& root, int depth = 0);
+void ClearTrie(TrieNode*& root, int depth, queue<Step>& steps, bool isStepbyStep);
 
 //Draw
 
