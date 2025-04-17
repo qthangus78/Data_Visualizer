@@ -5,6 +5,7 @@
 #include <vector>
 #include <stack>
 #include "GlobalVar.h"
+#include "button.h"
 
 const int NODE_SIZE = 33;
 const int ROW_OFFSET = 100;
@@ -231,7 +232,7 @@ private:
     bool valInsert, idxInsert;
     int nums, idx = 0, curindex=0, curline=-1, curlinetmp=-1;
     bool overValue = false, inIndex = true;
-    stack<pair<ListNode*,Vector2>> st;
+    std::stack<std::pair<ListNode*,Vector2>> st;
     std::vector<std::string> codeHead = {
         "Vertex vtx = new Vertex(v)",
         "vtx.next = head",
@@ -296,7 +297,7 @@ private:
     int curline = -1, curlinetmp = -1;
     Vector2 prevpos = {0,0};
     int idx = 0;
-    stack<pair<ListNode*,Vector2>> st;
+    std::stack<std::pair<ListNode*,Vector2>> st;
     std::vector<std::string> delHeadCode = {
         "if empty, do nothing",
         "if head.next = null",
@@ -362,7 +363,7 @@ private:
     };
     int curline=-1;
     int curlinetmp = -1;
-    stack<pair<ListNode*, Vector2>> st;
+    std::stack<std::pair<ListNode*, Vector2>> st;
 public:
     Find(SSL* s);
     void findAnimation(ListNode*& root);
@@ -413,5 +414,5 @@ void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums
 void removeNode(float& NodeRadiusRender, float& FontSize, std::string str, Vector2 pos, float& progressNode, SSL* s);
 void drawTextUp(std::string s, float fontText, Vector2 pos);
 void drawTextDown(std::string s, float fontText, Vector2 pos);
-void nodeNext(ListNode*& cur, Vector2& pos,int& framecntDel, stack<pair<ListNode*, Vector2>>& st);
+void nodeNext(ListNode*& cur, Vector2& pos,int& framecntDel, std::stack<std::pair<ListNode*, Vector2>>& st);
 void drawTextCode(int curline, int curlinetmp);

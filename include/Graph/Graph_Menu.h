@@ -2,7 +2,6 @@
 #include "GlobalVar.h"
 #include "graph.h"
 #include "TextBox.h"
-#include <string>
 #include "tinyfiledialogs.h"
 
 class GraphMenu {
@@ -27,7 +26,7 @@ public:
 private:
     // State variables
     GraphDirectionType directionType = GraphDirectionType::UNDIRECTED;
-    GraphWeightType weightType = GraphWeightType::UNWEIGHTED;
+    GraphWeightType weightType = GraphWeightType::WEIGHTED;
 
     bool fileSelected = false;
     bool confirmPressed = false;
@@ -121,12 +120,4 @@ private:
     bool ShouldShowColoredText(const TextBox& btn, const Color& hoverColor) const;
 };
 
-
-// class InfoBox {
-// public:
-//     rectangle BackGround;
-//     vector<TextBox> Texts;
-//     int numText;
-//     float fontSize;    
-// };
 

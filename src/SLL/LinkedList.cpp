@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <stack>
 //Code Box
 std::vector<button> code;
 void initCodeButton(){
@@ -381,6 +382,7 @@ void SSL::draw(){
     else PlayButton.Drawtexture();
     toggle.Draw();
     speed.Draw();
+    speed.Draw();
     if(mcurrent) mcurrent->draw();
 }
 void SSL::handle(){
@@ -733,6 +735,7 @@ void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums
 void removeNode(float& NodeRadiusRender, float& FontSize, std::string str, Vector2 pos, float& progressNode, SSL* s){
     float fraction = s->getFraction();
     if(!s->getPause()) progressNode+=fraction*deltaTime;
+    if(!s->getPause()) progressNode+=fraction*deltaTime;
     NodeRadiusRender = lerp(NODE_SIZE-4,0,progressNode);
     FontSize = lerp(FontNode,0,progressNode);
     float fontText = lerp(22,0,progressNode);
@@ -768,7 +771,7 @@ void drawTextDown(std::string pointer, float fontText, Vector2 pos){
     Vector2 tmpDraw = {pos.x-tmpwidth.x/2,pos.y+NODE_SIZE};
     DrawTextEx(SSLFont,pointer.c_str(),tmpDraw,fontText,2,RED);
 }
-void nodeNext(ListNode*& cur, Vector2& pos, int& framecntDel, stack<pair<ListNode*, Vector2>>& st){
+void nodeNext(ListNode*& cur, Vector2& pos, int& framecntDel, std::stack<std::pair<ListNode*, Vector2>>& st){
     st.push({cur,pos});
     const int ARROW_LENGTH = EArrow.length;
     cur = cur->next;
