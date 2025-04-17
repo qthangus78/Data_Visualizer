@@ -213,3 +213,30 @@ void AnnouncementBox::Draw() {
     }
 }
 
+void SpeedButtonSpinner::Init(Vector2 pos) {
+    position = pos;
+    Vector2 leftCenter = {position.x - 44, position.y-7};
+    Vector2 rightCenter = {position.x + 44, position.y-7};
+    addButton.SetPosition(rightCenter.x,rightCenter.y);
+    minusButton.SetPosition(leftCenter.x,leftCenter.y);
+}
+
+void SpeedButtonSpinner::Update() {
+    if(minusButton.isPressed()) value = std::max(minValue, value - step);
+    if(addButton.isPressed()) value = std::min(maxValue, value + step);
+}
+
+void SpeedButtonSpinner::Draw() const {
+    addButton.Drawtexture();
+    minusButton.Drawtexture();
+    char text[10];
+    snprintf(text, sizeof(text), "x%.1f", value);
+    Vector2 textSize = MeasureTextEx(customFont, text, 24, 1);
+    Vector2 textPos = { position.x + 20 - textSize.x / 2, position.y + 15 - textSize.y / 2 };
+    DrawTextEx(customFont, text, textPos, 24, 1, BLACK);
+}
+
+float SpeedButtonSpinner::GetValue() const {
+    return value;
+}
+

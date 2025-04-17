@@ -3,21 +3,25 @@
 bool isStepbystep = false;
 bool isPaused = false;
 float blinkTime = 0.0f;
+int offsetX = 912;
+int offsetY = 200;
+int nodeRadius = 20;
+float duration = 1.0f;
+SpeedButtonSpinner speedButton;
+ButtonManager buttons;
+AnnouncementBox pseudoCode;
 std::vector<float> elapsedTime ( 31, 0.0f );
 std::vector<HeapNode> targetHeapNode ( 31, {0, {0, 0}, false} );
 std::vector<HeapNode> originHeapNode ( 31, {0, {0, 0}, false} );
 std::vector<HeapNode> heapNode ( 31, {0, {0, 0}, false} );
-int offsetX = 912;
-int offsetY = 200;
-int nodeRadius = 20;
-float duration = 0.5f;
 
 MinHeap::MinHeap(){
+    pseudoCode.rect = { 5, 60, 420, 320 };
+    speedButton.Init({500, 100});
     tree = std::vector<int> ( 0 );
     mPush = new Push(this);
     mRemove = new Remove(this);
     mTop = new Top(this);
-    // mSize = new Size(this);
     mClear = new ClearH(this);
     mInitialize = new Initialize(this);
     mWaiting = new Waiting(this);
@@ -29,7 +33,6 @@ MinHeap::~MinHeap(){
     if ( mPush ) delete mPush;
     if ( mRemove ) delete mRemove;
     if ( mTop ) delete mTop;
-    if ( mSize ) delete mSize;
     if ( mClear ) delete mClear;
     if ( mCurrent ) delete mCurrent;
     if ( mWaiting ) delete mWaiting;
@@ -38,7 +41,6 @@ MinHeap::~MinHeap(){
     mPush = nullptr;
     mRemove = nullptr;
     mTop = nullptr;
-    mSize = nullptr;
     mClear = nullptr;
     mCurrent = nullptr;
     mWaiting = nullptr;
@@ -129,7 +131,6 @@ IStateHeap* MinHeap::getState() { return mCurrent; }
 IStateHeap* MinHeap::getPush(){ return mPush; }
 IStateHeap* MinHeap::getRemove(){ return mRemove; }
 IStateHeap* MinHeap::getTop(){ return mTop; }
-IStateHeap* MinHeap::getSize(){ return mSize; }
 IStateHeap* MinHeap::getClear(){ return mClear; }
 IStateHeap* MinHeap::getInitialize(){ return mInitialize; }
 IStateHeap* MinHeap::getWaiting(){ return mWaiting; }

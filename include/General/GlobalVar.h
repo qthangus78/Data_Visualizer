@@ -18,6 +18,8 @@ extern Font customFont;
 extern Texture2D customTexture;
 extern Texture2D dice;
 
+extern myTexture addButton;
+extern myTexture minusButton;
 extern myTexture BackButton; 
 extern myTexture PlayButton;
 extern myTexture PauseButton;

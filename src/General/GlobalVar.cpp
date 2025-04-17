@@ -20,6 +20,8 @@ Font customFont;
 Texture2D customTexture;
 Texture2D dice;
 
+myTexture addButton;
+myTexture minusButton;
 myTexture BackButton;
 myTexture PlayButton;
 myTexture PauseButton;
