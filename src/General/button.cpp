@@ -79,137 +79,32 @@ void display_title(const char *Title, ScreenID lastScreenID) {
 
 bool IsResourcesLoaded() {
     return BackButton.isLoaded && PlayButton.isLoaded && PauseButton.isLoaded && ReplayButton.isLoaded
-           && UndoButton.isLoaded && RedoButton.isLoaded;
+        && UndoButton.isLoaded && RedoButton.isLoaded;
 }
 
-AnnouncementBox::AnnouncementBox() 
-    : rect({0, 0, 300, 500})
-    , title("")
-    , highlightStartLine(-1)
-    , highlightEndLine(-1)
-    , backgroundColor({240, 240, 240, 230})
-    , borderColor({50, 50, 50, 255})
-    , titleColor(BLACK)
-    , textColor(BLACK)
-    , highlightColor({244, 67, 54, 255})
-    , highlightBgColor({255, 235, 238, 150})
-    , titleFontSize(20.0f)
-    , contentFontSize(16.0f)
-    , infoFontSize(16.0f)
-    , lineHeight(25.0f)
-    , indentation(15.0f)
-{
+void SpeedButtonSpinner::Init(Vector2 pos) {
+    position = pos;
+    Vector2 leftCenter = { position.x - 44, position.y - 7 };
+    Vector2 rightCenter = { position.x + 44, position.y - 7 };
+    addButton.SetPosition(rightCenter.x, rightCenter.y);
+    minusButton.SetPosition(leftCenter.x, leftCenter.y);
 }
 
-AnnouncementBox::AnnouncementBox(Rectangle rect, const char* title)
-    : rect(rect)
-    , title(title)
-    , highlightStartLine(-1)
-    , highlightEndLine(-1)
-    , backgroundColor({240, 240, 240, 230})
-    , borderColor({50, 50, 50, 255})
-    , titleColor(BLACK)
-    , textColor(BLACK)
-    , highlightColor({244, 67, 54, 255})
-    , highlightBgColor({255, 235, 238, 150})
-    , titleFontSize(20.0f)
-    , contentFontSize(16.0f)
-    , infoFontSize(16.0f)
-    , lineHeight(25.0f)
-    , indentation(15.0f)
-{
+void SpeedButtonSpinner::Update() {
+    if (minusButton.isPressed()) value = std::max(minValue, value - step);
+    if (addButton.isPressed()) value = std::min(maxValue, value + step);
 }
 
-void AnnouncementBox::SetTitle(const char* newTitle) {
-    title = newTitle;
+void SpeedButtonSpinner::Draw() const {
+    addButton.Drawtexture();
+    minusButton.Drawtexture();
+    char text[10];
+    snprintf(text, sizeof(text), "x%.1f", value);
+    Vector2 textSize = MeasureTextEx(customFont, text, 24, 1);
+    Vector2 textPos = { position.x + 20 - textSize.x / 2, position.y + 15 - textSize.y / 2 };
+    DrawTextEx(customFont, text, textPos, 24, 1, BLACK);
 }
 
-void AnnouncementBox::SetContent(const std::vector<char*>& newContent) {
-    content = newContent;
+float SpeedButtonSpinner::GetValue() const {
+    return value;
 }
-
-void AnnouncementBox::SetHighlightLines(int startLine, int endLine) {
-    highlightStartLine = startLine;
-    highlightEndLine = endLine;
-}
-
-void AnnouncementBox::AddInfoLine(const char* label, const char* value) {
-    infoLines.push_back({label, value});
-}
-
-void AnnouncementBox::ClearInfoLines() {
-    infoLines.clear();
-}
-
-void AnnouncementBox::Draw() {
-    // Draw box background
-    DrawRectangleRec(rect, backgroundColor);
-    DrawRectangleLinesEx(rect, 2, borderColor);
-    
-    // Draw title
-    Vector2 titleSize = MeasureTextEx(customFont, title, titleFontSize, 1.0f);
-    Vector2 titlePos = {
-        rect.x + (rect.width - titleSize.x) / 2,
-        rect.y + 15
-    };
-    DrawTextEx(customFont, title, titlePos, titleFontSize, 1.0f, titleColor);
-    
-    // Draw horizontal line below title
-    DrawLineEx(
-        Vector2{rect.x + 10, rect.y + 45},
-        Vector2{rect.x + rect.width - 10, rect.y + 45},
-        2, borderColor
-    );
-    
-    // Draw content
-    float startY = rect.y + 60;
-    
-    for (int i = 0; i < content.size(); i++) {
-        bool isHighlighted = (i >= highlightStartLine && i <= highlightEndLine);
-        Color lineColor = isHighlighted ? highlightColor : textColor;
-        
-        // Draw highlight background if line is highlighted
-        if (isHighlighted) {
-            Vector2 textSize = MeasureTextEx(customFont, content[i], contentFontSize, 1.0f);
-            DrawRectangle(
-                rect.x + 15 + indentation,
-                startY + i * lineHeight - 2,
-                textSize.x + 10,
-                lineHeight,
-                highlightBgColor
-            );
-        }
-        
-        DrawTextEx(
-            customFont, 
-            content[i], 
-            Vector2{rect.x + 20 + indentation, startY + i * lineHeight}, 
-            contentFontSize, 
-            1.0f, 
-            lineColor
-        );
-    }
-    
-    // Draw additional info
-    if (!infoLines.empty()) {
-        float infoY = startY + content.size() * lineHeight + 20;
-        
-        // Draw separator line
-        DrawLineEx(
-            Vector2{rect.x + 10, infoY - 10},
-            Vector2{rect.x + rect.width - 10, infoY - 10},
-            1, Color{100, 100, 100, 150}
-        );
-        
-        DrawTextEx(customFont, "Current state:", Vector2{rect.x + 20, infoY}, 18.0f, 1.0f, textColor);
-        infoY += 30;
-        
-        for (const auto& info : infoLines) {
-            char buffer[100];
-            sprintf(buffer, "%s: %s", info.label, info.value);
-            DrawTextEx(customFont, buffer, Vector2{rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
-            infoY += 25;
-        }
-    }
-}
-

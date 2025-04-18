@@ -106,12 +106,6 @@ struct KruskalVisualizerData {
     KruskalVisualizerData();
 }; 
 
-struct DijkstraStepResult {
-    enum Action { INIT, SELECT_U, RELAX_EDGE, DONE };
-    Action action;
-    int u, v;
-};
-
 class GraphVisualizer {
 public:
     GraphVisualizer(){}

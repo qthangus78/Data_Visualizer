@@ -579,18 +579,14 @@ void handleButtonsHover(){
         buttonVar::buttonCreate.buCol   = color::buttonColorHovered;
     else if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect))
         buttonVar::buttonIns.buCol     = color::buttonColorHovered;
-        buttonVar::buttonIns.buCol.a = 128;
-    }
     else if (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect))
-    {
         buttonVar::buttonDel.buCol     = color::buttonColorHovered;
     else if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect))
         buttonVar::buttonF.buCol       = color::buttonColorHovered;
     else if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))
         buttonVar::buttonClear.buCol   = color::buttonColorHovered;
-    else if(CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect)){
+    else if(CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect))
         buttonVar::buttonGo.buCol = color::buttonFileHovered;
-    }
     else {
         buttonVar::buttonCreate.buCol = color::buttonColor;
         buttonVar::buttonIns.buCol    = color::buttonColor;
