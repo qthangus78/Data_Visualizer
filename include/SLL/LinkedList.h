@@ -10,8 +10,10 @@ const int NODE_SIZE = 33;
 const int ROW_OFFSET = 100;
 const int SCREEN_MARGIN = 50;
 const int FontNode = 22;
+const float speedNode = 70;
 extern std::vector<button> code;
-const Rectangle CodeBox = {850,400,500,252};
+const Rectangle CodeBox = {860,430,500,252};
+extern const float deltaTime;
 void initCodeButton();
 //--------------------------------
 // Các hàm thao tác LinkedList
@@ -98,7 +100,9 @@ private:
     IState* mClear;
     int num;
     IState::ToggleSwitch toggle; 
+    SpeedButtonSpinner speed;
     bool IsPaused = false;
+    float fraction = 2.0f;
 public:
     SSL();
     ~SSL();
@@ -126,6 +130,8 @@ public:
     void pushStack(std::stack<command>& st,command cur);
     void popStack(std::stack<command>& st);
     bool getPause ();
+    float getFraction();
+    void setFraction(float fraction);
     void clearStackUndo();
     void clearStackRedo();
     // hàm thao tác LinkedList

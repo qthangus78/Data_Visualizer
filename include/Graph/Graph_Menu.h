@@ -27,7 +27,7 @@ public:
 private:
     // State variables
     GraphDirectionType directionType = GraphDirectionType::UNDIRECTED;
-    GraphWeightType weightType = GraphWeightType::UNWEIGHTED;
+    GraphWeightType weightType = GraphWeightType::WEIGHTED;
 
     bool fileSelected = false;
     bool confirmPressed = false;
