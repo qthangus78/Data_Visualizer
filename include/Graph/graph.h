@@ -1,6 +1,8 @@
 #pragma once
 
 #include "GlobalVar.h"
+#include "AnnouncementBox.h"
+using namespace std;
 #include <vector>
 #include <queue>
 
@@ -19,7 +21,7 @@ public:
         int other(int x) const;
     };
 
-    Graph(int _numNode, bool _isDirected = false, bool _isWeighted = false);
+    Graph(int _numNode, bool _isDirected = false, bool _isWeighted = true);
 
     void AddEdge(int u, int v, int w);
     float EulerDist(int u, int v) const;
@@ -43,6 +45,67 @@ struct DijkstraStepResult {
     int u, v;
 };
 
+struct DijkstraState {
+    std::vector<int> distances;      // Distances at this step
+    std::vector<bool> processed;     // Processed flags at this step
+    int current_u;                   // Current vertex at this step
+    int current_neighbor_index;
+    bool first_step;       // Current neighbor index at this step
+    DijkstraStepResult step_result;  // Step result at this step
+    
+    // Constructor to capture current state
+    DijkstraState(const std::vector<int>& dist, const std::vector<bool>& proc, 
+                 int u, int neighbor_idx, bool _first_step, DijkstraStepResult result) 
+        : distances(dist), processed(proc), current_u(u), 
+          current_neighbor_index(neighbor_idx), first_step(_first_step), step_result(result) {}
+};
+
+struct KruskalState {
+    std::vector<int> parent;
+    std::vector<bool> in_mst;
+    int current_edge_index;
+    bool first_step;
+    
+    KruskalState(const std::vector<int>& p, const std::vector<bool>& m, int idx, bool fs)
+        : parent(p), in_mst(m), current_edge_index(idx), first_step(fs) {}
+};
+
+struct DijkstraVisualizerData {
+    vector<int> distances;
+    vector<bool> processed;
+    int current_u = -1;
+    int current_neighbor_index = 0;
+    bool first_step = true;
+    vector<char*> codes;
+
+    DijkstraStepResult step_result = {DijkstraStepResult::INIT};
+    float elapsed_time = 0.0f;
+    const float step_interval = 1.0f;
+    // bool is_paused = false; 
+    bool inited = false;
+
+    // history stack to DijkstraVisualizerData
+    std::vector<DijkstraState> history;
+    DijkstraVisualizerData();
+};
+
+struct KruskalVisualizerData {
+    vector<int> parent;
+    vector<pair<int, int>> edges;  // {weight, edge_index}
+    int current_edge_index = -1;
+    bool first_step = true;
+    vector<bool> in_mst;
+    vector<char*> codes;
+
+    float elapsed_time = 0.0f;
+    const float step_interval = 1.0f;
+    // bool is_paused = false;
+    bool inited = false;
+
+    std::vector<KruskalState> history;
+    KruskalVisualizerData();
+}; 
+
 class GraphVisualizer {
 public:
     GraphVisualizer(){}
@@ -57,15 +120,33 @@ public:
     void DrawDIJKSTRA() const;
     void initEadesFactor();
 
-    // Add Dijkstra visualization methods
+
+    // Dijkstra visualization methods
     void initDijkstra();
     void DrawDIJKSTRA_StepByStep();
-
+    bool UndoDijkstra();
+    bool RedoDijkstra();
+    DijkstraStepResult GetDijkstraStepResult() const;
+    // End Dijkstra visualization methods
 
     // Add MST visualization methods
     void DrawMST_StepByStep();
     void initKruskal();
     bool isKruskalInited() const; 
+    bool isKruskalFinished() const;
+    bool UndoKruskal();
+    bool RedoKruskal();
+    // End MST visualization methods
+
+    // Add Speed methods
+    float GetSpeed() const;
+    void initSpeedControler(Vector2 pos);
+    void UpdateSpeedControler();
+    void DrawSpeedControler() const;
+
+    bool isPaused() const;
+    void Pause();
+    void Resume();
 
 private:
     int selectedNode = -1;
@@ -90,50 +171,37 @@ private:
     Vector2 CenteringForce(int u) const;
     void DrawEdge(const Graph::Edge& edge, int special = 0) const;
     void DrawNode(int u, bool special = false) const;
-    void DrawDijkstraPseudoCode();  // Add this line
+    // End Eades algorithm parameters
 
-    // Add Dijkstra visualization properties
-    struct DijkstraVisualizerData {
-        vector<int> distances;
-        vector<bool> processed;
-        int current_u = -1;
-        int current_neighbor_index = 0;
-        bool first_step = true;
-        vector<char*> codes;
-
-        DijkstraStepResult step_result = {DijkstraStepResult::INIT};
-        float elapsed_time = 0.0f;
-        const float step_interval = 1.0f;
-        bool is_paused = false; 
-        bool inited = false;
-        DijkstraVisualizerData();
-    } dijkstra_data;
-
+    // Dijkstra visualization properties
     int selectNextDijkstraU();
     void GetDijkstraStep();
+    void DrawDijkstraPseudoCode(); 
+    DijkstraVisualizerData dijkstra_data;
+    // End Dijkstra visualization properties
 
-    // Add Kruskal visualization properties
-    struct KruskalVisualizerData {
-        vector<int> parent;
-        vector<pair<int, int>> edges;  // {weight, edge_index}
-        int current_edge_index = -1;
-        bool first_step = true;
-        vector<bool> in_mst;
-        vector<char*> codes;
 
-        float elapsed_time = 0.0f;
-        const float step_interval = 1.0f;
-        bool is_paused = false;
-        bool inited = false;
-        KruskalVisualizerData();
-    } kruskal_data;
-
+    // Kruskal visualization properties
     void GetKruskalStep();
     int findSet(int v);
-    bool unionSets(int a, int b);
+    bool unionSets(int a, int b); 
+    void DrawKruskalPseudoCode();
+    KruskalVisualizerData kruskal_data;
+    // End Kruskal visualization properties
+
 
     // Add announcement box for algorithms
     AnnouncementBox algorithmBox;
+    void UpdateDijkstraInfoLines();
+    void UpdateDijkstraTable();
+    void UpdateAdditionalInfoLines();
+
+    void UpdateKruskalTable();
+    void UpdateKruskalInfoLines();
+
+    // Add speed controler
+    SpeedButtonSpinner SpeedControler;
+    bool is_paused = false;
 };
 
 namespace GraphAlgorithms {

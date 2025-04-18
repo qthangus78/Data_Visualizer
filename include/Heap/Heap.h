@@ -8,6 +8,8 @@
 #include "GlobalVar.h"
 #include "LinkedList.h"
 #include "button.h"
+#include <string>
+using namespace std;
 
 class MinHeap;
 

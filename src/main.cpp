@@ -15,6 +15,8 @@ int main() {
 
     customTexture = LoadTexture("../resources/images/back-normal.png");
     dice = LoadTexture("../resources/images/dice.png");
+    LoadFontResource();
+    LoadButtonsResources();
 
     SSL SSL;
     SLL_display::sslInstance = &SSL; 
@@ -22,8 +24,6 @@ int main() {
     MinHeap minHeap;
     Heap_display::heapInstance = &minHeap;
 
-    LoadFontResource();
-    LoadButtonsResources();
     
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();

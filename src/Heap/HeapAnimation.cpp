@@ -158,8 +158,8 @@ void ButtonManager::DrawRandom(float x, float y){
     y = y + ( 50 - dice.height * 0.25 ) / 2;
 
     // Lưu tọa độ vào button random để handle click 
-    random.rect = { x, y, dice.height * 0.25f, dice.height * 0.25f };
-    DrawTextureEx(dice, {x, y}, 0.0f, 0.25f, WHITE);
+    random.rect = { (float)x, (float)y, dice.height * 0.25f, dice.height * 0.25f };
+    DrawTextureEx(dice, {(float)x, (float)y}, 0.0f, 0.25f, WHITE);
 }
 
 void ButtonManager::DrawBackground(){
@@ -346,11 +346,11 @@ void Push::handleInsert(int val){
     animatingIdx = mHeap->size() - 1;
     
     // Tính toán vị trí mục tiêu
-    float x = animatingIdx - (1 << (int)log2(animatingIdx + 1)) + 1;
-    float y = (int)log2(animatingIdx + 1);
-    float height = (int)log2(mHeap->size()) + 1;
-    targetPos = calculateNodePos({x, y}, height);
-    
+    int x = animatingIdx - (1 << (int)log2(animatingIdx + 1)) + 1;
+    int y = (int)log2(animatingIdx + 1);
+    int height = (int)log2(mHeap->size()) + 1;
+    targetPos = calculateNodePos({(float)x, (float)y}, 100, screenWidth / 2, height);
+
     // Khởi tạo vị trí ban đầu
     animatingPos = { screenWidth / 2, 600 };
     originPos = animatingPos;

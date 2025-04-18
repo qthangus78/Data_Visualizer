@@ -156,7 +156,7 @@ Vector2 calculateNodePos ( Vector2 pos, int height){
     int pX = offsetX + (pos.x * levelSpacing) - ((nodesInLevel - 1) * levelSpacing / 2);
     int pY = offsetY + (level * verticalSpacing);
     
-    return {pX, pY};
+    return {float(pX), float(pY)};
 }
 
 void drawHeap(std::vector<int>& tree) {
@@ -171,21 +171,21 @@ void drawHeap(std::vector<int>& tree) {
 
             Vector2 parentPos = calculateNodePos({x, y}, height);
 
-            drawNode(parentPos, std::to_string(tree[temp]), nodeRadius);
+            drawNode(parentPos, std::to_string(tree[temp]), nodeRadius,WHITE);
             
             if ( y < height - 1 ){
                 if ( 2 * temp + 1 < tree.size() ){
-                    int leftChildX = 2 * x;
-                    int leftChildY = y + 1;
-                    Vector2 leftChildPos = calculateNodePos({leftChildX, leftChildY}, height);
+                    float leftChildX = 2.0f * x;
+                    float leftChildY = y + 1.0;
+                    Vector2 leftChildPos = calculateNodePos({leftChildX, leftChildY}, offsetY, offsetX, height);
                     Vector2 arrowStart = calculateArrowPosition(parentPos, leftChildPos, nodeRadius);
                     Vector2 arrowEnd = calculateArrowPosition(leftChildPos, parentPos, nodeRadius);
                     drawArrow(arrowStart, arrowEnd, BLACK);
                 }
                 if ( 2 * temp + 2 < tree.size() ){
-                    int rightChildX = 2 * x + 1; // Horizontal position of right child
-                    int rightChildY = y + 1; // Vertical position of right child
-                    Vector2 rightChildPos = calculateNodePos({rightChildX, rightChildY}, height);
+                    float rightChildX = 2.0f * x + 1; // Horizontal position of right child
+                    float rightChildY = y + 1.0f; // Vertical position of right child
+                    Vector2 rightChildPos = calculateNodePos({rightChildX, rightChildY}, offsetY, offsetX, height);
                     Vector2 arrowStart = calculateArrowPosition(parentPos, rightChildPos, nodeRadius);
                     Vector2 arrowEnd = calculateArrowPosition(rightChildPos, parentPos, nodeRadius);
                     drawArrow(arrowStart, arrowEnd, BLACK);

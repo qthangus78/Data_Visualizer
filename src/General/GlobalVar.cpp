@@ -17,41 +17,51 @@ const int FPS = 60;
 Vector2 mouse;
 bool WindowClose = 0;
 Font customFont;
-Texture2D customTexture;
-Texture2D dice;
-
-myTexture addButton;
-myTexture minusButton;
+Font SSLFont;
+Font textCodeFont;
 myTexture BackButton;
 myTexture PlayButton;
 myTexture PauseButton;
 myTexture ReplayButton;
 myTexture UndoButton;
 myTexture RedoButton;
+myTexture addButton;
+myTexture minusButton;
+myTexture repeatButton;
+
+Texture2D customTexture;
+Texture2D dice;
 
 ScreenID currentScreenID = ScreenID::StartScreen;
 
 namespace color {
-    Color buttonColor        = BLUE;
-    Color buttonColorHovered = {204, 119, 34, 255};
-    Color buttonFile         = GRAY;
-    Color buttonFileHovered  = DARKGRAY;
-    Color nodeNotInMode      = BLUE;
-    Color nodeRendered       = {204, 119, 34, 255};
+    Color buttonColor        = {72, 166, 167,255};
+    Color buttonColorHovered = {0, 106, 113,255};
+    Color buttonFile         = {242, 239, 231, 255};
+    Color buttonFileHovered  = GRAY;
+    Color nodeNotInMode      = {51, 51, 51, 255};
+    Color nodeRendered       = {255, 215, 0, 255};
     Color edgeNotInMode      = BLACK;
-    Color edgeRendered       = {204, 119, 34, 255};
+    Color edgeRendered       = {255, 215, 0, 255};
 }
 namespace buttonVar {
-    button buttonIns   = {{50.0f, 440.0f, button::sizeW, button::sizeH}, color::buttonColor, "Insert"};
-    button buttonDel   = {{50.0f, 500.0f, button::sizeW, button::sizeH}, color::buttonColor, "Delete"};
-    button buttonF     = {{50.0f, 560.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
-    button buttonClear = {{50.0f, 620.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
+    button buttonIns    = {{50.0f, 450.0f, button::sizeW, button::sizeH}, color::buttonColor, "Insert"};
+    button buttonDel    = {{50.0f, 500.0f, button::sizeW, button::sizeH}, color::buttonColor, "Delete"};
+    button buttonF      = {{50.0f, 550.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
+    button buttonClear  = {{50.0f, 600.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
+    button buttonGo     = {{300.0f, 640.0f, 60,40}, color::buttonFile, "Go"};
+    button buttonCreate = {{50.0f, 400.0f, button::sizeW, button::sizeH}, color::buttonColor, "Create"};
 }
 Edge EArrow = {100.0f, 3.0f, 20.0f};
-Vector2 startLinkedListPos = {50,180};
+Vector2 startLinkedListPos = {50,170};
 
 void LoadFontResource() {
     customFont = LoadFont("../resources/fonts/Montserrat-Bold.ttf");
+    SetTextureFilter(customFont.texture, TEXTURE_FILTER_BILINEAR);
+    SSLFont = LoadFont("../resources/fonts/PublicSans-Bold.ttf");
+    SetTextureFilter(SSLFont.texture, TEXTURE_FILTER_BILINEAR);
+    textCodeFont = LoadFont("../resources/fonts/PublicSans-Regular.ttf");
+    SetTextureFilter(textCodeFont.texture, TEXTURE_FILTER_BILINEAR);
 }
 
 void LoadButtonsResources() {
@@ -72,10 +82,19 @@ void LoadButtonsResources() {
 
     RedoButton.LoadTextureResources("../resources/images/Rotate-Right.png",
         "../resources/images/Rotate-Right-Select.png");
+    customTexture = LoadTexture("../resources/images/back-normal.png");
+    addButton.LoadTextureResources("../resources/images/add-circle.png",
+        "../resources/images/add-circle-selected.png");
+    minusButton.LoadTextureResources("../resources/images/minus-circle.png",
+        "../resources/images/minus-circle-selected.png");
+    dice = LoadTexture("../src/Heap/dice.png");
     
-    cout << PauseButton.MainTexture.width << " " << PauseButton.MainTexture.height << endl;
+    repeatButton.LoadTextureResources("../resources/images/Repeat-normal.png",
+        "../resources/images/Repeat-selected.png");
 }
 
 void UnloadFontResource() {
     UnloadFont(customFont);
+    UnloadFont(SSLFont);
+    UnloadFont(textCodeFont);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "GlobalVar.h"
+using namespace std;
 
 bool maximize(int &x, const int &y) { if (x < y) {x = y; return 1;} return 0; }
 

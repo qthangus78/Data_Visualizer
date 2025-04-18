@@ -1,8 +1,8 @@
 #pragma once 
-#include<bits/stdc++.h>
-#include<raylib.h>
+#include <bits/stdc++.h>
+#include <raylib.h>
 #include "button.h"
-using namespace std;
+// using namespace std;
 
 extern const float screenWidth;
 extern const float screenHeight;
@@ -15,24 +15,30 @@ extern Vector2 mouse;
 extern bool WindowClose;
 
 extern Font customFont;
-extern Texture2D customTexture;
-extern Texture2D dice;
+extern Font SSLFont;
+extern Font textCodeFont;
+extern Font customFont;
 
-extern myTexture addButton;
-extern myTexture minusButton;
 extern myTexture BackButton; 
 extern myTexture PlayButton;
 extern myTexture PauseButton;
 extern myTexture ReplayButton;
 extern myTexture UndoButton;
 extern myTexture RedoButton;
+extern myTexture addButton;
+extern myTexture minusButton;
+extern myTexture repeatButton;
 extern ScreenID currentScreenID;
+extern Texture2D customTexture;
+extern Texture2D dice;
+
+
 //--------------------------------
 // Cấu trúc button
 //--------------------------------
 struct button {
     Rectangle rect;
-    static const int sizeW = 120;
+    static const int sizeW = 100;
     static const int sizeH = 40;
     Color buCol;
     std::string text;
@@ -58,6 +64,8 @@ namespace buttonVar {
     extern button buttonDel;
     extern button buttonF;
     extern button buttonClear;
+    extern button buttonGo;
+    extern button buttonCreate;
 }
 //--------------------------------
 // Cấu trúc Arrow
