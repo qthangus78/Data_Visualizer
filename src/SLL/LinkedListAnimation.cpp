@@ -6,9 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include "tinyfiledialogs.h"
-//--------------------------------
 // notInMode
-//--------------------------------
 void notInMode::draw(){
     drawTextCode(-1,-1);
     drawButtons();
@@ -16,14 +14,10 @@ void notInMode::draw(){
 }
 void notInMode::handle(){
     bool mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+    //Xử lí chuyển state
     handleButtonsHover();     
     handleButtonsClick(mSSL);
-    if(UndoButton.isPressed()){
-        mSSL->handleUndo();
-    }
-    if(RedoButton.isPressed()){
-        mSSL->handleRedo();
-    }
+    //Xử lí toggle
     IState::ToggleSwitch toggle = mSSL->getToggle();
     toggle.Update(mouse);
     mSSL->setToggle(toggle);
@@ -70,6 +64,7 @@ void Create::updateCommonAnimation(){
         }
 }
 void Create::handleFileMode(){
+    //Di chuyển button go
     switch(prev){
         case CreateType::None:
         buttonVar::buttonGo.rect.y = buttonVar::buttonCreate.rect.y;
@@ -82,6 +77,7 @@ void Create::handleFileMode(){
     }
 }
 void Create::handleRandomMode(){
+    //Di chuyển button Go
     switch(prev){
         case CreateType::None:
         buttonVar::buttonGo.rect.y = buttonVar::buttonIns.rect.y;
@@ -106,9 +102,8 @@ void Create::handleInit(){
     mSSL->delAllList();
     pos.clear();
     randomProcess = true;
-    progress = 0;  
-    mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
+    progress = 0;
+    //Xử lí random, nhập vào linked list  
     int nums = GetRandomValue(1, 28);
     pos.resize(nums);
     int val = GetRandomValue(0, 100);
@@ -139,14 +134,13 @@ void Create::handleInputFile() {
         return;
     if (fileProcess)
         return;
+    //Lấy đường dẫn
     const char* filePath = tinyfd_openFileDialog("Select a File", "", 0, NULL, NULL, 0);
     if (filePath) {
         mSSL->delAllList();
         pos.clear();
         progress = 0;
         fileProcess = true;
-        mSSL->clearStackUndo();
-        mSSL->clearStackRedo();
         std::string pathFile = filePath;
         std::ifstream fin(pathFile);
         if (fin.is_open()) {
@@ -155,7 +149,7 @@ void Create::handleInputFile() {
         }
     }
     if (mSSL->getRoot()) {
-        handlePos(mSSL->getRoot(), startLinkedListPos,pos);
+        handlePos(mSSL->getRoot(), startLinkedListPos, pos);
     }
     mSSL->setNumElement(pos.size());
 }
@@ -211,53 +205,27 @@ void Create::handle(){
         fileInput.buCol = color::buttonFile;
         random.buCol = color::buttonFile;
     }
+    //Chuyển mode
     bool mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     CreateType detectedMode = DetectCurrentMode();
     if (mousePressed && detectedMode != CreateType::None) {
         handleModeTransitTion(detectedMode);
     }
     updateCommonAnimation();
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        mSSL->setState(mSSL->getnotInMode());
-        mSSL->setExistVal(mSSL->getRoot());
+    //Đổi state
+    if ((CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect)) ||  
+    (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !randomProcess && !fileProcess) {
         cur = CreateType::None;
     }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        mSSL->setState(mSSL->getInsert());
-        mSSL->setExistVal(mSSL->getRoot());
-        cur = CreateType::None;
-    }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        mSSL->setState(mSSL->getDel());
-        mSSL->setExistVal(mSSL->getRoot());
-        cur = CreateType::None;
-        buttonVar::buttonGo    = {{buttonVar::buttonDel.rect.x+250, buttonVar::buttonDel.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
-    }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        mSSL->setState(mSSL->getFind());
-        mSSL->setExistVal(mSSL->getRoot());
-        cur = CreateType::None;
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250,buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y;
-    }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        mSSL->setState(mSSL->getClear());
-        mSSL->setExistVal(mSSL->getRoot());
-        cur = CreateType::None;
-        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
-    }
-    if(UndoButton.isPressed()){
-        mSSL->handleUndo();
-    }
-    if(RedoButton.isPressed()){
-        mSSL->handleRedo();
-    }
+    if(!randomProcess && !fileProcess) handleButtonsClick(mSSL);
     IState::ToggleSwitch toggle = mSSL->getToggle();
     toggle.Update(mouse);
     mSSL->setToggle(toggle);
 }
-//--------------------------------
 // Insert
-//--------------------------------
 Insert::Insert(SSL* s)
 :mSSL(s),InsertTailProcess(false),InsertHeadProcess(false),InsertIdxProcess(false),frameCounter(0),framecntInsert(0),currentAnimatingNode(nullptr),textIn(""),
 posTail({1200,70}),progressNode(0), progressArrow(0),textInIndex(""),valInsert(false),idxInsert(false), Font(0)
@@ -328,8 +296,8 @@ void Insert::updateCommonAnimation(){
     }
 }
 void Insert::handleNotMode(){
+    //Animation các rect
     mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
     overValue = false;
     InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonDel.rect.y,progressAppear);
     inputRect.height = lerp(inputRect.height,0,progressAppear);
@@ -342,8 +310,8 @@ void Insert::handleNotMode(){
     while(!st.empty()) st.pop();
 }
 void Insert::handleHeadMode(){
+    //Animation button go và các rect input và button insert
     mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
     inputRect.y = buttonVar::buttonDel.rect.y;
     inputRect.height = lerp(inputRect.height, button::sizeH,progressAppear);
     overValue = false;
@@ -374,8 +342,8 @@ void Insert::handleHeadMode(){
     }
 }
 void Insert::handleTailMode(){
+    //Animation button go và rect input và button insert
     mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
     overValue = false;
     while(!st.empty()) st.pop();
     switch (prev)
@@ -410,8 +378,8 @@ void Insert::handleTailMode(){
     }
 }
 void Insert::handleIdxMode(){
+    //Animation button go, rect idx và value, button insert
     mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
     overValue = false;
     while(!st.empty()) st.pop();
     inputRect.height = lerp(inputRect.height,0,progressAppear);
@@ -482,16 +450,19 @@ void Insert::handleCodeLine(){
 void Insert::insertHeadAnimation(int x){
     std::vector<ShadedData> pos;
     handlePos(mSSL->getRoot(), startLinkedListPos,pos);
+    //Khi node xuất hiện thì vẽ arrow tới head hiện tại
     if(progressNode >= 1.0f){
         float fraction = mSSL->getFraction();
         if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
         float ArrowLengthRender = lerp(NODE_SIZE,EArrow.length+NODE_SIZE,progressArrow);
         drawArrow2Node(startLinkedListPos, {startLinkedListPos.x+ArrowLengthRender,startLinkedListPos.y},color::edgeRendered);
     }
+    //Node xuất hiện
     float NodeRadiusRender, FontSize = 0;
     amplifyNode(NodeRadiusRender,FontSize,startLinkedListPos,x,progressNode,mSSL);
     movesPos(pos,progressNode);
     drawTextUp("head",20,pos[0].pos);
+    //Kết thúc animation, set lại variables
     if(progressNode >= 1.0f && progressArrow >= 1.0f){
         InsertHeadProcess = InsertIdxProcess = false;
         progressNode = progressArrow = 0;
@@ -569,6 +540,7 @@ void Insert::insertIdxAnimation(ListNode*& tmp){
         mSSL->setPause(false);
         std::vector<ShadedData> movePos;
         handlePos(tmp,pos,movePos);
+        //Vẽ arrow giữa cur với node prev và aft
         if(progressNode>=1.0f){
             curline = 5;
             curlinetmp = 6;
@@ -596,6 +568,7 @@ void Insert::insertIdxAnimation(ListNode*& tmp){
         }
         drawPartofLinkedList(mSSL->getRoot(),tmp,mSSL);  
         float NodeRadiusRender,FontSize = 0; 
+        //Xuất hiện node
         amplifyNode(NodeRadiusRender,FontSize,pos,nums,progressNode, mSSL);
         if(progressNode<1.0f){
             curline = 3;
@@ -603,6 +576,7 @@ void Insert::insertIdxAnimation(ListNode*& tmp){
         }
         movesPos(movePos,progressNode);
         drawTextDown("aft",22,movePos[0].pos);
+        //Kêt thúc animation và set lại variables
         if(progressNode >= 1.0f && progressArrow >= 1.0f){
             InsertIdxProcess = false;
             progressNode = progressArrow = framecntInsert = 0;
@@ -640,7 +614,6 @@ void Insert::handleUndo(){
     if((cur == InsertType::Head || cur == InsertType::Idx) && modeCur != InsertType::Tail && !InsertHeadProcess && !InsertIdxProcess) {
         mSSL->handleUndo();
         mSSL->pushStack(mSSL->getCommandUndo(),prev);
-        mSSL->popStack(mSSL->getCommnadRedo());
     }
     float fraction = mSSL->getFraction();
     mSSL->setPause(true);
@@ -779,17 +752,13 @@ void Insert::ResetInsertState() {
     InsertTailProcess = InsertIdxProcess = InsertHeadProcess = false;
     currentAnimatingNode = nullptr;
     posTail = {1200, 50};
-    mSSL->setExistVal(mSSL->getRoot());
     curline = curlinetmp = -1;
     cur = InsertType::None;
     inputRect.height = Index.rect.height = Value.rect.height = idxRect.height = valRect.height = 0;
     InsertTail.rect.y = buttonVar::buttonDel.rect.y;
     InsertIndex.rect.y = buttonVar::buttonF.rect.y;
-    overValue = false;
-    inIndex - true;
+    overValue = false, inIndex = true;
     while(!st.empty()) st.pop();
-    mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
 }
 void Insert::handle(){
     IState::ToggleSwitch toggle = mSSL->getToggle();
@@ -805,6 +774,7 @@ void Insert::handle(){
     }
     if(toggle.isStepByStep) handleCodeLine();
     handleButtonsHover();
+    //Chuyển mode
     bool mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     InsertType detectedMode = DetectCurrentMode();
     if (mousePressed && detectedMode != InsertType::None && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
@@ -825,29 +795,17 @@ void Insert::handle(){
         InsertTail.buCol = color::buttonFile;
         InsertIndex.buCol = color::buttonFile;
     }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
-        mSSL->setState(mSSL->getCreate());
+    //Chuyển state
+    if((CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect)) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
         ResetInsertState();
     }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
-        mSSL->setState(mSSL->getnotInMode());
-        ResetInsertState();
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
-        mSSL->setState(mSSL->getDel());
-        ResetInsertState();
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
-        mSSL->setState(mSSL->getFind());
-        ResetInsertState();
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250, buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y;
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && mousePressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) {
-        mSSL->setState(mSSL->getClear());
-        ResetInsertState();
-        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
-    }
+    if(!InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess) handleButtonsClick(mSSL);
     SSL::command command;
+    // Xử lí input khi Head mode và Tail mode
     if (cur == InsertType::Head || cur == InsertType::Tail) {
     int key = GetKeyPressed();
     if (key >= '0' && key <= '9')
@@ -855,13 +813,14 @@ void Insert::handle(){
     if (key == KEY_BACKSPACE && !textIn.empty())
         textIn.pop_back();
     bool goPressed = (key == KEY_ENTER) || (CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && mousePressed);
+    //Vượt quá 100
     if(!textIn.empty() && goPressed && !InsertHeadProcess && !InsertTailProcess && mSSL->getNumElement()<=28 && (std::stoi(textIn) < 0 || std::stoi(textIn) > 100)){
         overValue = true;
         while(!st.empty()) st.pop();
     }
     else if (!textIn.empty() && goPressed && !InsertHeadProcess && !InsertTailProcess && mSSL->getNumElement()<=28) {
+        //Insert Tail
         if (cur == InsertType::Tail) {
-            mSSL->clearStackRedo();
             command = {InsertType::Tail,InsertType::None,DeleteType::None,DeleteType::None,1,std::stoi(textIn)};
             mSSL->pushStack(mSSL->getCommandUndo(),command);
             overValue = false;
@@ -892,8 +851,8 @@ void Insert::handle(){
                 currentAnimatingNode = mSSL->getTail();
             }
         }
+        //Insert Head
         else if (cur == InsertType::Head) {
-            mSSL->clearStackRedo();
             command = {InsertType::Head,InsertType::None,DeleteType::None,DeleteType::None,1,std::stoi(textIn)};
             mSSL->pushStack(mSSL->getCommandUndo(),command);
             overValue = false;
@@ -915,13 +874,12 @@ void Insert::handle(){
     }
     }
     else if (cur == InsertType::Idx) {
+    //Chuyển giữa value và idx
     if (CheckCollisionPointRec(mouse, idxRect) && mousePressed) {
-        idxInsert = true;
-        valInsert = false;
+        idxInsert = true, valInsert = false;
     }
     else if (CheckCollisionPointRec(mouse, valRect) && mousePressed) {
-        idxInsert = false;
-        valInsert = true;
+        idxInsert = false, valInsert = true;
     }
     int key = GetKeyPressed();
     if (key >= '0' && key <= '9') {
@@ -939,24 +897,24 @@ void Insert::handle(){
     bool goPressed = (key == KEY_ENTER) || (CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON));
     if (!textIn.empty() && !textInIndex.empty() && std::stoi(textInIndex) > 0 && goPressed && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess && mSSL->getNumElement()<=28) {
         int idxInput = std::stoi(textInIndex) - 1;
+        //Vượt quá 100
         if(idxInput < mSSL->getNumElement() && (std::stoi(textIn) < 0 || std::stoi(textIn) > 100)){
             overValue = true;
             idx = idxInput;
             while(!st.empty()) st.pop();
         }
+        //Insert Idx
         else if (idxInput != mSSL->getNumElement() && idxInput != 0 && idxInput < mSSL->getNumElement()) {
             currentAnimatingNode = mSSL->getRoot();
             pos = startLinkedListPos;
             overValue = false;
             modeCur = InsertType::Idx;
-            curline = curlinetmp = -1;
-            curindex = 0;
+            curline = curlinetmp = -1, curindex = 0;
             nums = std::stoi(textIn);
             idx = idxInput;
             textIn.clear();
             textInIndex.clear();
             InsertIdxProcess = true;
-            mSSL->clearStackRedo();
             command = {InsertType::Idx,InsertType::Idx,DeleteType::None,DeleteType::None,idx,nums};
             mSSL->pushStack(mSSL->getCommandUndo(),command);
             while(!st.empty()) st.pop();
@@ -980,6 +938,7 @@ void Insert::handle(){
                 }
             }
         }
+        //Vượt quá nums element
         else if(idxInput > mSSL->getNumElement()){
             nums = std::stoi(textIn);
             idx = idxInput;
@@ -989,8 +948,8 @@ void Insert::handle(){
             inIndex = false;
         }
         else {
+                //Insert Tail
                 if (idxInput == mSSL->getNumElement()) {
-                mSSL->clearStackRedo();
                 command = {InsertType::Tail,InsertType::None,DeleteType::None,DeleteType::None,1,std::stoi(textIn)};
                 mSSL->pushStack(mSSL->getCommandUndo(),command);
                 idx = idxInput;
@@ -1026,9 +985,9 @@ void Insert::handle(){
                 textIn.clear();
                 textInIndex.clear();
             }
+            //Insert Head
             else if(idxInput == 0){
                 idx = idxInput;
-                mSSL->clearStackRedo();
                 command = {InsertType::Head,InsertType::None,DeleteType::None,DeleteType::None,1,std::stoi(textIn)};
                 mSSL->pushStack(mSSL->getCommandUndo(),command);
                 overValue = false;
@@ -1121,7 +1080,6 @@ void Delete::handleModeTransitTion(DeleteType newType){
     progressAppear = 0.0f;
     inputRect.height = (prev == DeleteType::Val) ? button::sizeH : 0.0f;
     mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
 }
 void Delete::updateCommonAnimation(){
     if(!inProcess) return;
@@ -1155,9 +1113,9 @@ void Delete::updateCommonAnimation(){
 void Delete::handleNotMode(){
     existVal = true;
     inputRect.height = lerp(inputRect.height,0,progressAppear);
-    mSSL->clearStackRedo();
 }
 void Delete::handleHeadMode(){
+    //Animation button go
     existVal = true;
     switch (prev)
     {
@@ -1177,6 +1135,7 @@ void Delete::handleHeadMode(){
     }
 }
 void Delete::handleTailMode(){
+    //Animation button go
     existVal = true;
     switch (prev)
     {
@@ -1197,6 +1156,7 @@ void Delete::handleTailMode(){
     }
 }
 void Delete::handleValMode(){
+    //Animation button go và input rect
     existVal = true;
     inputRect.height = lerp(inputRect.height,button::sizeH,progressAppear);
     switch (prev)
@@ -1212,8 +1172,24 @@ void Delete::handleValMode(){
         break;
     }
 }
+void Delete::handleCodeLine(){
+    switch (cur)
+    {
+    case DeleteType::Head:
+    handleHeadCode();
+    break;
+    case DeleteType::Tail:
+    handleTailCode();
+    break;
+    case DeleteType::Val:
+    handleValCode();
+    default:
+        break;
+    }
+}
 void Delete::delHeadAnimation(){
     float fraction = mSSL->getFraction();
+    //Nếu chỉ có 1 node
     if(!mSSL->getRoot()->next){
         if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
         ArrowLengthRender = lerp(EArrow.length,0,progressArrow);
@@ -1223,11 +1199,13 @@ void Delete::delHeadAnimation(){
         float NodeRadiusRender,FontSize = 0;
         removeNode(NodeRadiusRender,FontSize,std::to_string(mSSL->getRoot()->data),startLinkedListPos,progressNode, mSSL);
     }
+    // > 2 node
     else 
     {
     std::vector<ShadedData>  movePos,copy;
     handlePos(mSSL->getRoot()->next,{startLinkedListPos.x+EArrow.length+NODE_SIZE,startLinkedListPos.y},movePos);
     handlePos(mSSL->getRoot(),startLinkedListPos,copy);
+    //Vẽ arrow tới node 2
     if(progressArrow < 1.0f)
     {
     if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
@@ -1239,6 +1217,7 @@ void Delete::delHeadAnimation(){
     }
     drawArrow(startLinkedListPos,{startLinkedListPos.x+ArrowLengthRender,startLinkedListPos.y},color::edgeRendered);
     if(progressArrow < 1.0f) drawNode(startLinkedListPos,std::to_string(mSSL->getRoot()->data),NODE_SIZE,color::nodeNotInMode);
+    //Xóa node
     if(progressArrow>=1.0f){
         ArrowLengthRender = lerp(EArrow.length,0,progressNode);
         float NodeRadiusRender, FontSize = 0;
@@ -1268,7 +1247,8 @@ void Delete::delTailAnimation(ListNode*& cur){
     if(cur == mSSL->getRoot() && framecntDel <= (int)speedNode/(2*fraction)) curline = 1;
     else if(framecntDel >= (int)speedNode/(2*fraction)) curline = 2;
     if(cur->next) drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
-    if(framecntDel >= (int)speedNode/fraction && cur->next) {
+    //Node next 
+    if(framecntDel >= (int) speedNode/fraction && cur->next) {
         prevpos = shadedPos.pos; 
         nodeNext(cur,shadedPos.pos,framecntDel,st);
         curline = 3;
@@ -1282,6 +1262,7 @@ void Delete::delTailAnimation(ListNode*& cur){
         curline = 4;
         drawPartofLinkedListNotColor(mSSL->getRoot(),cur,mSSL);
         drawTextUp("head",22,startLinkedListPos);
+        //Xử lí arrow ở cuối cùng
         Vector2 targetPos = (shadedPos.pos.x+ARROW_LENGTH+NODE_SIZE < GetScreenWidth()-SCREEN_MARGIN) ? Vector2{shadedPos.pos.x+ARROW_LENGTH+NODE_SIZE,shadedPos.pos.y} :Vector2{startLinkedListPos.x,shadedPos.pos.y+ROW_OFFSET};
         Vector2 direct = Vector2Subtract(targetPos, shadedPos.pos);
         float length = Vector2Length(direct);
@@ -1290,6 +1271,7 @@ void Delete::delTailAnimation(ListNode*& cur){
         float sin = direct.y/length; 
         float cos = direct.x/length;
         ArrowLengthRender = lerp(ArrowOri, 0, progressNode);
+        //Xóa arrow và node
         drawArrow(shadedPos.pos,{shadedPos.pos.x+ArrowLengthRender*cos,shadedPos.pos.y+ArrowLengthRender*sin},color::edgeRendered);
         float NodeRadiusRender,FontSize = 0;
         removeNode(NodeRadiusRender,FontSize,std::to_string(shadedPos.node->data),shadedPos.pos,progressNode,mSSL);
@@ -1391,7 +1373,6 @@ void Delete::handleUndo(){
     if(!DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
         mSSL->handleUndo();
         mSSL->pushStack(mSSL->getCommandUndo(),prev);
-        mSSL->popStack(mSSL->getCommnadRedo());
     }
     float fraction = mSSL->getFraction();
     mSSL->setPause(true);
@@ -1528,7 +1509,6 @@ void Delete::ResetDeleteState(){
     curline = curlinetmp = -1;
     while(!st.empty()) st.pop();
     mSSL->clearStackUndo();
-    mSSL->clearStackRedo();
 }
 void Delete::handle(){
     handleButtonsHover();
@@ -1536,14 +1516,13 @@ void Delete::handle(){
     bool step = toggle.isStepByStep;
     static bool prevStep = toggle.isStepByStep;
     bool mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+    //Chuyển mode
     DeleteType detectedMode = DetectCurrentMode();
     if (mousePressed && detectedMode != DeleteType::None && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
         handleModeTransitTion(detectedMode);
     }
     updateCommonAnimation();
-    if(cur == DeleteType::Head && toggle.isStepByStep) handleHeadCode();
-    if(cur == DeleteType::Tail && toggle.isStepByStep) handleTailCode();
-    if(cur == DeleteType::Val && toggle.isStepByStep) handleValCode();
+    if(toggle.isStepByStep) handleCodeLine();
     if(CheckCollisionPointRec(mouse, DeleteHead.rect)){
         DeleteHead.buCol = color::buttonFileHovered;
     }
@@ -1558,28 +1537,15 @@ void Delete::handle(){
         DeleteTail.buCol = color::buttonFile;
         DeleteVal.buCol = color::buttonFile;     
     }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
-        mSSL->setState(mSSL->getCreate());
+    //Chuyển state
+    if ((CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect)) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
         ResetDeleteState();
     }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
-        mSSL->setState(mSSL->getInsert());
-        ResetDeleteState();
-    }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
-        mSSL->setState(mSSL->getnotInMode());
-        ResetDeleteState();
-    }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
-        mSSL->setState(mSSL->getFind());
-        ResetDeleteState();
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250,buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y;
-    }
-    if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && mousePressed && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) {
-        mSSL->setState(mSSL->getClear());
-        ResetDeleteState();
-        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
-    }
+    if(!DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess) handleButtonsClick(mSSL);
     SSL::command command;
     if(!DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess){
         toggle.Update(mouse);
@@ -1599,12 +1565,14 @@ void Delete::handle(){
         if (!mSSL->getRoot()) {
             textIn.clear();
         }
+        //Không tìm thấy
         if(mSSL->getRoot() && !mSSL->findList(std::stoi(textIn))){
             shadedPos.pos = {0,0};
             curline = curlinetmp = -1;
             existVal = false;
             while(!st.empty()) st.pop();
         }
+        //Xóa val không phải head và tail
         else if (mSSL->getRoot() && mSSL->findList(std::stoi(textIn))!=mSSL->getRoot() && mSSL->findList(std::stoi(textIn))!=mSSL->getTail()) {
                 DeleteValProcess = true;
                 currentAnimatingNode = mSSL->getRoot();
@@ -1636,6 +1604,7 @@ void Delete::handle(){
             mSSL->pushStack(mSSL->getCommandUndo(),command);
             while(!st.empty()) st.pop();
         }
+        //Xóa head
         else if(mSSL->getRoot() && mSSL->findList(std::stoi(textIn))==mSSL->getRoot()){
             shadedPos.pos = {0,0};
             DeleteHeadProcess = true;
@@ -1647,6 +1616,7 @@ void Delete::handle(){
             while(!st.empty()) st.pop();
             prevStep = toggle.isStepByStep;
         }
+        //Xóa Tail
         else if(mSSL->getRoot() && mSSL->findList(std::stoi(textIn))==mSSL->getTail()){
             DeleteTailProcess = true;
             currentAnimatingNode = mSSL->getRoot();
@@ -1671,6 +1641,7 @@ void Delete::handle(){
             while(!st.empty()) st.pop();
         }
     }
+    //Xóa Head
     if(!DeleteHeadProcess && CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && mousePressed && ((mSSL->getRoot() && cur == DeleteType::Head) || (mSSL->getRoot() && !mSSL->getRoot()->next))){
         shadedPos.pos = {0,0};
         DeleteHeadProcess = true;
@@ -1684,6 +1655,7 @@ void Delete::handle(){
         prevStep = toggle.isStepByStep;
         existVal = true;
     }
+    //Xóa tail
     if(!DeleteTailProcess && mSSL->getRoot() && mSSL->getRoot()->next && cur == DeleteType::Tail && CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect) && mousePressed){
         DeleteTailProcess = true;
         currentAnimatingNode = mSSL->getRoot();
@@ -1726,8 +1698,7 @@ void Find::findAnimation(ListNode*& root) {
         FindProcess = false;
         shadedPos = { {0, 0}, nullptr };
         textIn.clear();
-        curline = 4;
-        curlinetmp = 5;
+        curline = 4, curlinetmp = 5;
         return;
     }
     if(!mSSL->getPause()) framecntFind++;
@@ -1839,8 +1810,7 @@ void Find::ResetFindState(){
     FindProcess = false;
     currentAnimatingNode = nullptr;
     shadedPos = {0,0};
-    curline = -1;
-    curlinetmp = -1;
+    curline = -1, curlinetmp = -1;
     while(!st.empty()) st.pop();
 }
 void Find::handle(){
@@ -1858,27 +1828,15 @@ void Find::handle(){
         buttonVar::buttonGo.buCol = color::buttonFileHovered;
     }
     else buttonVar::buttonGo.buCol = color::buttonFile;
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
-        mSSL->setState(mSSL->getCreate());
+    //Chuyển state
+    if((CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect)) ||
+    (CheckCollisionPointRec(mouse, buttonVar::buttonF.rect)) || 
+    (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
         ResetFindState();
     }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
-        mSSL->setState(mSSL->getInsert());
-        ResetFindState();
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
-        mSSL->setState(mSSL->getDel());
-        ResetFindState();
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !FindProcess) {
-        mSSL->setState(mSSL->getnotInMode());
-        ResetFindState();
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        mSSL->setState(mSSL->getClear());
-        ResetFindState();
-        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
-    }
+    if(!FindProcess) handleButtonsClick(mSSL);
     int key = GetKeyPressed();
     if(key >= '0' && key <= '9' && !FindProcess) {
         textIn.push_back((char)key);
@@ -1919,7 +1877,7 @@ void Find::handle(){
             mSSL->setPause(false); 
     }
 }
-    if(UndoButton.isPressed()){
+    if(UndoButton.isPressed() && toggle.isStepByStep){
     FindProcess = true;
     textIn = tmpText;
     handleUndo();
@@ -1962,28 +1920,5 @@ void Clear::handle(){
         clearProcess = true;
         mSSL->setNumElement(0);
     }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !clearProcess) {
-        mSSL->setState(mSSL->getCreate());
-        mSSL->setExistVal(mSSL->getRoot());
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250;
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !clearProcess) {
-        mSSL->setState(mSSL->getInsert());
-        mSSL->setExistVal(mSSL->getRoot());
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250;
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !clearProcess) {
-        mSSL->setState(mSSL->getDel());
-        mSSL->setExistVal(mSSL->getRoot());
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250;
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !clearProcess) {
-        mSSL->setState(mSSL->getFind());
-        mSSL->setExistVal(mSSL->getRoot());
-        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+250, buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y,60;
-    }
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !clearProcess) {
-        mSSL->setState(mSSL->getnotInMode());
-        mSSL->setExistVal(mSSL->getRoot());
-    }
+    if(!clearProcess) handleButtonsClick(mSSL);
 }

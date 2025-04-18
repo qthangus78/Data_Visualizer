@@ -7,28 +7,21 @@
 #include "GlobalVar.h"
 #include "button.h"
 
-const int NODE_SIZE = 33;
-const int ROW_OFFSET = 100;
-const int SCREEN_MARGIN = 50;
-const int FontNode = 22;
-const float speedNode = 70;
+const int NODE_SIZE = 33, ROW_OFFSET = 100, SCREEN_MARGIN = 50, FontNode = 22;
+const float speedNode = 70, deltaTime = 0.01f;
 extern std::vector<button> code;
 const Rectangle CodeBox = {960,430,400,252};
-extern const float deltaTime;
 void initCodeButton();
 struct ListNode {
     int data;
     ListNode* next;
     ListNode(int x);
 };
-
 struct ShadedData {
     Vector2 pos;
     ListNode* node;
 };
-//--------------------------------
 // Các hàm thao tác LinkedList
-//--------------------------------
 void insertTailAl(ListNode*& root, ListNode*& tail, int x);
 void insertHeadAl(ListNode*& root, ListNode*& tail, int x);
 void insertIdxAl(ListNode*& root, ListNode*& tail, int idx, int val);
@@ -39,20 +32,19 @@ void delTailAl(ListNode*& root, ListNode*& tail);
 ListNode* findAl(ListNode*& root, int x);
 void fileInputAl(ListNode*& root, ListNode*&tail, std::ifstream& fin);
 void delMemAl(ListNode*& root);
-//--------------------------------
 // Forward Declarations
-//--------------------------------
 class IState;
 class SSL;
-
-//--------------------------------
 // Interface State
-//--------------------------------
 class IState {
 public:
-    enum class InsertType {Head,Tail,Idx,None};
-    enum class DeleteType{None,Head,Tail,Val};
+    //Mode Create
     enum class CreateType{None,File,Random};
+    //Mode Insert
+    enum class InsertType {Head,Tail,Idx,None};
+    //Mode Delete
+    enum class DeleteType{None,Head,Tail,Val};
+    //Run Mode
     struct ToggleSwitch {
         Rectangle bounds;
         bool isStepByStep;
@@ -92,10 +84,7 @@ public:
     virtual void draw() = 0;
     virtual void handle() = 0;
 };
-
-//--------------------------------
 // SSL
-//--------------------------------
 class SSL {
 private:
     ListNode* root;   
@@ -127,7 +116,7 @@ public:
     };
     // getter/setter
     ListNode* getRoot();
-    void setRoot(ListNode* cur);
+    void setRoot(ListNode* cur);//
     ListNode* getTail();
     ListNode* getprevTail();
     void setprevTail(ListNode* APrev);
@@ -138,7 +127,6 @@ public:
     int getNumElement();
     void setNumElement(int nums);
     std::stack <command>& getCommandUndo();
-    std::stack <command>& getCommnadRedo();
     command getTop();
     void pushStack(std::stack<command>& st,command cur);
     void popStack(std::stack<command>& st);
@@ -147,7 +135,6 @@ public:
     float getFraction();
     void setFraction(float fraction);
     void clearStackUndo();
-    void clearStackRedo();
     // hàm thao tác LinkedList
     void insertHeadList(int x);
     void insertTailList(int x);
@@ -161,6 +148,7 @@ public:
     void fileInput(std::ifstream& fin);
     // chuyển state
     void setState(IState* state);
+    IState* getCurrent();
     IState* getnotInMode();
     IState* getCreate();
     IState* getInsert();
@@ -170,17 +158,13 @@ public:
     IState::ToggleSwitch getToggle();
     void setToggle(IState::ToggleSwitch toggle);
     void handleUndo();
-    void handleRedo();
     // main loop
     void draw();
     void handle();
 private:
     std::stack <command> undo;
-    std::stack <command> redo;
 };
-//--------------------------------
 // Các lớp state
-//--------------------------------
 class notInMode : public IState {
 private:
     SSL* mSSL;
@@ -195,17 +179,22 @@ private:
     SSL* mSSL;
     button fileInput, random;
     std::vector<ShadedData> pos;
+    //Quản lí animation
     bool randomProcess, fileProcess;
+    //Biến Animation
     float progress, progressGo;
+    //Mode
     CreateType prev = CreateType::None, cur = CreateType::None;
     bool inProcess = false;
     public:
     Create(SSL *s);
+    //Hanlde mode
     CreateType DetectCurrentMode();
     void handleModeTransitTion(CreateType newType);
     void updateCommonAnimation();
     void handleFileMode();
     void handleRandomMode();
+    //Hanlde File and Random
     void drawInputFile();
     void drawInitialize();
     void handleInit();
@@ -219,20 +208,24 @@ private:
 class Insert : public IState {
 private:
     SSL* mSSL;
-    InsertType prev = InsertType::None,cur = InsertType::None, modeCur = InsertType::None;
+    //Xử lí Insert Mode
+    InsertType prev = InsertType::None, cur = InsertType::None, modeCur = InsertType::None;
     int frameCounter, framecntInsert;
     std::string textIn, textInIndex;
     button InsertHead, InsertTail, InsertIndex, Index, Value;
+    //Quản lí Animation
     bool InsertTailProcess, InsertHeadProcess, InsertIdxProcess, inProcess;
     ListNode* currentAnimatingNode;
     Vector2 posTail, pos, prevpos;
-    float progressNode, progressAppear, progressArrow;
-    float Font;
+    //Biến Animation
+    float progressNode, progressAppear, progressArrow,Font;
     Rectangle inputRect,idxRect,valRect;
     bool valInsert, idxInsert;
     int nums, idx = 0, curindex=0, curline=-1, curlinetmp=-1;
+    //Check input
     bool overValue = false, inIndex = true;
     std::stack<std::pair<ListNode*,Vector2>> st;
+    //Pseudo Code
     std::vector<std::string> codeHead = {
         "Vertex vtx = new Vertex(v)",
         "vtx.next = head",
@@ -260,6 +253,7 @@ public:
     void drawHeadInsert();
     void drawTailInsert();
     void drawIdxInsert();
+    //Handle Insert Mode
     InsertType DetectCurrentMode();
     void handleModeTransitTion(InsertType newType);
     void updateCommonAnimation();
@@ -267,13 +261,16 @@ public:
     void handleHeadMode();
     void handleTailMode();
     void handleIdxMode();
+    //Handle pseudo code
     void handleHeadCode();
     void handleTailCode();
     void handleIdxCode();
     void handleCodeLine();
+    //Animation
     void insertHeadAnimation(int x);
     void insertTailAnimation(ListNode*& tmp,Vector2& posTail);
     void insertIdxAnimation(ListNode*& tmp);
+    //Undo & redo
     void handleUndo();
     void handleRedo();
     void ResetInsertState();
@@ -283,21 +280,23 @@ public:
 //--------------------------------
 class Delete : public IState {
 private:
+    //Mode Delete
     DeleteType prev = DeleteType::None, cur = DeleteType::None, modeCur = DeleteType::None;
     SSL* mSSL;
     int frameCounter, framecntDel;
     std::string textIn;
     std::string tmpText;
+    //Quản lí animation
     bool existVal, DeleteValProcess, DeleteHeadProcess, DeleteTailProcess, inProcess;
     ListNode* currentAnimatingNode;
     ShadedData shadedPos;
     button DeleteHead, DeleteTail, DeleteVal;
     float progressNode, progressArrow, progressAppear,ArrowLengthRender;
     Rectangle inputRect;
-    int curline = -1, curlinetmp = -1;
+    int curline = -1, curlinetmp = -1, idx = 0;
     Vector2 prevpos = {0,0};
-    int idx = 0;
     std::stack<std::pair<ListNode*,Vector2>> st;
+    //Pseudo Code
     std::vector<std::string> delHeadCode = {
         "if empty, do nothing",
         "if head.next = null",
@@ -324,6 +323,7 @@ private:
     };
 public:
     Delete(SSL* s);
+    //Hanlde DeleteMode
     DeleteType DetectCurrentMode();
     void handleModeTransitTion(DeleteType newType);
     void updateCommonAnimation();
@@ -331,12 +331,16 @@ public:
     void handleHeadMode();
     void handleTailMode();
     void handleValMode();
+    //Handle Pseudo Code
     void handleHeadCode();
     void handleTailCode();
     void handleValCode();
+    void handleCodeLine();
+    //Animation
     void delHeadAnimation();
     void delTailAnimation(ListNode*& cur);
     void delAnimation(ListNode*& tmp, int x);
+    //Undo & Redo
     void handleUndo();
     void handleRedo();
     void ResetDeleteState();
@@ -361,15 +365,14 @@ private:
     "      return NOT_FOUND",
     "return pointer"
     };
-    int curline=-1;
-    int curlinetmp = -1;
+    int curline=-1, curlinetmp = -1;
     std::stack<std::pair<ListNode*, Vector2>> st;
 public:
     Find(SSL* s);
     void findAnimation(ListNode*& root);
+    void handleCodeLine();
     void handleUndo();
     void handleRedo();
-    void handleCodeLine();
     void ResetFindState();
     void draw() override;
     void handle() override;
@@ -395,13 +398,16 @@ void DrawButton(Rectangle rect, const std::string &text, Color &color, Font font
 void drawButtons();
 void handleButtonsClick(SSL* SSL);
 void handleButtonsHover();
+//Vẽ input
 void drawBlinkingLines(const std::string& text, Rectangle rect, int& frameCounter);
 void drawTextIn(const std::string& text, Rectangle rect, int& frameCounter);
 void drawTextInwithoutLine(const std::string& text, Rectangle rect);
+//Xử lí position
 Vector2 Vector2Subtract(Vector2 v1, Vector2 v2);
 float Vector2Length(Vector2 v);
 Vector2 Vector2Add(Vector2 v1, Vector2 v2);
 Vector2 Vector2Scale(Vector2 v, float scale);
+//Vẽ Arrow
 void drawArrow(Vector2 start, Vector2 end, Color edgeRender);
 void drawArrow2Node(Vector2 start, Vector2 end, Color edgeRender);
 float smoothstep(float t);

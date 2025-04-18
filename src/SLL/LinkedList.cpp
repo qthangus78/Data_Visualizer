@@ -16,10 +16,7 @@ void initCodeButton(){
         code[i] = {{code[i-1].rect.x,code[i-1].rect.y+code[i-1].rect.height,code[i-1].rect.width,code[i-1].rect.height},{240,240,240,230},""};
     }
 }
-const float deltaTime = 0.01f;
-//--------------------------------
 // ListNode
-//--------------------------------
 ListNode::ListNode(int x) : data(x), next(nullptr) {}
 //Add cuối
 void insertTailAl(ListNode*& root, ListNode*& tail, int x) {
@@ -161,9 +158,7 @@ void fileInputAl(ListNode*& root, ListNode*& tail, std::ifstream& fin){
         insertTailAl(root,tail,numIns);
     }
 }
-//--------------------------------
 // SSL
-//--------------------------------
 SSL::SSL()
  : root(nullptr), existVal(nullptr), mcurrent(nullptr), tail(nullptr), num(0)
 {
@@ -186,8 +181,9 @@ SSL::~SSL(){
     delete mClear;
     delMemAl(root);
 }
-
+//Get State
 void SSL::setState(IState* state) { mcurrent = state; }
+IState* SSL::getCurrent() {return mcurrent;}
 IState* SSL::getnotInMode() { return mNotInMode; }
 IState* SSL::getCreate()    {return mCreate;}
 IState* SSL::getInsert()    { return mInsert; }
@@ -196,7 +192,7 @@ IState* SSL::getFind()      { return mFind; }
 IState* SSL::getClear()     {return mClear;}
 IState::ToggleSwitch SSL::getToggle() {return toggle;}
 void SSL::setToggle(IState::ToggleSwitch toggle) {this->toggle = toggle;}
-
+//Getter/Setter
 ListNode* SSL::getRoot() { return root; }
 void SSL::setRoot(ListNode* cur) {root = cur;}
 ListNode* SSL::getTail() {return tail;}
@@ -209,14 +205,10 @@ void SSL::setPosEnd(Vector2 APos) {posEnd = APos;}
 int SSL::getNumElement(){return num;}
 void SSL::setNumElement(int nums) {num = nums;}
 std::stack <SSL::command>& SSL::getCommandUndo() {return undo;}
-std::stack <SSL::command>& SSL::getCommnadRedo() {return redo;}
 void SSL::pushStack(std::stack<command>& st, command prev) {st.push(prev);}
 void SSL::popStack(std::stack<command>& st) {st.pop();}
 void SSL::clearStackUndo() {
     while(!undo.empty()) undo.pop();
-}
-void SSL::clearStackRedo(){
-    while(!redo.empty()) redo.pop();
 }
 bool SSL::getPause() {return IsPaused;}
 void SSL::setPause(bool pause) {IsPaused = pause;}
@@ -224,7 +216,7 @@ float SSL::getFraction() {return fraction;}
 void SSL::setFraction(float fraction){
     this->fraction = fraction;
 }
-
+//Hanlde Linked List
 void SSL::insertHeadList(int x){ insertHeadAl(root,tail,x); }
 void SSL::insertTailList(int x){ insertTailAl(root,tail,x); }
 void SSL::insertIdxList(int idx,int x) {insertIdxAl(root,tail,idx,x);}
@@ -240,7 +232,6 @@ void SSL::handleUndo(){
     if(undo.empty()) return;
     command top = undo.top();
     undo.pop();
-    redo.push(top);
     switch (top.modeInsertType)
     {
     case IState::InsertType::Head:
@@ -305,83 +296,12 @@ void SSL::handleUndo(){
         break;
     }
 }
-void SSL::handleRedo(){
-    if(redo.empty()) return;
-    command top = redo.top();
-    redo.pop();
-    undo.push(top);
-    switch (top.modeInsertType)
-    {
-    case IState::InsertType::Head:
-        insertHeadList(top.val);
-        num++;
-        break;   
-    case IState::InsertType::Tail:
-        insertTailList(top.val);
-        num++;
-        break;
-    case IState::InsertType::Idx:
-        switch (top.curInsertType)
-        {
-        case IState::InsertType::Head:
-            insertHeadList(top.val);
-            num++;
-            break;
-        case IState::InsertType::Tail:
-            insertTailList(top.val);
-            num++;
-            break;
-        case IState::InsertType::Idx:
-            insertIdxList(top.idx,top.val);
-            num++;
-            break;
-        default:
-            break;
-        }
-        break;
-    default:
-        break;
-    }
-    switch (top.modeDeleteType)
-    {
-    case IState::DeleteType::Head:
-        delHeadList();
-        num--;
-        break;
-    case IState::DeleteType::Tail:
-        delTailList();
-        num--;
-        break;
-    case IState::DeleteType::Val:
-        switch(top.curDeleteType)
-        {
-        case IState::DeleteType::Head:
-            delHeadList();
-            num--;
-            break;
-        case IState::DeleteType::Tail:
-            delTailList();
-            num--;
-            break;
-        case IState::DeleteType::Val:
-            delIdxList(top.idx);
-            num--;
-            break;
-        default:
-            break;
-        }
-    default:
-        break;
-    }
-}
-
 void SSL::draw(){
     UndoButton.Drawtexture();
     RedoButton.Drawtexture();
     if(!IsPaused) PauseButton.Drawtexture();
     else PlayButton.Drawtexture();
     toggle.Draw();
-    speed.Draw();
     speed.Draw();
     if(mcurrent) mcurrent->draw();
 }
@@ -392,16 +312,12 @@ void SSL::handle(){
     RedoButton.SetPosition(760,680);
     PlayButton.SetPosition(670,670);
     PauseButton.SetPosition(670,670);
-    Vector2 mouse = GetMousePosition();
-    bool isClick = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
     speed.Update();
     fraction = speed.GetValue();
     if(PlayButton.isPressed()) {IsPaused = !IsPaused;}
     if(mcurrent) mcurrent->handle();
 }
-//--------------------------------
 // Hàm tiện ích
-//--------------------------------
 //Vẽ Node
 void drawNode(Vector2 pos, const std::string& text, float radius, Color col){
     DrawCircleV(pos, radius, col);
@@ -605,36 +521,32 @@ void handleButtonsHover(){
 // Xử lý click 3 nút
 void handleButtonsClick(SSL* SSL){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        SSL->setState(SSL->getCreate());
+        SSL->setState((SSL->getCurrent() == SSL->getCreate()) ? SSL->getnotInMode() : SSL->getCreate());
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
-        SSL->clearStackRedo();
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        SSL->setState(SSL->getInsert());
+        SSL->setState((SSL->getCurrent() == SSL->getInsert()) ? SSL->getnotInMode() : SSL->getInsert());
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
-        SSL->clearStackRedo();
+        buttonVar::buttonGo    = {{buttonVar::buttonIns.rect.x+250, buttonVar::buttonIns.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        SSL->setState(SSL->getDel());
+        SSL->setState((SSL->getCurrent() == SSL->getDel()) ? SSL->getnotInMode() : SSL->getDel());
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
-        SSL->clearStackRedo();
         buttonVar::buttonGo    = {{buttonVar::buttonDel.rect.x+250, buttonVar::buttonDel.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        SSL->setState(SSL->getFind());
+        SSL->setState((SSL->getCurrent() == SSL->getFind()) ? SSL->getnotInMode() : SSL->getFind());
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
-        SSL->clearStackRedo();
         buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-        SSL->setState(SSL->getClear());
+        SSL->setState((SSL->getCurrent() == SSL->getClear()) ? SSL->getnotInMode() : SSL->getClear());
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
-        SSL->clearStackRedo();
         buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
 }
@@ -683,6 +595,7 @@ void drawArrow2Node(Vector2 start, Vector2 end, Color edgeRender) {
     };
     drawArrow(start, endPos, edgeRender);
 }
+//Animation
 float smoothstep(float t){
     if(t >= 1) return 1;
     if(t<=0) return 0;
@@ -696,6 +609,7 @@ float lerp(float start, float end, float progress){
     float t = smoothstep(progress);
     return start+t*(end-start);
 }
+//Xử lí vị trí các position khi các node di chuyển
 void handlePos(ListNode* s, Vector2 startPos, std::vector<ShadedData>& pos){
     const float ARROW_LENGTH = EArrow.length;
     ListNode* cur = s;
@@ -720,6 +634,23 @@ void drawPos(std::vector<ShadedData> pos, float NodeRadiusRender, float FontSize
         DrawTextEx(SSLFont, nodeData.c_str(),{ pos[i].pos.x - textSize.x / 2, pos[i].pos.y - textSize.y / 2 },FontSize, 2, BLACK);
     }
 }
+void movesPos(std::vector<ShadedData>& movePos,float progressNode){
+    for(int i=0; i<movePos.size(); i++){
+        if(movePos[i].pos.x + EArrow.length + NODE_SIZE > GetScreenWidth()-SCREEN_MARGIN){
+            movePos[i].pos = lerp(movePos[i].pos,{startLinkedListPos.x,movePos[i].pos.y+ROW_OFFSET},progressNode);
+        }
+        else{
+            movePos[i].pos = lerp(movePos[i].pos,{movePos[i].pos.x+EArrow.length+NODE_SIZE,movePos[i].pos.y},progressNode);
+        }
+    }
+    for(int i=0; i<movePos.size()-1; i++){
+        drawArrow2Node(movePos[i].pos,movePos[i+1].pos,color::edgeNotInMode);
+    }
+    for(auto u : movePos){
+        drawNode(u.pos, std::to_string(u.node->data),NODE_SIZE,color::nodeNotInMode);
+    }
+}
+//Animation node xuất hiện hoặc biến mất
 void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums, float& progressNode, SSL* s){
     float fraction = s->getFraction();
     if(!s->getPause()) progressNode += fraction*deltaTime;
@@ -746,22 +677,6 @@ void removeNode(float& NodeRadiusRender, float& FontSize, std::string str, Vecto
     Vector2 textSize = MeasureTextEx(SSLFont, str.c_str(), FontSize, 2);
     DrawTextEx(SSLFont, str.c_str(), { pos.x - textSize.x / 2, pos.y - textSize.y / 2 }, FontSize, 2, BLACK);
 }
-void movesPos(std::vector<ShadedData>& movePos,float progressNode){
-    for(int i=0; i<movePos.size(); i++){
-        if(movePos[i].pos.x + EArrow.length + NODE_SIZE > GetScreenWidth()-SCREEN_MARGIN){
-            movePos[i].pos = lerp(movePos[i].pos,{startLinkedListPos.x,movePos[i].pos.y+ROW_OFFSET},progressNode);
-        }
-        else{
-            movePos[i].pos = lerp(movePos[i].pos,{movePos[i].pos.x+EArrow.length+NODE_SIZE,movePos[i].pos.y},progressNode);
-        }
-    }
-    for(int i=0; i<movePos.size()-1; i++){
-        drawArrow2Node(movePos[i].pos,movePos[i+1].pos,color::edgeNotInMode);
-    }
-    for(auto u : movePos){
-        drawNode(u.pos, std::to_string(u.node->data),NODE_SIZE,color::nodeNotInMode);
-    }
-}
 void drawTextUp(std::string h, float fontText, Vector2 pos){
     Vector2 hwidth = MeasureTextEx(SSLFont,h.c_str(),fontText,2);
     Vector2 hDraw = {pos.x-hwidth.x/2,pos.y-NODE_SIZE-hwidth.y};
@@ -772,6 +687,7 @@ void drawTextDown(std::string pointer, float fontText, Vector2 pos){
     Vector2 tmpDraw = {pos.x-tmpwidth.x/2,pos.y+NODE_SIZE};
     DrawTextEx(SSLFont,pointer.c_str(),tmpDraw,fontText,2,RED);
 }
+//Di chuyển node sau
 void nodeNext(ListNode*& cur, Vector2& pos, int& framecntDel, std::stack<std::pair<ListNode*, Vector2>>& st){
     st.push({cur,pos});
     const int ARROW_LENGTH = EArrow.length;
@@ -786,10 +702,10 @@ void drawTextCode(int curline, int curlinetmp) {
     DrawRectangleRec(CodeBox, {240,240,240,230});
     for (int i = 0; i < code.size(); i++) {
         const auto& btn = code[i];
-        Color fillColor = (i == curline || i == curlinetmp) ? GRAY : btn.buCol;
-        DrawRectangleRec(btn.rect, fillColor);
-        DrawRectangleLinesEx(btn.rect, 0.5f, BLACK);
+        Color fillTextColor = (i == curline || i == curlinetmp) ? RED : BLACK;
+        Color fillBtnColor  = (i == curline || i == curlinetmp) ?  Color{255, 220, 220, 255} : Color{240,240,240,230};
+        DrawRectangleRec(btn.rect, fillBtnColor);
         Vector2 textPos = {btn.rect.x + 5.0f, btn.rect.y + (btn.rect.height - 21) / 2};
-        DrawTextEx(textCodeFont, btn.text.c_str(), textPos, 21, 1, BLACK);
+        DrawTextEx(textCodeFont, btn.text.c_str(), textPos, 21, 1, fillTextColor);
     }
 }
