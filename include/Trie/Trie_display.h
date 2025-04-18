@@ -3,56 +3,59 @@
 #include "TextBox.h"
 #include "button.h"
 #include "Trie.h"
-#include "thread"
-#include "chrono"
-
-//Interface in LinkList.h
-
-
-//--------------------------------
-//			Trie
-//-------------------------------
-
-//class Trie {
-//private:
-//	IState* mCurrent;
-//	IState* mIdle;
-//	IState* mInsert;
-//	IState* mFind;
-//	IState* mRemove;
-//	IState* mClear;
-//	TrieNode* root;
-//
-//public:
-//
-//
-//
-//};
-//
-//---------------------------
-//		Các State
-//---------------------------
-//
-//class InsertState : public IState {
-//
-//};
-//
-//class FindState : public IState {
-//
-//};
-//
-//class RemoveState : public IState {
-//	
-//};
-//
-//class ClearState : public IState {
-//
-//};
+#include "AnnouncementBox.h"
 
 class Trie {
 private:
 
+
 public:
+	//announce
+	AnnouncementBox announce;
+	pair<char*, vector<char*>> InsertCode = {
+		"Insert",
+		{
+			"1.For each character in word:",
+			"2.		if character not found: ",
+			"3.			create Node",
+			"4.Mark end node as word",
+		}
+	};
+	pair<char*, vector<char*>> FindCode = {
+		"Find",
+		{
+			"1.For each character in word:",
+			"2.		if character not found: ",
+			"3.			return false",
+			"4.check if the last character end the word",
+		}
+	};
+	pair<char*, vector<char*>> DeleteCode = {
+		"Delete",
+		{
+			"1.if reach last character",
+			"2.		if character ends word",
+			"3.			unmarking word",
+			"4.		if node is empty and not a word",
+			"5.			delete node ",
+			"6.if next character in word exists",
+			"7.	    traverse by recursion",
+			"8.		if node is deleted",
+			"9.			erase children of node",
+			"10.if node is empty and not a word",
+			"11.	delete node",
+		}
+	};
+	pair<char*, vector<char*>> ClearCode = {
+		"Clear",
+		{
+			"1.for each child of node",
+			"2.		traverse to child by recursion",
+			"3.		remove last node",
+		}
+	};
+
+
 	//struct toggle an cap tu linkedlist.h
 	struct ToggleSwitch {
 		Rectangle bounds;
@@ -151,12 +154,18 @@ public:
 
 	void processStepbyStep(queue<Step> &steps);
 
-	void resetState();
+	void StepbyStepBox(const char* title, const vector<char*> content);
+	void resetState(pair<char*, vector<char*>> code);
 
 	void Handle();
 	void Draw();
 };
 
+struct PseudoCodeBox {
+	vector<char*> content;
+	Rectangle rect = { 0, 0 ,300, 500 };
+
+};
 
 namespace Trie_Display {
 	inline Trie* TrieInstance = nullptr;

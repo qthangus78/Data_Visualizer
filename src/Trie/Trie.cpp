@@ -33,14 +33,14 @@ void InsertTrie(TrieNode*& root, const string& key, queue<Step> &steps)
     for (char character : key) //đi qua từng chữ cái
     {
         //nếu chữ cái không tồn tại thì tạo Node mới
-        steps.push({ "Processing character " + string(1,character), 2 , cur,functionStep::moving , '\0' });
+        steps.push({ "Processing character " + string(1,character), 1 , cur,functionStep::moving , '\0' });
 
         if (cur->children.count(character) == 0 )
         {
             cur->children[character] = new TrieNode();
             cur->children[character]->posPrev = cur->posCur;
             cur->children[character]->posCur = cur->posCur;
-            steps.push({"Character " + string(1,character) + " not found. Create new node",3, cur->children[character], functionStep::createnode, '\0' });
+            steps.push({"Character " + string(1,character) + " not found. Create new node",2, cur->children[character], functionStep::createnode, '\0' });
         }
 
         cur = cur->children[character];
@@ -61,11 +61,11 @@ bool FindTrie(TrieNode*& root, const string& key, queue<Step> &steps)
     
     for (char character : key)
     {
-        steps.push({ "Processing character " + string(1,character), 2 , cur,functionStep::moving, '\0' });
+        steps.push({ "Processing character " + string(1,character), 1 , cur,functionStep::moving, '\0' });
         if (cur->children.find(character) == cur->children.end())
         {
             return false;
-            steps.push({ "Character " + string(1,character) + " not found. return false",3, cur, functionStep::invalid , '\0' });
+            steps.push({ "Character " + string(1,character) + " not found. return false",2, cur, functionStep::invalid , '\0' });
         }
 
         cur = cur->children[character];
@@ -128,7 +128,7 @@ TrieNode* DeleteTrieOrigin(TrieNode* root, const string& key, int depth, queue<S
         //no children not word -> delete
         if (isEmpty(root) && depth != 0)
         {
-            steps.push({ "node is empty and not a word, delete except root", 3, root, functionStep::invalid , '\0' });
+            steps.push({ "node is empty and not a word, delete except root", 4, root, functionStep::invalid , '\0' });
             deleteNode(root, isStepbyStep);
         }
 
@@ -140,7 +140,7 @@ TrieNode* DeleteTrieOrigin(TrieNode* root, const string& key, int depth, queue<S
     char character = key[depth];
     if (root->children.count(character))
     {
-        steps.push({ "Traversing to child '" + string(1, character) + "'", 1, root, functionStep::moving , '\0' });
+        steps.push({ "Traversing to child '" + string(1, character) + "'", 7, root, functionStep::moving , '\0' });
 
         //do that for the next character aka recursion
         root->children[character] = DeleteTrieOrigin(root->children[character], key, depth + 1, steps, isStepbyStep);
@@ -148,7 +148,7 @@ TrieNode* DeleteTrieOrigin(TrieNode* root, const string& key, int depth, queue<S
         // If child was deleted, remove the pointer from the map
         if (!root->children[character] or root->children[character]->isDeleted)
         {
-            steps.push({ "Child '" + string(1, character) + "' erase", 4, root, functionStep::erase, character});
+            steps.push({ "Child '" + string(1, character) + "' erase", 8, root, functionStep::erase, character});
             if(!isStepbyStep)
             root->children.erase(character);
         }
@@ -156,7 +156,7 @@ TrieNode* DeleteTrieOrigin(TrieNode* root, const string& key, int depth, queue<S
 
     //is empty not word, delete it (except root)
     if (isEmpty(root) && root->isWord == false && depth != 0) {
-        steps.push({ "node '" + string(1, character) + " 'is empty and not a word, delete except root", 3, root, functionStep::invalid , '\0' });
+        steps.push({ "node '" + string(1, character) + " 'is empty and not a word, delete except root", 12, root, functionStep::invalid , '\0' });
         deleteNode(root, isStepbyStep);
     }
 

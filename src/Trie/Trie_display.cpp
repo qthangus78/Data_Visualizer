@@ -37,6 +37,7 @@ void Trie::ToggleSwitch::Draw() {
 Trie::Trie() {
 	root = new TrieNode();
 	root->isNewNode = false;
+	announce = AnnouncementBox({1050,350,300,350}, "");
 }
 
 void Trie::Insert(const string& c)
@@ -112,8 +113,6 @@ string Trie::handleTypeBox(Rectangle rect)
 
 	return "";
 
-	//if (isMouseOnText) frameCounter++;
-	//else frameCounter = 0;
 }
 void Trie::drawTypeBox(Rectangle rect)
 {
@@ -386,14 +385,14 @@ void Trie::processStepbyStep(queue<Step>& steps)
 			switch (curStep.function)
 			{
 			case functionStep::moving:
-				//DrawText(); use for pseudo code
+				announce.SetHighlightLines(curStep.line-1,curStep.line-1);
 				changeColorNode(root, color::nodeNotInMode);
 				resetColorNode(root, color::nodeNotInMode);
 				changeColorNode(curNode, DARKBLUE);
 				break;
 
 			case functionStep::createnode:
-				//pseudo code
+				announce.SetHighlightLines(curStep.line-1, curStep.line-1+1);
 				changeColorNode(root, color::nodeNotInMode);
 				resetColorNode(root, color::nodeNotInMode);
 				curStep.node->isNewNode = false;
@@ -401,18 +400,21 @@ void Trie::processStepbyStep(queue<Step>& steps)
 				break;
 
 			case functionStep::markword:
+				announce.SetHighlightLines(curStep.line-1, curStep.line-1+1);
 				changeColorNode(root, color::nodeNotInMode);
 				resetColorNode(root, color::nodeNotInMode);
 				changeColorNode(curNode, YELLOW);
 				break;
 
 			case functionStep::invalid:
+				announce.SetHighlightLines(curStep.line-1, curStep.line-1);
 				changeColorNode(root, color::nodeNotInMode);
 				resetColorNode(root, color::nodeNotInMode);
 				changeColorNode(curNode, RED);
 				break;
 
 			case functionStep::erase:
+				announce.SetHighlightLines(curStep.line-1, curStep.line-1+1);
 				changeColorNode(root, color::nodeNotInMode);
 				resetColorNode(root, color::nodeNotInMode);
 
@@ -430,7 +432,7 @@ void Trie::processStepbyStep(queue<Step>& steps)
 				}
 
 				break;
-		}
+			}
 
 			elapsedNode = 0;
 			progressNode = 0;
@@ -458,12 +460,20 @@ void Trie::processStepbyStep(queue<Step>& steps)
 
 }
 
-void Trie::resetState()
+void Trie::StepbyStepBox(const char* title, const vector<char*> content)
+{
+	Rectangle rect = { 1050 , 350 ,300, 350 };
+	announce = AnnouncementBox(rect, title);
+	announce.SetContent(content);
+}
+void Trie::resetState(pair<char*, vector<char*>> code)
 {
 	if (state != curFunct)
 	{
 		resetColorNode(root, color::nodeNotInMode);
 		progressTrie = progressNode = 1; //reset animation khi doi function dot ngot
+		if(toggle.isStepByStep)
+		StepbyStepBox(code.first, code.second);
 	}
 	state = curFunct;
 }
@@ -471,13 +481,13 @@ void Trie::resetState()
 void Trie::Handle()
 {
 	//Trie
-	if (progressNode < 1 /*elapsedNode < durationNode */)
+	if (progressNode < 1)
 	{
 		progressNode = elapsedNode / durationNode;
 		elapsedNode += GetFrameTime();
 	}
 
-	if (progressTrie < 1 /*elapsedTrie < durationTrie*/)
+	if (progressTrie < 1)
 	{
 		progressTrie = elapsedTrie / durationTrie;
 		elapsedTrie += GetFrameTime();
@@ -491,7 +501,7 @@ void Trie::Handle()
 	switch (curFunct)
 	{
 	case FunctionNumber::Input:
-		resetState();
+		resetState(InsertCode);
 
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
@@ -505,7 +515,7 @@ void Trie::Handle()
 		break;
 
 	case FunctionNumber::FindFunct:
-		resetState();
+		resetState(FindCode);
 
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
@@ -521,7 +531,7 @@ void Trie::Handle()
 		break;
 
 	case FunctionNumber::DeleteFunct:
-		resetState();
+		resetState(DeleteCode);
 
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
@@ -538,7 +548,7 @@ void Trie::Handle()
 		break;
 
 	case FunctionNumber::ClearFunct:
-		resetState();
+		resetState(ClearCode);
 		if (!root->children.empty() && steps.empty())
 		{
 			Clear();
@@ -551,14 +561,21 @@ void Trie::Handle()
 
 	processStepbyStep(steps);
 
+
 }
 
 void Trie::Draw()
 {
+	//stupid
+	if (toggle.isStepByStep)
+	{
+		announce.DrawforTrie();
+	}
 	//trie
 	drawTrie(root);
 
 	//button
+
 	drawButtons();
 	toggle.Draw();
 
