@@ -67,7 +67,7 @@ void Table::Draw(Rectangle rect, float& yPosition, float maxContentHeight, float
             // Draw header cells and vertical borders
             for (int i = 0; i < header.size(); i++) {
                 DrawTextEx(customFont, header[i].c_str(), 
-                          (Vector2){xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
+                          Vector2{xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
                 
                 xPos += columnWidths[i];
                 DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
@@ -96,7 +96,7 @@ void Table::Draw(Rectangle rect, float& yPosition, float maxContentHeight, float
             // Draw cells
             for (int i = 0; i < row.data.size() && i < columnWidths.size(); i++) {
                 DrawTextEx(customFont, row.data[i].c_str(), 
-                         (Vector2){xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
+                         Vector2{xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
                 
                 xPos += columnWidths[i];
                 DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
@@ -217,8 +217,8 @@ bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxCont
     float scrollThumbY = scrollY + (scrollRatio * scrollableTrackHeight);
     
     // Set the member variables for rectangles
-    scrollBarRect = (Rectangle){rect.x + rect.width - 15, scrollY, 10, scrollHeight};
-    scrollThumbRect = (Rectangle){rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
+    scrollBarRect = Rectangle{rect.x + rect.width - 15, scrollY, 10, scrollHeight};
+    scrollThumbRect = Rectangle{rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
     
     // Handle mouse wheel for scrolling
     if (CheckCollisionPointRec(GetMousePosition(), rect)) {
@@ -298,8 +298,8 @@ void AnnouncementBox::Draw() {
     float titleWidth = MeasureTextEx(customFont, title, titleFontSize, 1.0f).x;
     float underlineY = titleY + titleFontSize + 4;
     DrawLineEx(
-        (Vector2){titlePos.x, underlineY},
-        (Vector2){titlePos.x + titleWidth, underlineY},
+        Vector2{titlePos.x, underlineY},
+        Vector2{titlePos.x + titleWidth, underlineY},
         3.0f,  // Line thickness (bold)
         titleColor
     );
@@ -347,7 +347,7 @@ void AnnouncementBox::Draw() {
         Color bgColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightBgColor : backgroundColor;
         Color txtColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightColor : textColor;
         DrawRectangle(rect.x + 10, y, rect.width - 30, lineHeight, bgColor);
-        DrawTextEx(customFont, content[i], (Vector2){rect.x + 15, y + 5}, contentFontSize, 1.0f, txtColor);
+        DrawTextEx(customFont, content[i], Vector2{rect.x + 15, y + 5}, contentFontSize, 1.0f, txtColor);
     }
     
     // Draw info section
@@ -381,7 +381,7 @@ void AnnouncementBox::Draw() {
                 
         // Regular info line
         std::string buffer = info.label + ": " + info.value;
-        DrawTextEx(customFont, buffer.c_str(), (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
+        DrawTextEx(customFont, buffer.c_str(), Vector2{rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
     }
     
     EndScissorMode();
