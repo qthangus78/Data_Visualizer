@@ -83,6 +83,27 @@ bool FindTrie(TrieNode*& root, const string& key, queue<Step> &steps)
         return false;
     }
 }
+bool FindTrieNoStep(TrieNode*& root, const string& key)
+{
+    if (root == nullptr or root->children.empty()) {
+        return false;
+    }
+
+    TrieNode* cur = root;
+
+    for (char character : key)
+    {
+        if (cur->children.find(character) == cur->children.end())
+        {
+            return false;
+        }
+
+        cur = cur->children[character];
+    }
+
+
+    return cur->isWord;
+}
 
 void deleteNode(TrieNode* root, bool isStepbyStep)
 {

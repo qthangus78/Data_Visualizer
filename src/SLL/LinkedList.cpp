@@ -573,6 +573,7 @@ void drawButtons() {
     DrawButton(buttonVar::buttonF.rect, buttonVar::buttonF.text, buttonVar::buttonF.buCol, SSLFont,22);
     DrawButton(buttonVar::buttonClear.rect, buttonVar::buttonClear.text, buttonVar::buttonClear.buCol, SSLFont,22);
 }
+
 // Xử lý hover 4 nút
 void handleButtonsHover(){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect))

@@ -52,7 +52,7 @@ bool Trie::Find(const string& c)
 
 bool Trie::Delete(const string& c)
 {
-	bool isExist = Find(c);
+	bool isExist = FindTrieNoStep(root, c);
 	if (isExist)
 	{
 		DeleteTrieOrigin(root, c, 0, steps, toggle.isStepByStep);
@@ -137,6 +137,12 @@ void Trie::HandleButtonClickTrie()
 	if (CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 		curFunct = FunctionNumber::ClearFunct;
 	}
+}
+void Trie::drawButtonsTrie() {
+	DrawButton(buttonVar::buttonIns.rect, buttonVar::buttonIns.text, buttonVar::buttonIns.buCol, SSLFont, 22);
+	DrawButton(buttonVar::buttonDel.rect, buttonVar::buttonDel.text, buttonVar::buttonDel.buCol, SSLFont, 22);
+	DrawButton(buttonVar::buttonF.rect, buttonVar::buttonF.text, buttonVar::buttonF.buCol, SSLFont, 22);
+	DrawButton(buttonVar::buttonClear.rect, buttonVar::buttonClear.text, buttonVar::buttonClear.buCol, SSLFont, 22);
 }
 
 //function draw
@@ -576,7 +582,7 @@ void Trie::Draw()
 
 	//button
 
-	drawButtons();
+	drawButtonsTrie();
 	toggle.Draw();
 
 	switch (curFunct)

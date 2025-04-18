@@ -58,6 +58,7 @@ enum functionStep {
 void InsertTrie(TrieNode*& root, const string& key,queue<Step>& steps);
 
 bool FindTrie(TrieNode*& root, const string& key, queue<Step>& steps);
+bool FindTrieNoStep(TrieNode*& root, const string& key);
 
 void deleteNode(TrieNode* root, bool isStepbyStep);
 

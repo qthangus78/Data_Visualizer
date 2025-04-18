@@ -109,7 +109,6 @@ public:
 	Trie();
 	
 	void Insert(const string& c);
-	//void ProcessInsert();
 
 	bool Find(const string& c);
 
@@ -119,12 +118,13 @@ public:
 	
 	//Utility
 	void drawNodeTrie(Vector2 pos, const char& character, Color colorNode,Color colorText,float radius);
-	//void animateTrie(float duration, Vector2 start, Vector2 end);
 
 	string handleTypeBox(Rectangle rect);
 	void drawTypeBox(Rectangle rect);
 
 	void HandleButtonClickTrie();
+	void drawButtonsTrie();
+		
 	
 	void drawFindResult(bool isFound, const string& key);
 
@@ -159,12 +159,6 @@ public:
 
 	void Handle();
 	void Draw();
-};
-
-struct PseudoCodeBox {
-	vector<char*> content;
-	Rectangle rect = { 0, 0 ,300, 500 };
-
 };
 
 namespace Trie_Display {
