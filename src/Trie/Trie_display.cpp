@@ -229,8 +229,6 @@ TrieNode* Trie::CopyTrie(const TrieNode* root)
 	return copy;
 }
 
-void
-
 void Trie::EraseTrie(TrieNode*& root)
 {
 	if (!root) return;
@@ -256,7 +254,25 @@ void Trie::ClearStack(stack<TrieNode*>& Stack)
 	}
 }
 
+void Trie::Undo()
+{
+	if (UndoStack.empty()) return;
 
+	RedoStack.push(CopyTrie(root)); // Save current state to redo stack
+	EraseTrie(root);
+	root = UndoStack.top();
+	UndoStack.pop();
+}
+
+void Trie::Redo()
+{
+	if (RedoStack.empty()) return;
+
+	UndoStack.push(CopyTrie(root)); // Save current state to undo stack
+	EraseTrie(root);
+	root = RedoStack.top();
+	RedoStack.pop();
+}
 
 //Visualizer-----------------
 

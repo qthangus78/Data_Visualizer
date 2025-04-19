@@ -7,7 +7,7 @@
 
 class Trie {
 private:
-	stack<TrieNode*> Undo, Redo;
+	stack<TrieNode*> UndoStack, RedoStack;
 
 public:
 
@@ -142,11 +142,15 @@ public:
 
 	TrieNode* CopyTrie(const TrieNode* root);
 
-	void 
+
 
 	void EraseTrie(TrieNode*& root);
 
 	void ClearStack(stack<TrieNode*>&);
+
+	void Undo();
+
+	void Redo();
 	//Visualizer---------------------
 
 	//calculate the placement
