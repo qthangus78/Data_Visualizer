@@ -7,9 +7,15 @@
 
 class Trie {
 private:
-
+	stack<TrieNode*> Undo, Redo;
 
 public:
+
+
+
+	//speed
+	SpeedButtonSpinner speedTrie;
+
 	//announce
 	AnnouncementBox announce;
 	pair<char*, vector<char*>> InsertCode = {
@@ -75,7 +81,6 @@ public:
 		FindFunct = 2,
 		DeleteFunct = 3,
 		ClearFunct = 4,
-
 	};
 
 	//Trie root
@@ -99,7 +104,7 @@ public:
 	int curLine = -1;//pseudo code
 	string curText ="";
 
-	const float spread = 55/*spacing*/, durationTrie = 5.0f/*Trie animation*/, durationNode = 0.5f /*Node animation*/;
+	const float durationTrie = 5.0f, durationNode = 0.5f, spread = 55/*spacing*/;
 	float elapsedTrie = 0.0f, elapsedNode = 0.0f, progressTrie = 1,progressNode = 1;/*Trie animation*/
 
 	Rectangle inputRect = {};
@@ -116,7 +121,7 @@ public:
 
 	void Clear();
 	
-	//Utility
+	//Utility-------------------------
 	void drawNodeTrie(Vector2 pos, const char& character, Color colorNode,Color colorText,float radius);
 
 	string handleTypeBox(Rectangle rect);
@@ -131,7 +136,17 @@ public:
 	void drawDeleteResult(bool isFound, const string& key);
 
 	void drawClearResult();
-	
+
+	//Undo redo---------------------
+
+
+	TrieNode* CopyTrie(const TrieNode* root);
+
+	void 
+
+	void EraseTrie(TrieNode*& root);
+
+	void ClearStack(stack<TrieNode*>&);
 	//Visualizer---------------------
 
 	//calculate the placement

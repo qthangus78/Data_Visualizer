@@ -38,6 +38,7 @@ Trie::Trie() {
 	root = new TrieNode();
 	root->isNewNode = false;
 	announce = AnnouncementBox({1050,350,300,350}, "");
+	speedTrie.Init({screenWidth/2, screenHeight - 100});
 }
 
 void Trie::Insert(const string& c)
@@ -210,6 +211,53 @@ void Trie::drawClearResult()
 		}
 	}
 }
+
+//undo redo
+
+TrieNode* Trie::CopyTrie(const TrieNode* root)
+{
+	if (!root) return nullptr;
+
+	TrieNode* copy = new TrieNode();
+	copy->isWord = root->isWord;
+
+	for (const auto& [character, child] : root->children)
+	{
+		copy->children[character] = CopyTrie(child);
+	}
+
+	return copy;
+}
+
+void
+
+void Trie::EraseTrie(TrieNode*& root)
+{
+	if (!root) return;
+
+	for (auto& [character, child] : root->children)
+	{
+		EraseTrie(child);
+	}
+
+	delete root;
+	root = nullptr;
+}
+
+void Trie::ClearStack(stack<TrieNode*>& Stack)
+{
+	while (!Stack.empty())
+	{
+		TrieNode* curNode = Stack.top();
+		
+		EraseTrie(curNode);
+
+		Stack.pop();
+	}
+}
+
+
+
 //Visualizer-----------------
 
 int Trie::CalculateSubtreeSize(TrieNode* node) {
@@ -489,17 +537,18 @@ void Trie::Handle()
 	//Trie
 	if (progressNode < 1)
 	{
-		progressNode = elapsedNode / durationNode;
+		progressNode = elapsedNode / (durationNode * speedTrie.value);
 		elapsedNode += GetFrameTime();
 	}
 
 	if (progressTrie < 1)
 	{
-		progressTrie = elapsedTrie / durationTrie;
+		progressTrie = elapsedTrie / (durationTrie * speedTrie.value);
 		elapsedTrie += GetFrameTime();
 	}
 
 	//button
+	speedTrie.Update();
 	handleButtonsHover();
 	HandleButtonClickTrie();
 	toggle.Update(mouse, *this);
@@ -581,7 +630,7 @@ void Trie::Draw()
 	drawTrie(root);
 
 	//button
-
+	speedTrie.Draw();
 	drawButtonsTrie();
 	toggle.Draw();
 
