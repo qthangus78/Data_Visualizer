@@ -8,6 +8,7 @@
 class Trie {
 private:
 	stack<TrieNode*> UndoStack, RedoStack;
+	Rectangle UndoButton, RedoButton;
 
 public:
 
@@ -137,20 +138,24 @@ public:
 
 	void drawClearResult();
 
-	//Undo redo---------------------
-
+	//Undo redo--------------------
 
 	TrieNode* CopyTrie(const TrieNode* root);
 
-
-
 	void EraseTrie(TrieNode*& root);
-
 	void ClearStack(stack<TrieNode*>&);
 
 	void Undo();
-
 	void Redo();
+
+	void AddtoUndo();
+
+	void handleUndoRedo();
+	void drawUndoRedo();
+
+
+
+
 	//Visualizer---------------------
 
 	//calculate the placement

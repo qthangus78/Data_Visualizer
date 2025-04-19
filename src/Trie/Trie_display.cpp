@@ -39,6 +39,8 @@ Trie::Trie() {
 	root->isNewNode = false;
 	announce = AnnouncementBox({1050,350,300,350}, "");
 	speedTrie.Init({screenWidth/2, screenHeight - 100});
+	RedoButton = {screenWidth/2 + 100, screenHeight - 100 , 40, 40};
+	UndoButton = {screenWidth/2 - 100, screenHeight - 100 , 40, 40};
 }
 
 void Trie::Insert(const string& c)
@@ -220,6 +222,14 @@ TrieNode* Trie::CopyTrie(const TrieNode* root)
 
 	TrieNode* copy = new TrieNode();
 	copy->isWord = root->isWord;
+	copy->subtreeSize = root->subtreeSize;
+	copy->pos = root->posCur;
+	copy->posPrev = root->posPrev;
+	copy->posCur = root->posCur;
+	copy->colorNode = color::nodeNotInMode;
+	copy->colorText = root->colorText;
+	copy->character = root->character;
+	copy->isNewNode = false;
 
 	for (const auto& [character, child] : root->children)
 	{
@@ -241,7 +251,6 @@ void Trie::EraseTrie(TrieNode*& root)
 	delete root;
 	root = nullptr;
 }
-
 void Trie::ClearStack(stack<TrieNode*>& Stack)
 {
 	while (!Stack.empty())
@@ -263,7 +272,6 @@ void Trie::Undo()
 	root = UndoStack.top();
 	UndoStack.pop();
 }
-
 void Trie::Redo()
 {
 	if (RedoStack.empty()) return;
@@ -272,6 +280,55 @@ void Trie::Redo()
 	EraseTrie(root);
 	root = RedoStack.top();
 	RedoStack.pop();
+}
+
+void Trie::AddtoUndo()
+{
+	UndoStack.push(CopyTrie(root));
+	ClearStack(RedoStack);
+}
+
+void Trie::handleUndoRedo() {
+	if (CheckCollisionPointRec(mouse, UndoButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+		Undo();
+		while (!steps.empty()) steps.pop();
+		progressNode = progressTrie = 1;
+	
+	}
+
+
+	if (CheckCollisionPointRec(mouse, RedoButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+		Redo();
+		while (!steps.empty()) steps.pop();
+		progressNode = progressTrie = 1;
+	}
+}
+
+void Trie::drawUndoRedo()
+{
+	Color UndoColor;
+	if (UndoStack.empty()) UndoColor = color::nodeNotInMode;
+	else
+	if (CheckCollisionPointRec(mouse, UndoButton))
+		UndoColor = color::buttonColorHovered;
+	else UndoColor = color::buttonColor;
+
+	DrawTriangle({ UndoButton.x + UndoButton.width,  UndoButton.y},
+		{ UndoButton.x, UndoButton.y + UndoButton.height / 2 },
+		{ UndoButton.x  + UndoButton.width,UndoButton.y + UndoButton.height },
+		UndoColor);
+
+	Color RedoColor;
+	if (RedoStack.empty()) RedoColor = color::nodeNotInMode;
+	else
+	if (CheckCollisionPointRec(mouse, RedoButton))
+		RedoColor = color::buttonColorHovered;
+	else RedoColor = color::buttonColor;
+
+	DrawTriangle({ RedoButton.x,  RedoButton.y },
+		{ RedoButton.x ,RedoButton.y + RedoButton.height },
+		{ RedoButton.x + RedoButton.width, RedoButton.y + RedoButton.height / 2 },
+		RedoColor);
 }
 
 //Visualizer-----------------
@@ -568,6 +625,7 @@ void Trie::Handle()
 	handleButtonsHover();
 	HandleButtonClickTrie();
 	toggle.Update(mouse, *this);
+	handleUndoRedo();
 
 	switch (curFunct)
 	{
@@ -577,6 +635,7 @@ void Trie::Handle()
 		word = handleTypeBox(inputRect);
 		if (!word.empty())
 		{
+			AddtoUndo();
 			Insert(word);
 			Visualize(root);
 			elapsedTrie = elapsedNode = 0;
@@ -610,6 +669,7 @@ void Trie::Handle()
 			isFound = Delete(word);
 			if (isFound)
 			{
+				AddtoUndo();
 				Visualize(root);
 				elapsedTrie = elapsedNode= 0;
 				progressTrie =progressTrie= 0; //0 de ko bi giut animation
@@ -622,6 +682,7 @@ void Trie::Handle()
 		resetState(ClearCode);
 		if (!root->children.empty() && steps.empty())
 		{
+			AddtoUndo();
 			Clear();
 			Visualize(root);
 		}
@@ -649,6 +710,7 @@ void Trie::Draw()
 	speedTrie.Draw();
 	drawButtonsTrie();
 	toggle.Draw();
+	drawUndoRedo();
 
 	switch (curFunct)
 	{
