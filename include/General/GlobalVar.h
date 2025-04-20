@@ -17,7 +17,6 @@ extern bool WindowClose;
 extern Font customFont;
 extern Font SSLFont;
 extern Font textCodeFont;
-extern Font customFont;
 
 extern myTexture BackButton; 
 extern myTexture PlayButton;

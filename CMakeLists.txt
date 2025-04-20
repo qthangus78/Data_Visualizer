@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.11)
 project(DataVisualizer VERSION 1.0.0 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17) 
+set(RAYLIB
+${PROJECT_SOURCE_DIR}/include/raylib/lib/libraylibdll.a)
+
+
 # Include path cho raylib
 include_directories(include/raylib/include)
+
 
 # Include path cho các phần khác
 include_directories(
@@ -11,6 +17,7 @@ include_directories(
     include/Heap
     include/Graph
     include/AVL
+    include/Trie
 )
 
 # Khai báo các file nguồn
@@ -33,6 +40,8 @@ add_executable(${PROJECT_NAME}
     src/Graph/Graph_Menu.cpp
     src/Graph/graph.cpp
     src/Graph/MST_Kruskal.cpp
+    src/Trie/Trie.cpp
+    src/Trie/Trie_display.cpp
 )
 
 # Đường dẫn thư viện raylib
@@ -44,3 +53,4 @@ file(COPY ${RAYLIB_DLL} DESTINATION ${PROJECT_BINARY_DIR})
 
 # Liên kết với thư viện raylib
 target_link_libraries(${PROJECT_NAME} PUBLIC ${RAYLIB_LIB})
+
