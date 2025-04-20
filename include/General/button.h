@@ -1,7 +1,6 @@
 #pragma once 
 #include <raylib.h>
 #include <bits/stdc++.h>
-
 // using namespace std;
 
 enum class ScreenID {
@@ -10,7 +9,7 @@ enum class ScreenID {
     SettingScreen,
     SLLScreen,
     HeapScreen,
-    AVLTreeScreen,
+    TrieScreen,
     GraphScreen
 };
 class myTexture {
@@ -41,7 +40,7 @@ struct SpeedButtonSpinner {
     const float step = 0.5f;
     Vector2 position;
 
-    void Init(Vector2 pos);   
+    void Init(Vector2 pos);
     void Update();
     void Draw() const;
     float GetValue() const;

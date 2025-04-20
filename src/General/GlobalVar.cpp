@@ -45,12 +45,12 @@ namespace color {
     Color edgeRendered       = {255, 215, 0, 255};
 }
 namespace buttonVar {
-    button buttonIns    = {{50.0f, 450.0f, button::sizeW, button::sizeH}, color::buttonColor, "Insert"};
-    button buttonDel    = {{50.0f, 500.0f, button::sizeW, button::sizeH}, color::buttonColor, "Delete"};
-    button buttonF      = {{50.0f, 550.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
-    button buttonClear  = {{50.0f, 600.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
-    button buttonGo     = {{300.0f, 640.0f, 60,40}, color::buttonFile, "Go"};
-    button buttonCreate = {{50.0f, 400.0f, button::sizeW, button::sizeH}, color::buttonColor, "Create"};
+    button buttonCreate = {{40.0f, 430.0f, button::sizeW, button::sizeH}, color::buttonColor, "Create"};
+    button buttonIns    = {{40.0f, 480.0f, button::sizeW, button::sizeH}, color::buttonColor, "Insert"};
+    button buttonDel    = {{40.0f, 530.0f, button::sizeW, button::sizeH}, color::buttonColor, "Delete"};
+    button buttonF      = {{40.0f, 580.0f, button::sizeW, button::sizeH}, color::buttonColor, "Find"};
+    button buttonClear  = {{40.0f, 630.0f, button::sizeW, button::sizeH}, color::buttonColor, "Clear"};
+    button buttonGo     = {{290.0f, 580.0f, 60,40}, color::buttonFile, "Go"};
 }
 Edge EArrow = {100.0f, 3.0f, 20.0f};
 Vector2 startLinkedListPos = {50,170};

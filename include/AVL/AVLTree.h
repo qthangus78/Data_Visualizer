@@ -12,7 +12,7 @@ struct node {
     node *par;
     node *child[2]; 
    
-    Vector2 Pos;
+    Vector2 Pos = {};
 
     node(int _val = 0, int _height = 1, node* _par = nullptr, node* left = nullptr, node* right = nullptr) {
         val = _val;
@@ -103,7 +103,7 @@ struct AVL_tree{
  
             node* Y = X -> child[imbalance.first];
             leftHeight = rightHeight = 0;
-            if (Y -> child[0]) leftHeight = Y -> child[0] -> height;
+            if (Y && Y -> child[0]) leftHeight = Y -> child[0] -> height;
             if (Y -> child[1]) rightHeight = Y -> child[1] -> height;
 
             if (leftHeight > rightHeight) imbalance.second = 0;

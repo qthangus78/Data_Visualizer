@@ -79,21 +79,20 @@ void display_title(const char *Title, ScreenID lastScreenID) {
 
 bool IsResourcesLoaded() {
     return BackButton.isLoaded && PlayButton.isLoaded && PauseButton.isLoaded && ReplayButton.isLoaded
-           && UndoButton.isLoaded && RedoButton.isLoaded;
+        && UndoButton.isLoaded && RedoButton.isLoaded;
 }
-
 
 void SpeedButtonSpinner::Init(Vector2 pos) {
     position = pos;
-    Vector2 leftCenter = {position.x - 44, position.y-7};
-    Vector2 rightCenter = {position.x + 44, position.y-7};
-    addButton.SetPosition(rightCenter.x,rightCenter.y);
-    minusButton.SetPosition(leftCenter.x,leftCenter.y);
+    Vector2 leftCenter = { position.x - 44, position.y - 7 };
+    Vector2 rightCenter = { position.x + 44, position.y - 7 };
+    addButton.SetPosition(rightCenter.x, rightCenter.y);
+    minusButton.SetPosition(leftCenter.x, leftCenter.y);
 }
 
 void SpeedButtonSpinner::Update() {
-    if(minusButton.isPressed()) value = std::max(minValue, value - step);
-    if(addButton.isPressed()) value = std::min(maxValue, value + step);
+    if (minusButton.isPressed()) value = std::max(minValue, value - step);
+    if (addButton.isPressed()) value = std::min(maxValue, value + step);
 }
 
 void SpeedButtonSpinner::Draw() const {

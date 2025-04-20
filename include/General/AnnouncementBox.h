@@ -67,6 +67,7 @@ public:
     
     // Main rendering function
     void Draw();
+    void DrawforTrie();
     
     // Add table-specific methods
     void StartTable();

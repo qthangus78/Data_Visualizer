@@ -3,6 +3,7 @@
 #include "graph.h"
 #include "TextBox.h"
 #include "tinyfiledialogs.h"
+#include "random"
 
 class GraphMenu {
 public:

@@ -67,7 +67,7 @@ void Table::Draw(Rectangle rect, float& yPosition, float maxContentHeight, float
             // Draw header cells and vertical borders
             for (int i = 0; i < header.size(); i++) {
                 DrawTextEx(customFont, header[i].c_str(), 
-                          (Vector2){xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
+                          Vector2{xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
                 
                 xPos += columnWidths[i];
                 DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
@@ -96,7 +96,7 @@ void Table::Draw(Rectangle rect, float& yPosition, float maxContentHeight, float
             // Draw cells
             for (int i = 0; i < row.data.size() && i < columnWidths.size(); i++) {
                 DrawTextEx(customFont, row.data[i].c_str(), 
-                         (Vector2){xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
+                         Vector2{xPos + 5, yPosition + 2}, fontSize, 1.0f, textColor);
                 
                 xPos += columnWidths[i];
                 DrawLine(xPos, yPosition, xPos, yPosition + lineHeight, borderColor);
@@ -127,8 +127,8 @@ float Table::GetTotalHeight() const {
 }
 
 
-AnnouncementBox::AnnouncementBox() 
-    : rect({0, 0, 300, 500})
+AnnouncementBox::AnnouncementBox()
+    : rect({0, 0 ,300, 500})
     , title("")
     , highlightStartLine(-1)
     , highlightEndLine(-1)
@@ -217,8 +217,8 @@ bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxCont
     float scrollThumbY = scrollY + (scrollRatio * scrollableTrackHeight);
     
     // Set the member variables for rectangles
-    scrollBarRect = (Rectangle){rect.x + rect.width - 15, scrollY, 10, scrollHeight};
-    scrollThumbRect = (Rectangle){rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
+    scrollBarRect = Rectangle{rect.x + rect.width - 15, scrollY, 10, scrollHeight};
+    scrollThumbRect = Rectangle{rect.x + rect.width - 15, scrollThumbY, 10, scrollThumbHeight};
     
     // Handle mouse wheel for scrolling
     if (CheckCollisionPointRec(GetMousePosition(), rect)) {
@@ -298,8 +298,8 @@ void AnnouncementBox::Draw() {
     float titleWidth = MeasureTextEx(customFont, title, titleFontSize, 1.0f).x;
     float underlineY = titleY + titleFontSize + 4;
     DrawLineEx(
-        (Vector2){titlePos.x, underlineY},
-        (Vector2){titlePos.x + titleWidth, underlineY},
+        Vector2{titlePos.x, underlineY},
+        Vector2{titlePos.x + titleWidth, underlineY},
         3.0f,  // Line thickness (bold)
         titleColor
     );
@@ -347,7 +347,7 @@ void AnnouncementBox::Draw() {
         Color bgColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightBgColor : backgroundColor;
         Color txtColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightColor : textColor;
         DrawRectangle(rect.x + 10, y, rect.width - 30, lineHeight, bgColor);
-        DrawTextEx(customFont, content[i], (Vector2){rect.x + 15, y + 5}, contentFontSize, 1.0f, txtColor);
+        DrawTextEx(customFont, content[i], Vector2{rect.x + 15, y + 5}, contentFontSize, 1.0f, txtColor);
     }
     
     // Draw info section
@@ -381,9 +381,99 @@ void AnnouncementBox::Draw() {
                 
         // Regular info line
         std::string buffer = info.label + ": " + info.value;
-        DrawTextEx(customFont, buffer.c_str(), (Vector2){rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
+        DrawTextEx(customFont, buffer.c_str(), Vector2{rect.x + 20, infoY}, infoFontSize, 1.0f, textColor);
     }
     
     EndScissorMode();
+}
+
+void AnnouncementBox::DrawforTrie() {
+    DrawRectangleRec(rect, backgroundColor);
+    DrawRectangleLinesEx(rect, 1.0f, borderColor);
+
+    // Draw title
+    float titleY = rect.y + 10;
+    Vector2 titlePos = { rect.x + rect.width / 2.0f - MeasureTextEx(customFont, title, titleFontSize, 1.0f).x / 2.0f, titleY };
+    DrawTextEx(customFont, title, titlePos, titleFontSize, 1.0f, textColor);
+
+    // Add bold underline for title
+    float titleWidth = MeasureTextEx(customFont, title, titleFontSize, 1.0f).x;
+    float underlineY = titleY + titleFontSize + 4;
+    DrawLineEx(
+        Vector2{ titlePos.x, underlineY },
+        Vector2{ titlePos.x + titleWidth, underlineY },
+        3.0f,  // Line thickness (bold)
+        titleColor
+    );
+
+    // Calculate visible content height
+    float codeHeight = content.size() * lineHeight;
+    float infoHeight = infoLines.size() * lineHeight;
+
+    // Calculate table height (header + all rows)
+    float tableHeight = 0;
+    if (table.HasContent()) {
+        // Header row + data rows + spacing
+        tableHeight = table.GetTotalHeight();
+    }
+
+    float totalContentHeight = codeHeight + infoHeight + tableHeight + 50; // 50 for padding
+    float maxContentHeight = rect.height - 60; // Account for title and padding
+
+    // std::cout << needsScrollBar << std::endl;
+
+    // Apply scrolling to content
+
+    float codeY = rect.y + 50 - scrollOffset;
+
+    // Draw code with highlighting
+    for (int i = 0; i < content.size(); i++) {
+        float y = codeY + i * lineHeight;
+
+        // Skip if not visible
+        if (y + lineHeight < rect.y + 50 || y > rect.y + 50 + maxContentHeight) {
+            continue;
+        }
+
+        Color bgColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightBgColor : backgroundColor;
+        Color txtColor = (i >= highlightStartLine && i <= highlightEndLine) ? highlightColor : textColor;
+        DrawRectangle(rect.x + 10, y, rect.width - 30, lineHeight, bgColor);
+        DrawTextEx(customFont, content[i], Vector2{ rect.x + 15, y + 5 }, contentFontSize, 1.0f, txtColor);
+    }
+
+    // Draw info section
+    float infoY = codeY + content.size() * lineHeight + 20;
+
+    for (int i = 0; i < infoLines.size(); i++, infoY += lineHeight) {
+        const auto& info = infoLines[i];
+
+        // Special handling for table markers - PROCESS REGARDLESS OF VISIBILITY
+        if (info.label == "__TABLE_START__") {
+            // float tableStartY = infoY + lineHeight / 2;
+            infoY += lineHeight / 2;
+            // Always draw the table, let the table handle its own visibility
+            table.Draw(rect, infoY, maxContentHeight, rect.y + 50, customFont);
+
+            continue;
+        }
+
+        // Skip if not visible
+        if (infoY + lineHeight < rect.y + 50 || infoY > rect.y + 50 + maxContentHeight) {
+            continue;
+        }
+
+        // Check for separator marker
+        if (info.label == "__SEPARATOR__") {
+            // Draw a horizontal line instead of text
+            DrawLine(rect.x + 20, infoY + lineHeight / 2, rect.x + rect.width - 30,
+                infoY + lineHeight / 2, Color{ 100, 100, 100, 150 });
+            continue;
+        }
+
+        // Regular info line
+        std::string buffer = info.label + ": " + info.value;
+        DrawTextEx(customFont, buffer.c_str(), Vector2{ rect.x + 20, infoY }, infoFontSize, 1.0f, textColor);
+    }
+
 }
 
