@@ -21,6 +21,7 @@ int main() {
 
     MinHeap minHeap;
     Heap_display::heapInstance = &minHeap;
+
     
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();
@@ -55,6 +56,8 @@ int main() {
         EndDrawing();
     }
 
+    UnloadTexture(dice);
+    UnloadTexture(customTexture);
     UnloadFontResource();
     CloseWindow();
     return 0;
