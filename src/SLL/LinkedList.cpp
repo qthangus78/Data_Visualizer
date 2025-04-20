@@ -6,11 +6,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <stack>
 //Code Box
 std::vector<button> code;
 void initCodeButton(){
     code.resize(7);
-    code[0] = {{860,430,500,36},{240,240,240,230},"",};
+    code[0] = {{960,430,400,36},{240,240,240,230},"",};
     for(int i=1;i<code.size(); i++){
         code[i] = {{code[i-1].rect.x,code[i-1].rect.y+code[i-1].rect.height,code[i-1].rect.width,code[i-1].rect.height},{240,240,240,230},""};
     }
@@ -173,7 +174,7 @@ SSL::SSL()
     mFind      = new Find(this);
     mClear = new Clear(this);
     mcurrent   = mNotInMode;
-    speed.Init({750,690});
+    
 }
 
 SSL::~SSL(){
@@ -194,6 +195,7 @@ IState* SSL::getDel()       { return mDelete; }
 IState* SSL::getFind()      { return mFind; }
 IState* SSL::getClear()     {return mClear;}
 IState::ToggleSwitch SSL::getToggle() {return toggle;}
+void SSL::setToggle(IState::ToggleSwitch toggle) {this->toggle = toggle;}
 
 ListNode* SSL::getRoot() { return root; }
 void SSL::setRoot(ListNode* cur) {root = cur;}
@@ -217,6 +219,7 @@ void SSL::clearStackRedo(){
     while(!redo.empty()) redo.pop();
 }
 bool SSL::getPause() {return IsPaused;}
+void SSL::setPause(bool pause) {IsPaused = pause;}
 float SSL::getFraction() {return fraction;}
 void SSL::setFraction(float fraction){
     this->fraction = fraction;
@@ -232,6 +235,7 @@ void SSL::delIdxList(int idx) {delIdxAl(root,tail,idx);}
 ListNode* SSL::findList(int x){ return findAl(root, x); }
 void SSL::delAllList() {delMemAl(root); }
 void SSL::fileInput(std::ifstream& fin) {fileInputAl(root,tail,fin);}
+SSL::command SSL::getTop() {if(!undo.empty()) return undo.top();}
 void SSL::handleUndo(){
     if(undo.empty()) return;
     command top = undo.top();
@@ -378,17 +382,18 @@ void SSL::draw(){
     else PlayButton.Drawtexture();
     toggle.Draw();
     speed.Draw();
+    speed.Draw();
     if(mcurrent) mcurrent->draw();
 }
 void SSL::handle(){
+    speed.Init({870,690});
     initCodeButton();
-    UndoButton.SetPosition(440,680);
-    RedoButton.SetPosition(640,680);
-    PlayButton.SetPosition(540,665);
-    PauseButton.SetPosition(540,665);
+    UndoButton.SetPosition(590,680);
+    RedoButton.SetPosition(760,680);
+    PlayButton.SetPosition(670,670);
+    PauseButton.SetPosition(670,670);
     Vector2 mouse = GetMousePosition();
     bool isClick = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-    toggle.Update(mouse);
     speed.Update();
     fraction = speed.GetValue();
     if(PlayButton.isPressed()) {IsPaused = !IsPaused;}
@@ -602,19 +607,27 @@ void handleButtonsClick(SSL* SSL){
     if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getCreate());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getInsert());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getDel());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
         buttonVar::buttonGo    = {{buttonVar::buttonDel.rect.x+250, buttonVar::buttonDel.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState(SSL->getFind());
         SSL->setExistVal(SSL->getRoot());
+        SSL->clearStackUndo();
+        SSL->clearStackRedo();
         buttonVar::buttonGo    = {{buttonVar::buttonF.rect.x+250, buttonVar::buttonF.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
@@ -622,6 +635,7 @@ void handleButtonsClick(SSL* SSL){
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
         SSL->clearStackRedo();
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
     }
 }
 // Vẽ blinking lines trong input
@@ -709,7 +723,7 @@ void drawPos(std::vector<ShadedData> pos, float NodeRadiusRender, float FontSize
 void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums, float& progressNode, SSL* s){
     float fraction = s->getFraction();
     if(!s->getPause()) progressNode += fraction*deltaTime;
-    NodeRadiusRender = lerp(0, 33, progressNode);
+    NodeRadiusRender = lerp(0, NODE_SIZE, progressNode);
     FontSize = lerp(0, FontNode, progressNode); 
     float fontText = lerp(0,22,progressNode);
     DrawCircleV(pos, NodeRadiusRender, color::nodeRendered);
@@ -721,6 +735,7 @@ void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums
 }
 void removeNode(float& NodeRadiusRender, float& FontSize, std::string str, Vector2 pos, float& progressNode, SSL* s){
     float fraction = s->getFraction();
+    if(!s->getPause()) progressNode+=fraction*deltaTime;
     if(!s->getPause()) progressNode+=fraction*deltaTime;
     NodeRadiusRender = lerp(NODE_SIZE-4,0,progressNode);
     FontSize = lerp(FontNode,0,progressNode);
@@ -757,7 +772,8 @@ void drawTextDown(std::string pointer, float fontText, Vector2 pos){
     Vector2 tmpDraw = {pos.x-tmpwidth.x/2,pos.y+NODE_SIZE};
     DrawTextEx(SSLFont,pointer.c_str(),tmpDraw,fontText,2,RED);
 }
-void nodeNext(ListNode*& cur, Vector2& pos, int& framecntDel){
+void nodeNext(ListNode*& cur, Vector2& pos, int& framecntDel, std::stack<std::pair<ListNode*, Vector2>>& st){
+    st.push({cur,pos});
     const int ARROW_LENGTH = EArrow.length;
     cur = cur->next;
     framecntDel = 0;

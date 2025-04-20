@@ -5,6 +5,7 @@
 #include <vector>
 #include <stack>
 #include "GlobalVar.h"
+#include "button.h"
 
 const int NODE_SIZE = 33;
 const int ROW_OFFSET = 100;
@@ -12,9 +13,19 @@ const int SCREEN_MARGIN = 50;
 const int FontNode = 22;
 const float speedNode = 70;
 extern std::vector<button> code;
-const Rectangle CodeBox = {860,430,500,252};
+const Rectangle CodeBox = {960,430,400,252};
 extern const float deltaTime;
 void initCodeButton();
+struct ListNode {
+    int data;
+    ListNode* next;
+    ListNode(int x);
+};
+
+struct ShadedData {
+    Vector2 pos;
+    ListNode* node;
+};
 //--------------------------------
 // Các hàm thao tác LinkedList
 //--------------------------------
@@ -41,6 +52,7 @@ class IState {
 public:
     enum class InsertType {Head,Tail,Idx,None};
     enum class DeleteType{None,Head,Tail,Val};
+    enum class CreateType{None,File,Random};
     struct ToggleSwitch {
         Rectangle bounds;
         bool isStepByStep;
@@ -49,7 +61,7 @@ public:
         float labelAlpha;
         float labelAlphaReverse;
         ToggleSwitch() {
-            bounds = {50,20,140,40};
+            bounds = {40,20,140,40};
             isStepByStep = true;
             toggleRadius = 40 * 0.8f;
             toggleX = bounds.x + 5;
@@ -57,7 +69,7 @@ public:
             labelAlphaReverse = 0.0f;
         }
         void Update(Vector2 mouse) {
-            if (CheckCollisionPointRec(mouse, bounds) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            if (CheckCollisionPointRec(mouse, bounds) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 isStepByStep = !isStepByStep;
             }
             float targetX = isStepByStep ? bounds.x + 5 : bounds.x + bounds.width - toggleRadius - 5;
@@ -102,7 +114,7 @@ private:
     IState::ToggleSwitch toggle; 
     SpeedButtonSpinner speed;
     bool IsPaused = false;
-    float fraction = 2.0f;
+    float fraction = 1.0f;
 public:
     SSL();
     ~SSL();
@@ -127,9 +139,11 @@ public:
     void setNumElement(int nums);
     std::stack <command>& getCommandUndo();
     std::stack <command>& getCommnadRedo();
+    command getTop();
     void pushStack(std::stack<command>& st,command cur);
     void popStack(std::stack<command>& st);
     bool getPause ();
+    void setPause(bool Pause);
     float getFraction();
     void setFraction(float fraction);
     void clearStackUndo();
@@ -154,6 +168,7 @@ public:
     IState* getFind();
     IState* getClear(); 
     IState::ToggleSwitch getToggle();
+    void setToggle(IState::ToggleSwitch toggle);
     void handleUndo();
     void handleRedo();
     // main loop
@@ -181,10 +196,16 @@ private:
     button fileInput, random;
     std::vector<ShadedData> pos;
     bool randomProcess, fileProcess;
-    float NodeRadiusRender, ArrowLengthRender, FontSize;
-    float progress;
-public:
+    float progress, progressGo;
+    CreateType prev = CreateType::None, cur = CreateType::None;
+    bool inProcess = false;
+    public:
     Create(SSL *s);
+    CreateType DetectCurrentMode();
+    void handleModeTransitTion(CreateType newType);
+    void updateCommonAnimation();
+    void handleFileMode();
+    void handleRandomMode();
     void drawInputFile();
     void drawInitialize();
     void handleInit();
@@ -202,15 +223,16 @@ private:
     int frameCounter, framecntInsert;
     std::string textIn, textInIndex;
     button InsertHead, InsertTail, InsertIndex, Index, Value;
-    float NodeRadiusRender, ArrowLengthRender, FontSize, Font;
     bool InsertTailProcess, InsertHeadProcess, InsertIdxProcess, inProcess;
     ListNode* currentAnimatingNode;
     Vector2 posTail, pos, prevpos;
     float progressNode, progressAppear, progressArrow;
-    float duration = 2.0f;
+    float Font;
     Rectangle inputRect,idxRect,valRect;
     bool valInsert, idxInsert;
-    int nums,idx = 0,curindex=0,curline=-1,curlinetmp=-1;
+    int nums, idx = 0, curindex=0, curline=-1, curlinetmp=-1;
+    bool overValue = false, inIndex = true;
+    std::stack<std::pair<ListNode*,Vector2>> st;
     std::vector<std::string> codeHead = {
         "Vertex vtx = new Vertex(v)",
         "vtx.next = head",
@@ -252,6 +274,8 @@ public:
     void insertHeadAnimation(int x);
     void insertTailAnimation(ListNode*& tmp,Vector2& posTail);
     void insertIdxAnimation(ListNode*& tmp);
+    void handleUndo();
+    void handleRedo();
     void ResetInsertState();
     void draw() override;
     void handle() override;
@@ -263,15 +287,17 @@ private:
     SSL* mSSL;
     int frameCounter, framecntDel;
     std::string textIn;
+    std::string tmpText;
     bool existVal, DeleteValProcess, DeleteHeadProcess, DeleteTailProcess, inProcess;
     ListNode* currentAnimatingNode;
-    float NodeRadiusRender, ArrowLengthRender, FontSize;
     ShadedData shadedPos;
     button DeleteHead, DeleteTail, DeleteVal;
-    float progressNode, progressArrow, progressAppear;
+    float progressNode, progressArrow, progressAppear,ArrowLengthRender;
     Rectangle inputRect;
     int curline = -1, curlinetmp = -1;
     Vector2 prevpos = {0,0};
+    int idx = 0;
+    std::stack<std::pair<ListNode*,Vector2>> st;
     std::vector<std::string> delHeadCode = {
         "if empty, do nothing",
         "if head.next = null",
@@ -311,6 +337,8 @@ public:
     void delHeadAnimation();
     void delTailAnimation(ListNode*& cur);
     void delAnimation(ListNode*& tmp, int x);
+    void handleUndo();
+    void handleRedo();
     void ResetDeleteState();
     void draw() override;
     void handle() override;
@@ -324,6 +352,7 @@ private:
     ShadedData shadedPos;
     ListNode* currentAnimatingNode = nullptr;
     std::string textIn;
+    std::string tmpText;
     std::vector<std::string> codeLines = {"if empty, return NOT_FOUND",
     "pointer = head",
     "while (pointer.val != v)",
@@ -334,9 +363,12 @@ private:
     };
     int curline=-1;
     int curlinetmp = -1;
+    std::stack<std::pair<ListNode*, Vector2>> st;
 public:
     Find(SSL* s);
     void findAnimation(ListNode*& root);
+    void handleUndo();
+    void handleRedo();
     void handleCodeLine();
     void ResetFindState();
     void draw() override;
@@ -345,8 +377,12 @@ public:
 class Clear : public IState{
 private:
     SSL* mSSL;
+    std::vector<ShadedData> node;
+    float progress;
+    bool clearProcess;
 public:
     Clear(SSL* s);
+    void ClearAnimation();
     void draw() override;
     void handle() override;
 };
@@ -378,5 +414,5 @@ void amplifyNode(float& NodeRadiusRender, float& FontSize, Vector2 pos, int nums
 void removeNode(float& NodeRadiusRender, float& FontSize, std::string str, Vector2 pos, float& progressNode, SSL* s);
 void drawTextUp(std::string s, float fontText, Vector2 pos);
 void drawTextDown(std::string s, float fontText, Vector2 pos);
-void nodeNext(ListNode*& cur, Vector2& pos,int& framecntDel);
+void nodeNext(ListNode*& cur, Vector2& pos,int& framecntDel, std::stack<std::pair<ListNode*, Vector2>>& st);
 void drawTextCode(int curline, int curlinetmp);

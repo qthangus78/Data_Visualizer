@@ -30,8 +30,6 @@ extern myTexture repeatButton;
 extern ScreenID currentScreenID;
 extern Texture2D customTexture;
 extern Texture2D dice;
-
-
 //--------------------------------
 // Cấu trúc button
 //--------------------------------
@@ -76,19 +74,6 @@ struct Edge {
 };
 extern Edge EArrow;
 extern Vector2 startLinkedListPos;
-//--------------------------------
-// ListNode
-//--------------------------------
-struct ListNode {
-    int data;
-    ListNode* next;
-    ListNode(int x);
-};
-
-struct ShadedData {
-    Vector2 pos;
-    ListNode* node;
-};
 
 void LoadFontResource();
 void LoadButtonsResources();
