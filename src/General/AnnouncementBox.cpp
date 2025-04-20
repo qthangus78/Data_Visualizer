@@ -204,7 +204,7 @@ bool AnnouncementBox::HandleScrollingBar(float totalContentHeight, float maxCont
     
     // Clamp current scrollOffset to valid range
     scrollOffset = fmax(0, fmin(scrollOffset, maxScrollOffset));
-    std::cout << "scrollOffset " << scrollOffset << std::endl;
+    // std::cout << "scrollOffset " << scrollOffset << std::endl;
     
     // Calculate thumb height to represent visible portion
     float thumbRatio = maxContentHeight / totalContentHeight;

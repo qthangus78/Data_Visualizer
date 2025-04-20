@@ -8,6 +8,7 @@
 #include "GlobalVar.h"
 #include "LinkedList.h"
 #include "button.h"
+#include "AnnouncementBox.h"
 #include <string>
 using namespace std;
 
@@ -36,7 +37,8 @@ class ButtonManager{
         Button clear = { {10, 385 + 60*2, 200, 50}, "CLEAR", BLUE };
         Button top = { {10, 385 + 60*3, 200, 50}, "TOP", BLUE };
         Button initialize = { {10, 385 + 60*4, 200, 50}, "INITIALIZE", BLUE };
-        Button Stepbystep = { {10, 385 + 60*5, 200, 50 }, "Step by step", BLUE };
+        Button search = { {10, 385 + 60*5, 200, 50}, "SEARCH", BLUE };
+        Button Stepbystep = { {10, 5, 200, 50 }, "Step by step", BLUE };
         Rectangle loadFile = { 220, 385 + 60*5, 200, 50 };
         Button random;
 
@@ -52,9 +54,11 @@ class ButtonManager{
         void DrawBackground();
 };
 
+extern bool valueFound;
 extern bool isStepbystep;
 extern bool isPaused;
 extern float blinkTime;
+extern float txtBlinkTime;
 extern int offsetX;
 extern int offsetY;
 extern int nodeRadius;
@@ -72,6 +76,7 @@ public:
     ~IStateHeap(){}
     virtual void draw() = 0;
     virtual void update() = 0;
+    virtual void reset() = 0;
 };
 
 class MinHeap{
@@ -83,6 +88,7 @@ public:
     IStateHeap* mClear;
     IStateHeap* mCurrent;
     IStateHeap* mInitialize;
+    IStateHeap* mSearch;
     IStateHeap* mWaiting;
     
     MinHeap();
@@ -113,9 +119,11 @@ public:
     IStateHeap* getClear();
     IStateHeap* getWaiting();
     IStateHeap* getInitialize();
+    IStateHeap* getSearch();
 
     void draw();
     void update();
+    void reset();
 };
 
 class State{
@@ -144,6 +152,18 @@ public:
 
 class Push : public IStateHeap{
 public:
+    char title[15] = "PUSH OPERATION";
+    std::vector<char*> content = {
+        "i = A.heap_size",
+        "A[i] = value",
+        "while ( i > 0 )",
+        "   p = PARENT(i)", 
+        "   if A[p] > A[i]", 
+        "      swap ( A[i], A[p] )", 
+        "      i = p" ,
+        "   else", 
+        "      break"
+    };
     int beginLine = -1;
     int endLine = -1;
     MinHeap *mHeap;
@@ -175,6 +195,7 @@ public:
     Push(MinHeap* heap);
     void draw() override;
     void update() override;
+    void reset() override;
 
     void handleInsert(int val);
     void updateTreeStructure();
@@ -215,6 +236,21 @@ public:
 
 class Remove : public IStateHeap{
 private:
+    char title[17] = "REMOVE OPERATION";
+    std::vector<char*> content = {
+        "swap ( A[i], A[A.heap_size - 1] )",
+        "while ( smallest < A.heap_size )",
+        "   l = LEFT(i), r = RIGHT(i), smallest = i",
+        "   if l < A.heap_size and A[l] < A[smallest]",
+        "      smallest = l",
+        "   if r < A.heap_size and A[r] < A[smallest]",
+        "      smallest = r",
+        "   if smallest != i",
+        "      swap ( A[i], A[smallest] )",
+        "      i = smallest",
+        "   else",
+        "      break"
+    };
     int beginLine = -1;
     int endLine = -1;
     MinHeap *mHeap;
@@ -247,6 +283,7 @@ public:
     Remove(MinHeap* heap);
     void draw() override;
     void update() override;
+    void reset() override;
 
     void handleRemove(int idx);
     void updateRemove();
@@ -258,30 +295,66 @@ public:
 
 class ClearH : public IStateHeap{
 private:
+    char title[16] = "CLEAR OPERATION";
+    std::vector<char*> content = { "A.clear" };
     MinHeap *mHeap;
 public:
     ClearH(MinHeap* heap);
     void draw() override;
     void update() override;
+    void reset() override;
 };
 
 class Top : public IStateHeap{
 private:
+    char title[14] = "TOP OPERATION";
+    std::vector<char*> content = { "return A[0]" };
     MinHeap *mHeap;
 public:
     Top(MinHeap* heap);
     void draw() override;
     void update() override;
+    void reset() override;
 };
 
 class Initialize : public IStateHeap{
 private:
+    char title[21] = "INITIALIZE OPERATION";
+    std::vector<char*> content = {
+        "A.heap_size = A.length",
+        "for i = floor(A.length / 2) downto 1",
+        "   MinHeapify( A, i )",
+    };
     MinHeap *mHeap;
 public:
     Initialize(MinHeap* heap);
     void handleInputFile();
     void draw() override;
     void update() override;
+    void reset() override;
+};
+
+class Search : public IStateHeap{
+private:
+    char title[17] = "SEARCH OPERATION";
+    std::vector<char*> content = {
+        "for i = 0 up to A.heap_size - 1",
+        "   if A[i] == value",
+        "      return i",
+        "return -1"
+    };
+    MinHeap *mHeap;
+    int currentStep = -1;
+    int animatingIdx = -1;
+    int targetIdx = -1;
+    float blinkTime = 0.0f;
+    int beginLine = -1;
+    int endLine = -1;
+public:
+    Search(MinHeap* heap);
+    void draw() override;
+    void update() override;
+    void reset() override;
 };
 
 class Waiting : public IStateHeap{
@@ -291,6 +364,7 @@ public:
     Waiting(MinHeap* heap);
     void draw() override;
     void update() override;
+    void reset() override;
 };
 
 // Drawing function
@@ -303,3 +377,5 @@ void swapHeapNode(HeapNode &a, HeapNode &b);
 void recalculateAllNodePos ( MinHeap* mHeap );
 void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos, float duration, bool &isAnimating, int i = 0 );
 void DrawBlinkingNode(Vector2 pos, int val, float &blinkTime);
+void DrawNode(Vector2 pos, const std::string& text);
+bool compareVector2(Vector2 &a, Vector2 &b);

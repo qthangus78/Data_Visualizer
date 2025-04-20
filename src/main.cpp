@@ -13,8 +13,6 @@ int main() {
     InitWindow((int)screenWidth, (int)screenHeight, "Data Visualizer");
     SetTargetFPS(FPS);
 
-    customTexture = LoadTexture("../resources/images/back-normal.png");
-    dice = LoadTexture("../resources/images/dice.png");
     LoadFontResource();
     LoadButtonsResources();
 
