@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME}
     src/General/tinyfiledialogs.cpp
     src/General/button.cpp
     src/General/TextBox.cpp
+    src/General/AnnouncementBox.cpp
     src/Graph/Dijkstra.cpp
     src/Graph/Draw_GraphMenu.cpp
     src/Graph/Graph_Display.cpp
