@@ -11,9 +11,6 @@ private:
 	Rectangle UndoButton, RedoButton;
 
 public:
-
-
-
 	//speed
 	SpeedButtonSpinner speedTrie;
 

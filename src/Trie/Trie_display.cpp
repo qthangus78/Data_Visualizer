@@ -741,7 +741,8 @@ void Trie::Draw()
 namespace Trie_Display {
 	void Display()
 	{
-        display_title("Trie", ScreenID::TrieScreen);
+        display_title("Trie", ScreenID::StartMenuScreen);
+
 		if (TrieInstance)
 		{
 			TrieInstance->Handle();
