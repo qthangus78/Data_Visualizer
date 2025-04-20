@@ -14,6 +14,59 @@ using namespace std;
 
 class MinHeap;
 
+struct PseudoCode {
+    char titleC[16] = "CLEAR OPERATION";
+    std::vector<char*> contentC = { "A.clear" };
+
+    char titleP[15] = "PUSH OPERATION";
+    std::vector<char*> contentP = {
+        "i = A.heap_size",
+        "A[i] = value",
+        "while ( i > 0 )",
+        "   p = PARENT(i)", 
+        "   if A[p] > A[i]", 
+        "      swap ( A[i], A[p] )", 
+        "      i = p" ,
+        "   else", 
+        "      break"
+    };
+
+    char titleR[17] = "REMOVE OPERATION";
+    std::vector<char*> contentR = {
+        "swap ( A[i], A[A.heap_size - 1] )",
+        "while ( smallest < A.heap_size )",
+        "   l = LEFT(i), r = RIGHT(i), smallest = i",
+        "   if l < A.heap_size and A[l] < A[smallest]",
+        "      smallest = l",
+        "   if r < A.heap_size and A[r] < A[smallest]",
+        "      smallest = r",
+        "   if smallest != i",
+        "      swap ( A[i], A[smallest] )",
+        "      i = smallest",
+        "   else",
+        "      break"
+    };
+
+    char titleT[14] = "TOP OPERATION";
+    std::vector<char*> contentT = { "return A[0]" };
+
+    char titleI[21] = "INITIALIZE OPERATION";
+    std::vector<char*> contentI = {
+        "A.heap_size = A.length",
+        "for i = floor(A.length / 2) downto 1",
+        "   MinHeapify( A, i )",
+    };
+
+    char titleS[17] = "SEARCH OPERATION";
+    std::vector<char*> contentS = {
+        "for i = 0 up to A.heap_size - 1",
+        "   if A[i] == value",
+        "      return i",
+        "return -1"
+    };
+
+};
+
 struct HeapNode{
     int val;
     Vector2 pos;
@@ -64,6 +117,7 @@ extern int offsetX;
 extern int offsetY;
 extern int nodeRadius;
 extern float duration;
+extern PseudoCode yes;
 extern AnnouncementBox pseudoCode;
 extern SpeedButtonSpinner speedButton;
 extern ButtonManager buttons;
@@ -154,18 +208,6 @@ public:
 class Push : public IStateHeap{
 public:
     int val = -1;
-    char title[15] = "PUSH OPERATION";
-    std::vector<char*> content = {
-        "i = A.heap_size",
-        "A[i] = value",
-        "while ( i > 0 )",
-        "   p = PARENT(i)", 
-        "   if A[p] > A[i]", 
-        "      swap ( A[i], A[p] )", 
-        "      i = p" ,
-        "   else", 
-        "      break"
-    };
     int beginLine = -1;
     int endLine = -1;
     MinHeap *mHeap;
@@ -239,21 +281,6 @@ public:
 class Remove : public IStateHeap{
 private:
     int val;
-    char title[17] = "REMOVE OPERATION";
-    std::vector<char*> content = {
-        "swap ( A[i], A[A.heap_size - 1] )",
-        "while ( smallest < A.heap_size )",
-        "   l = LEFT(i), r = RIGHT(i), smallest = i",
-        "   if l < A.heap_size and A[l] < A[smallest]",
-        "      smallest = l",
-        "   if r < A.heap_size and A[r] < A[smallest]",
-        "      smallest = r",
-        "   if smallest != i",
-        "      swap ( A[i], A[smallest] )",
-        "      i = smallest",
-        "   else",
-        "      break"
-    };
     int beginLine = -1;
     int endLine = -1;
     MinHeap *mHeap;
@@ -298,8 +325,6 @@ public:
 
 class ClearH : public IStateHeap{
 private:
-    char title[16] = "CLEAR OPERATION";
-    std::vector<char*> content = { "A.clear" };
     MinHeap *mHeap;
 public:
     ClearH(MinHeap* heap);
@@ -310,8 +335,6 @@ public:
 
 class Top : public IStateHeap{
 private:
-    char title[14] = "TOP OPERATION";
-    std::vector<char*> content = { "return A[0]" };
     MinHeap *mHeap;
 public:
     Top(MinHeap* heap);
@@ -322,12 +345,6 @@ public:
 
 class Initialize : public IStateHeap{
 private:
-    char title[21] = "INITIALIZE OPERATION";
-    std::vector<char*> content = {
-        "A.heap_size = A.length",
-        "for i = floor(A.length / 2) downto 1",
-        "   MinHeapify( A, i )",
-    };
     MinHeap *mHeap;
 public:
     Initialize(MinHeap* heap);
@@ -339,13 +356,6 @@ public:
 
 class Search : public IStateHeap{
 public:
-    char title[17] = "SEARCH OPERATION";
-    std::vector<char*> content = {
-        "for i = 0 up to A.heap_size - 1",
-        "   if A[i] == value",
-        "      return i",
-        "return -1"
-    };
     MinHeap *mHeap;
     int currentStep = -1;
     int animatingIdx = -1;

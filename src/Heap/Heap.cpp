@@ -9,6 +9,7 @@ int offsetX = 912;
 int offsetY = 200;
 int nodeRadius = 20;
 float duration = 1.0f;
+PseudoCode yes;
 SpeedButtonSpinner speedButton;
 ButtonManager buttons;
 AnnouncementBox pseudoCode;

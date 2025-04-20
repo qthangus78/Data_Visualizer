@@ -207,7 +207,6 @@ void Push::saveState(){
     if ( currentStep == 4 )
         std::swap(state.animatingPos, state.animatingPos2);
     undoStack.push(state);
-    std::cout << "State " << currentStep << " saved" << std::endl;
 }
 
 void Push::handleUndo(){
@@ -320,7 +319,7 @@ void Push::update(){
         handleRedo();
     }
 
-    setPseudoCode(title, content, beginLine, endLine);
+    setPseudoCode(yes.titleP, yes.contentP, beginLine, endLine);
 
     if ( isPaused ) return;
 
@@ -715,7 +714,7 @@ void Remove::update(){
         handleRedo();
     }
     
-    setPseudoCode(title, content, beginLine, endLine);
+    setPseudoCode(yes.titleR, yes.contentR, beginLine, endLine);
         
     if ( isPaused ) return;
         
@@ -999,7 +998,7 @@ void ClearH::update(){
         heapNode[i].pos = {0, 0};
     }
 
-    setPseudoCode(title, content );
+    setPseudoCode(yes.titleC, yes.contentC);
 }
 
 void ClearH::reset(){
@@ -1027,7 +1026,7 @@ void Top::update(){
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
 
-    setPseudoCode(title, content);
+    setPseudoCode(yes.titleT, yes.contentT);
 }
 
 void Top::reset(){
@@ -1095,7 +1094,7 @@ void Initialize::update(){
         handleInputFile();
         recalculateAllNodePos(mHeap);
     }
-    setPseudoCode(title, content);
+    setPseudoCode(yes.titleI, yes.contentI);
 }
 
 void Initialize::reset(){
@@ -1250,8 +1249,7 @@ void Search::update(){
         handleRedo();
     }
 
-    setPseudoCode(title, content);
-    pseudoCode.SetHighlightLines(beginLine, endLine);
+    setPseudoCode(yes.titleS, yes.contentS, beginLine, endLine);
 }
 
 void Search::reset(){
