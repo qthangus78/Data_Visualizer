@@ -81,6 +81,8 @@ struct Button {
 
 class ButtonManager{
     public:
+        Vector2 pos;
+        std::string txt;
         float fontSize = 30.0f;
         char name[4] = "\0";
         int letterCount = 0;
@@ -96,14 +98,16 @@ class ButtonManager{
         Button random;
 
         void Update();
-        void DrawButton(Button &button);
         void DrawButtons();
+
+        void setInputBox ( float x, float y );
+        void setTxt ( std::string a );
+
+        void DrawButton(Button &button);
         void HandleButtonsClick(MinHeap* mHeap);
         void HandleButtonsHover();
-        void DrawInputBox(float x, float y);
-        void DrawBlinkingLine(float x, float y);
-        void DrawBlinkingText( string txt, float x, float y );
-        void DrawRandom(float x, float y);
+        void DrawInputBox();
+        void DrawBlinkingText();
         void DrawLoadFile();
         void DrawBackground();
 };

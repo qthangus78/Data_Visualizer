@@ -15,6 +15,8 @@ void ButtonManager::DrawButton(Button &button){
 }
 
 void ButtonManager::Update(){
+    HandleButtonsHover();
+
     if ( !CheckCollisionPointRec(GetMousePosition(), Stepbystep.rect))
         if ( isStepbystep )
             Stepbystep.color = YELLOW;
@@ -35,31 +37,30 @@ void ButtonManager::Update(){
     UndoButton.SetPosition(912.5f - 50 - RedoButton.width, 650 + ( PlayButton.height - RedoButton.height ) / 2);
 
     RedoButton.SetPosition(912.5f + 50, 650 + ( PlayButton.height - RedoButton.height ) / 2);
+
 }
 
 void ButtonManager::DrawButtons(){
-    // PUSH
+    DrawBackground();
     DrawButton(push);
-    // REMOVE
     DrawButton(remove);
-    // CLEAR
     DrawButton(clear);
-    // TOP
     DrawButton(top);
-    // INITIALIZE
     DrawButton(initialize);
-    // SEARCH
     DrawButton(search);
-    // Step by step
     DrawButton(Stepbystep);
-    // SPEED
-    speedButton.Draw();
-    // Play or Pause
-    isPaused ? PlayButton.Drawtexture() : PauseButton.Drawtexture();
-    // Undo
     UndoButton.Drawtexture();
-    // Redo
     RedoButton.Drawtexture();
+    isPaused ? PlayButton.Drawtexture() : PauseButton.Drawtexture();
+    speedButton.Draw();
+}
+
+void ButtonManager::setInputBox ( float x, float y ){
+    pos = {x, y};
+}
+
+void ButtonManager::setTxt ( std::string a ){
+    txt = a;
 }
 
 void ButtonManager::HandleButtonsHover(){
@@ -107,12 +108,12 @@ void ButtonManager::DrawLoadFile(){
     DrawTextEx(customFont, "Load file", {loadFile.x + 10, loadFile.y + 10}, 30, 0, BLACK); 
 }
 
-void ButtonManager::DrawInputBox( float x, float y ){
+void ButtonManager::DrawInputBox(){
     // Vẽ ô nhập
-    DrawRectangleRounded( {x + 210, y, 200, 50}, 0.2f, 0, ORANGE );
-    DrawTextEx(customFont, name, {x + 220, y + 10}, 30, 0, BLACK); 
+    DrawRectangleRounded( {pos.x + 210, pos.y, 200, 50}, 0.2f, 0, ORANGE );
+    DrawTextEx(customFont, name, {pos.x + 220, pos.y + 10}, 30, 0, BLACK); 
 
-    // Handle ô nhập
+    // Xử lý ô nhập
     int key = GetCharPressed();
     while ( key > 0 ){
         if ((key >= '0') && (key <= '9') && (letterCount < 3)){
@@ -129,34 +130,27 @@ void ButtonManager::DrawInputBox( float x, float y ){
         name[letterCount] = '\0';
     }
 
-    // Vẽ đường nhấp nháy
-    DrawBlinkingLine(x, y);
-}
-
-void ButtonManager::DrawBlinkingLine(float x, float y){
+    // Vẽ đường nhấp nháy khi nhập 
     blinkTime += GetFrameTime();
     if ((int)(blinkTime * 2) % 2 == 0) { // Blink every 0.5 seconds
         Vector2 textSize = MeasureTextEx( customFont, name, fontSize, 0 );
-        int cursorX = x + 10 + textSize.x + 210;
-        DrawLine(cursorX, y + 10, cursorX, y + 40, BLACK); // Vertical blinking line
+        int cursorX = pos.x + 10 + textSize.x + 210;
+        DrawLine(cursorX, pos.y + 10, cursorX, pos.y + 40, BLACK); // Vertical blinking line
     }
+
+    // Vẽ nút ngẫu nhiên
+    pos.x += 210 + ( 200 - dice.width * 0.25 - ( 50 - dice.height * 0.25 ) / 2 );
+    pos.y = pos.y + ( 50 - dice.height * 0.25 ) / 2;
+
+    random.rect = { pos.x, pos.y, dice.height * 0.25f, dice.height * 0.25f };
+    DrawTextureEx(dice, {pos.x, pos.y}, 0.0f, 0.25f, WHITE);
 }
 
-void ButtonManager::DrawBlinkingText(string txt, float x, float y){
+void ButtonManager::DrawBlinkingText(){
     txtBlinkTime += GetFrameTime();
     if((int)(txtBlinkTime * 2) % 2 == 0){
-        DrawTextEx( customFont, txt.c_str(), {x + 210, y - 30}, fontSize, 2, RED);
+        DrawTextEx( customFont, txt.c_str(), {pos.x + 210, pos.y - 30}, fontSize, 2, RED);
     }
-}
-
-void ButtonManager::DrawRandom(float x, float y){
-    // Tính toán tọa độ vẽ xúc xắc 
-    x += 210 + ( 200 - dice.width * 0.25 - ( 50 - dice.height * 0.25 ) / 2 );
-    y = y + ( 50 - dice.height * 0.25 ) / 2;
-
-    // Lưu tọa độ vào button random để handle click 
-    random.rect = { (float)x, (float)y, dice.height * 0.25f, dice.height * 0.25f };
-    DrawTextureEx(dice, {(float)x, (float)y}, 0.0f, 0.25f, WHITE);
 }
 
 void ButtonManager::DrawBackground(){
@@ -234,10 +228,9 @@ void setPseudoCode(char* title, std::vector<char*> content, int beginLine = -1, 
 }
 
 void Push::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
-    buttons.DrawInputBox(buttons.push.rect.x, buttons.push.rect.y);
-    buttons.DrawRandom(buttons.push.rect.x, buttons.push.rect.y);
+    buttons.DrawInputBox();
+
     pseudoCode.Draw();
 
     DrawPartOfHeap(mHeap, animatingIdx, parentIdx, isAnimating, currentStep);
@@ -262,9 +255,9 @@ void Push::draw(){
 }
 
 void Push::update(){
+    buttons.setInputBox(buttons.push.rect.x, buttons.push.rect.y);
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
         val = atoi(buttons.name); 
 
@@ -591,10 +584,8 @@ void Remove::handleRedo(){
 }
 
 void Remove::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
-    buttons.DrawInputBox(buttons.remove.rect.x, buttons.remove.rect.y);
-    buttons.DrawRandom(buttons.remove.rect.x, buttons.remove.rect.y);
+    buttons.DrawInputBox();
     pseudoCode.Draw();
 
     DrawPartOfHeap(mHeap, animatingIdx, childIdx, isAnimating, currentStep);
@@ -613,18 +604,19 @@ void Remove::draw(){
     if (buttons.notFound) {
         std::string txt;
         if ( mHeap->tree.empty() )
-            txt = "Empty tree!";
+            buttons.setTxt ( "Empty tree!" );
         else
-            txt = "Value not found!";
-        buttons.DrawBlinkingText(txt, buttons.remove.rect.x, buttons.remove.rect.y );
+            buttons.setTxt ( "Value not found!" );
+        buttons.setInputBox(buttons.remove.rect.x, buttons.remove.rect.y);
+        buttons.DrawBlinkingText();
     }
-
+        
 }
-
+    
 void Remove::update(){  
+    buttons.setInputBox(buttons.remove.rect.x, buttons.remove.rect.y);
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
     if ( IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0' ){
         val = atoi(buttons.name);
         animatingIdx = mHeap->search(val);
@@ -750,7 +742,6 @@ void Remove::reset(){
     }
 
     clearState(undoStack, redoStack);
-
 }
 
 // Tiền xử lý nội tại trong cây 
@@ -834,8 +825,6 @@ void Remove::updateTreeStructure(){
         }
     }
 }
-
-
 
 // STEP 2: Vẽ nút nhấp nháy 
 void Remove::drawBlinkingNode(float duration){
@@ -981,7 +970,6 @@ void Remove::updateBubbleDown(){
 ClearH::ClearH(MinHeap* heap){ mHeap = heap; }
 
 void ClearH::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
     drawHeap(mHeap->tree);
     pseudoCode.Draw();
@@ -990,7 +978,6 @@ void ClearH::draw(){
 void ClearH::update(){
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
     mHeap->clear();
     for ( int i = 0; i < 31; i++ ){
         heapNode[i].val = 0;
@@ -1011,11 +998,13 @@ void ClearH::reset(){
 Top::Top(MinHeap* heap){ mHeap = heap; }
 
 void Top::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
     drawHeap(mHeap->tree);
-    if ( mHeap->tree.empty() )
-        buttons.DrawBlinkingText("Empty tree!", buttons.top.rect.x, buttons.top.rect.y + 40 );
+    if ( mHeap->tree.empty() ){
+        buttons.setTxt( "Empty tree!" );
+        buttons.setInputBox(buttons.top.rect.x, buttons.top.rect.y + 40);
+        buttons.DrawBlinkingText();
+    }
     else
         DrawBlinkingNode(heapNode[0].pos, mHeap->top(), blinkTime);
     pseudoCode.Draw();
@@ -1024,7 +1013,6 @@ void Top::draw(){
 void Top::update(){
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
 
     setPseudoCode(yes.titleT, yes.contentT);
 }
@@ -1061,19 +1049,17 @@ void Initialize::handleInputFile(){
 }
 
 void Initialize::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
-    buttons.DrawInputBox(buttons.initialize.rect.x, buttons.initialize.rect.y);
-    buttons.DrawRandom(buttons.initialize.rect.x, buttons.initialize.rect.y);
+    buttons.DrawInputBox();
     buttons.DrawLoadFile();
     drawHeap(mHeap->tree);
     pseudoCode.Draw();
 }
 
 void Initialize::update(){
+    buttons.setInputBox(buttons.initialize.rect.x, buttons.initialize.rect.y);
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
         mHeap->tree.clear();
         for ( int i = 0; i < 31; i++ ){
@@ -1135,17 +1121,14 @@ void Search::handleRedo(){
 void Search::handleUndo(){
     if (undoStack.empty()) return;
     State prevState = undoStack.top();
-    // std::cout << prevState.animatingIdx << " " << prevState.parentIdx << std::endl;
     undoStack.pop();
     redoStack.push(prevState);
     getState(prevState);
 }
 
 void Search::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
-    buttons.DrawInputBox(buttons.search.rect.x, buttons.search.rect.y);
-    buttons.DrawRandom(buttons.search.rect.x, buttons.search.rect.y);
+    buttons.DrawInputBox();
     drawHeap(mHeap->tree);
     pseudoCode.Draw();
 
@@ -1182,14 +1165,15 @@ void Search::draw(){
             break;
         case 1:
             if ( valueFound ){
-                buttons.DrawBlinkingText("Value found!", buttons.search.rect.x, buttons.search.rect.y );
+                buttons.setTxt ( "Value found!" );
+                buttons.DrawBlinkingText();
                 DrawBlinkingNode(heapNode[animatingIdx].pos, heapNode[animatingIdx].val, blinkTime);
                 beginLine = 2;
                 endLine = 2;
             }
             else{
-                std::string txt = ( mHeap->tree.empty() ) ? "Empty tree!" : "Value not found!";
-                buttons.DrawBlinkingText(txt, buttons.search.rect.x, buttons.search.rect.y );
+                buttons.setTxt(( mHeap->tree.empty() ) ? "Empty tree!" : "Value not found!");
+                buttons.DrawBlinkingText();
                 beginLine = 3;
                 endLine = 3;
             }
@@ -1202,9 +1186,9 @@ void Search::draw(){
     }
     
 void Search::update(){
+    buttons.setInputBox(buttons.search.rect.x, buttons.search.rect.y);
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
         int value = atoi(buttons.name); 
         targetIdx = mHeap->search(value);
@@ -1264,7 +1248,6 @@ void Search::reset(){
 Waiting::Waiting(MinHeap* heap){ mHeap = heap; }  
 
 void Waiting::draw(){
-    buttons.DrawBackground();
     buttons.DrawButtons();
     drawHeap(mHeap->tree);
 }
@@ -1272,7 +1255,6 @@ void Waiting::draw(){
 void Waiting::update(){
     buttons.Update();
     buttons.HandleButtonsClick(mHeap);
-    buttons.HandleButtonsHover();
     if ( isPaused && PlayButton.isPressed()){
         isPaused = !isPaused;
     }
