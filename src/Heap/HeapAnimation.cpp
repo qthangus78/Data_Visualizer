@@ -198,6 +198,8 @@ void Push::saveState(){
     state.originPos2 = originPos2;
     state.currentStep = currentStep;
     state.isAnimating = !( currentStep == -1 );
+    if ( currentStep == 4 )
+        std::swap(state.animatingPos, state.animatingPos2);
     undoStack.push(state);
     std::cout << "State " << currentStep << " saved" << std::endl;
 }
@@ -208,7 +210,6 @@ void Push::handleUndo(){
     undoStack.pop();
     redoStack.push(prevState);
     getState(prevState);
-    std::cout << "State " << currentStep << " undo" << std::endl;
 }
 
 void Push::handleRedo(){
@@ -217,7 +218,6 @@ void Push::handleRedo(){
     redoStack.pop();
     undoStack.push(nextState);
     getState(nextState);
-    std::cout << "State " << currentStep << " redo" << std::endl;
 }
 
 Push::Push(MinHeap* heap){ mHeap = heap; }
@@ -260,11 +260,16 @@ void Push::update(){
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
-        int value = atoi(buttons.name); 
+        val = atoi(buttons.name); 
+
+        while ( !undoStack.empty())
+            undoStack.pop();
+        while ( !redoStack.empty())
+            redoStack.pop();
 
         isAnimating = false;
         saveState();
-        handleInsert(value);
+        handleInsert(val);
 
         buttons.name[0] = '\0';
         buttons.letterCount = 0;
@@ -335,6 +340,17 @@ void Push::update(){
 
 void Push::reset(){
     blinkTime = 0.0f;
+    if ( !undoStack.empty() ){
+        getState(undoStack.top());
+        mHeap->push(val);
+        recalculateAllNodePos(mHeap);
+    }
+
+    while ( !undoStack.empty() )
+        undoStack.pop();
+    while ( !redoStack.empty() )
+        redoStack.pop();
+
 }
 
 // Tiền xử lý cấu trúc cây, vị trí đưa nút từ vị trí ngẫu nhiên vào cây 
@@ -448,15 +464,11 @@ void Push::handleBubbleUp(){
         animatingPos2 = targetPos;
         originPos2 = animatingPos2;
         
-        
-        
         std::swap(mHeap->tree[animatingIdx], mHeap->tree[parentIdx]);
         
         swapHeapNode(heapNode[animatingIdx], heapNode[parentIdx]);
         
         std::swap(animatingIdx, parentIdx);
-
-        // saveState();
 
         isAnimating = true;
         currentStep = 4;
@@ -474,10 +486,6 @@ void Push::handleBubbleUp(){
             beginLine = 8;
             endLine = 8;
         }
-        while ( !undoStack.empty())
-            undoStack.pop();
-        while ( !redoStack.empty())
-            redoStack.pop();
         recalculateAllNodePos ( mHeap );
     }
 }
@@ -531,6 +539,8 @@ void Remove::saveState(){
         state.isAnimating = true;
     else 
         state.isAnimating = false;
+    if ( currentStep == 4 )
+        std::swap(state.animatingPos, state.animatingPos2);
     undoStack.push(state);
 }
 
@@ -615,9 +625,14 @@ void Remove::update(){
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     if ( IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0' ){
-        int value = atoi(buttons.name);
-        animatingIdx = mHeap->search(value);
+        val = atoi(buttons.name);
+        animatingIdx = mHeap->search(val);
         
+        while ( !undoStack.empty())
+            undoStack.pop();
+        while ( !redoStack.empty())
+            redoStack.pop();
+
         if ( animatingIdx != -1 ){
             saveState();
             handleRemove(animatingIdx);
@@ -729,6 +744,18 @@ void Remove::reset(){
     buttons.notFound = false;
     blinkTime = 0.0f;
     txtBlinkTime = 0.0f;
+
+    if ( !undoStack.empty() ){
+        getState(undoStack.top());
+        mHeap->remove(val);
+        recalculateAllNodePos(mHeap);
+    }
+
+    while ( !undoStack.empty() )
+        undoStack.pop();
+    while ( !redoStack.empty() )
+        redoStack.pop();
+
 }
 
 // Tiền xử lý nội tại trong cây 
@@ -928,10 +955,6 @@ void Remove::handleBubbleDown(){
         childIdx = -1;
         isAnimating = false;
         currentStep = -1;
-        while ( !undoStack.empty())
-            undoStack.pop();
-        while ( !redoStack.empty())
-            redoStack.pop();
     }
 }
 
@@ -1085,6 +1108,41 @@ void Initialize::reset(){
 //-----------------------
 Search::Search(MinHeap* heap){ mHeap = heap; }
 
+void Search::saveState(){
+    State state;
+    state.beginLine = beginLine;
+    state.endLine = endLine;
+    state.currentStep = currentStep;
+    state.animatingIdx = animatingIdx;
+    state.parentIdx = targetIdx;
+    undoStack.push(state);
+}
+
+void Search::getState(State &state){
+    beginLine = state.beginLine;
+    endLine = state.endLine;
+    currentStep = state.currentStep;
+    animatingIdx = state.animatingIdx;
+    targetIdx = state.parentIdx;
+}
+
+void Search::handleRedo(){
+    if(redoStack.empty()) return;
+    State nextState = redoStack.top();
+    redoStack.pop();
+    undoStack.push(nextState);
+    getState(nextState);
+}
+
+void Search::handleUndo(){
+    if (undoStack.empty()) return;
+    State prevState = undoStack.top();
+    // std::cout << prevState.animatingIdx << " " << prevState.parentIdx << std::endl;
+    undoStack.pop();
+    redoStack.push(prevState);
+    getState(prevState);
+}
+
 void Search::draw(){
     buttons.DrawBackground();
     buttons.DrawButtons();
@@ -1098,20 +1156,21 @@ void Search::draw(){
             if ( targetIdx == -1 ){
                 targetIdx = mHeap->size() - 1;
             }
+
             if ( animatingIdx <= targetIdx ){
                 DrawBlinkingNode(heapNode[animatingIdx].pos, heapNode[animatingIdx].val, blinkTime);
-                if ( blinkTime > duration / 2 ){
-                    beginLine = 1;
-                    endLine = 1;
-                }
-                else {
-                    beginLine = 0;
-                    endLine = 0;
-                }
+                
+                if ( isPaused )
+                    return;
+
+                beginLine = endLine = ( blinkTime > duration / 2 ) ? 1 : 0;
+
                 if ( blinkTime > duration ){
                     if ( isStepbystep )
                         isPaused = true;
                     else {
+                        saveState();
+                        // std::cout << "State " << animatingIdx << " saved" << std::endl;
                         blinkTime = 0.0f;
                         animatingIdx++;
                     }
@@ -1158,7 +1217,42 @@ void Search::update(){
         
         buttons.name[0] = '\0';
         buttons.letterCount = 0;
+
+        while ( !undoStack.empty())
+            undoStack.pop();
+        while ( !redoStack.empty())
+            redoStack.pop();
     }
+
+    if ( isPaused && PlayButton.isPressed()){
+        isRedoing = false;
+        isUndoing = false;
+        isPaused = !isPaused;
+
+        if ( isStepbystep ){
+            if ( currentStep == 0 ){
+                saveState();
+                blinkTime = 0.0f;
+                animatingIdx++;
+            }
+        }
+    }
+    if ( !isPaused && PauseButton.isPressed()){
+        isPaused = !isPaused;
+    }
+    if ( UndoButton.isPressed() ){
+        isUndoing = true;
+        isRedoing = false;
+        isPaused = true;
+        handleUndo();
+    }
+    if ( RedoButton.isPressed() ){
+        isRedoing = true;
+        isUndoing = false;
+        isPaused = true;
+        handleRedo();
+    }
+
     setPseudoCode(title, content);
     pseudoCode.SetHighlightLines(beginLine, endLine);
 }

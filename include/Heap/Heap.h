@@ -152,6 +152,7 @@ public:
 
 class Push : public IStateHeap{
 public:
+    int val = -1;
     char title[15] = "PUSH OPERATION";
     std::vector<char*> content = {
         "i = A.heap_size",
@@ -236,6 +237,7 @@ public:
 
 class Remove : public IStateHeap{
 private:
+    int val;
     char title[17] = "REMOVE OPERATION";
     std::vector<char*> content = {
         "swap ( A[i], A[A.heap_size - 1] )",
@@ -335,7 +337,7 @@ public:
 };
 
 class Search : public IStateHeap{
-private:
+public:
     char title[17] = "SEARCH OPERATION";
     std::vector<char*> content = {
         "for i = 0 up to A.heap_size - 1",
@@ -350,6 +352,15 @@ private:
     float blinkTime = 0.0f;
     int beginLine = -1;
     int endLine = -1;
+
+    bool isUndoing = false;
+    bool isRedoing = false;
+    std::stack<State> undoStack;
+    std::stack<State> redoStack;
+    void saveState();
+    void handleUndo();
+    void handleRedo();
+    void getState(State &state);
 public:
     Search(MinHeap* heap);
     void draw() override;
