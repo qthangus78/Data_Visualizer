@@ -14,6 +14,29 @@ void ButtonManager::DrawButton(Button &button){
     DrawTextEx( customFont, button.txt.c_str(), { x, y }, fontSize, 2, WHITE );
 }
 
+void ButtonManager::Update(){
+    if ( !CheckCollisionPointRec(GetMousePosition(), Stepbystep.rect))
+        if ( isStepbystep )
+            Stepbystep.color = YELLOW;
+        else
+            Stepbystep.color = BLUE;
+
+    speedButton.Update();
+    duration = 2 / speedButton.GetValue();
+
+    if ( isPaused ){
+        PlayButton.SetPosition(912.5f - PlayButton.width / 2, 650);
+        PauseButton.SetPosition(2000, 2000); 
+    } else {
+        PauseButton.SetPosition(912.5f - PauseButton.width / 2, 650);
+        PlayButton.SetPosition(2000, 2000); 
+    }
+
+    UndoButton.SetPosition(912.5f - 50 - RedoButton.width, 650 + ( PlayButton.height - RedoButton.height ) / 2);
+
+    RedoButton.SetPosition(912.5f + 50, 650 + ( PlayButton.height - RedoButton.height ) / 2);
+}
+
 void ButtonManager::DrawButtons(){
     // PUSH
     DrawButton(push);
@@ -28,31 +51,14 @@ void ButtonManager::DrawButtons(){
     // SEARCH
     DrawButton(search);
     // Step by step
-    if ( !CheckCollisionPointRec(GetMousePosition(), Stepbystep.rect))
-        if ( isStepbystep )
-            Stepbystep.color = YELLOW;
-        else
-            Stepbystep.color = BLUE;
     DrawButton(Stepbystep);
     // SPEED
-    speedButton.Update();
-    duration = 2 / speedButton.GetValue();
     speedButton.Draw();
-
-    if ( isPaused ){
-        PlayButton.SetPosition(912.5f - PlayButton.width / 2, 650);
-        PlayButton.Drawtexture();
-        PauseButton.SetPosition(-1, -1); 
-    } else {
-        PauseButton.SetPosition(912.5f - PauseButton.width / 2, 650);
-        PauseButton.Drawtexture();
-        PlayButton.SetPosition(-1, -1);
-    }
-
-    UndoButton.SetPosition(912.5f - 50 - RedoButton.width, 650 + ( PlayButton.height - RedoButton.height ) / 2);
+    // Play or Pause
+    isPaused ? PlayButton.Drawtexture() : PauseButton.Drawtexture();
+    // Undo
     UndoButton.Drawtexture();
-
-    RedoButton.SetPosition(912.5f + 50, 650 + ( PlayButton.height - RedoButton.height ) / 2);
+    // Redo
     RedoButton.Drawtexture();
 }
 
@@ -257,15 +263,13 @@ void Push::draw(){
 }
 
 void Push::update(){
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
         val = atoi(buttons.name); 
 
-        while ( !undoStack.empty())
-            undoStack.pop();
-        while ( !redoStack.empty())
-            redoStack.pop();
+        clearState(undoStack, redoStack);
 
         isAnimating = false;
         saveState();
@@ -346,10 +350,7 @@ void Push::reset(){
         recalculateAllNodePos(mHeap);
     }
 
-    while ( !undoStack.empty() )
-        undoStack.pop();
-    while ( !redoStack.empty() )
-        redoStack.pop();
+    clearState(undoStack, redoStack);
 
 }
 
@@ -622,16 +623,14 @@ void Remove::draw(){
 }
 
 void Remove::update(){  
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     if ( IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0' ){
         val = atoi(buttons.name);
         animatingIdx = mHeap->search(val);
         
-        while ( !undoStack.empty())
-            undoStack.pop();
-        while ( !redoStack.empty())
-            redoStack.pop();
+        clearState(undoStack, redoStack);
 
         if ( animatingIdx != -1 ){
             saveState();
@@ -751,10 +750,7 @@ void Remove::reset(){
         recalculateAllNodePos(mHeap);
     }
 
-    while ( !undoStack.empty() )
-        undoStack.pop();
-    while ( !redoStack.empty() )
-        redoStack.pop();
+    clearState(undoStack, redoStack);
 
 }
 
@@ -993,6 +989,7 @@ void ClearH::draw(){
 }
 
 void ClearH::update(){
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     mHeap->clear();
@@ -1026,6 +1023,7 @@ void Top::draw(){
 }
 
 void Top::update(){
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
 
@@ -1074,6 +1072,7 @@ void Initialize::draw(){
 }
 
 void Initialize::update(){
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
@@ -1204,6 +1203,7 @@ void Search::draw(){
     }
     
 void Search::update(){
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
     if (IsKeyPressed(KEY_ENTER) && buttons.name[0] != '\0') {
@@ -1218,10 +1218,7 @@ void Search::update(){
         buttons.name[0] = '\0';
         buttons.letterCount = 0;
 
-        while ( !undoStack.empty())
-            undoStack.pop();
-        while ( !redoStack.empty())
-            redoStack.pop();
+        clearState(undoStack, redoStack);
     }
 
     if ( isPaused && PlayButton.isPressed()){
@@ -1275,8 +1272,15 @@ void Waiting::draw(){
 }
 
 void Waiting::update(){
+    buttons.Update();
     buttons.HandleButtonsClick(mHeap);
     buttons.HandleButtonsHover();
+    if ( isPaused && PlayButton.isPressed()){
+        isPaused = !isPaused;
+    }
+    if ( !isPaused && PauseButton.isPressed()){
+        isPaused = !isPaused;
+    }
 }
 
 void Waiting::reset(){

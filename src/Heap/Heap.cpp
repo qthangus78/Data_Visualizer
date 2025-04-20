@@ -286,6 +286,7 @@ void DrawNode(Vector2 pos, const std::string& text){
     DrawTextEx(SSLFont, text.c_str(),{pos.x - textSize.x / 2, pos.y - textSize.y / 2}, FontNode, 2, BLACK);
 }
 
-bool compareVector2 ( Vector2 &a, Vector2 &b ){
-    return ( a.x == b.x && a.y == b.y );
+void clearState(std::stack<State> &a, std::stack<State> &b){
+    while ( !a.empty() ) a.pop();
+    while ( !b.empty() ) b.pop();
 }

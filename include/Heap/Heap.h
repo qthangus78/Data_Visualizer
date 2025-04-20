@@ -42,6 +42,7 @@ class ButtonManager{
         Rectangle loadFile = { 220, 385 + 60*5, 200, 50 };
         Button random;
 
+        void Update();
         void DrawButton(Button &button);
         void DrawButtons();
         void HandleButtonsClick(MinHeap* mHeap);
@@ -389,4 +390,4 @@ void recalculateAllNodePos ( MinHeap* mHeap );
 void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos, float duration, bool &isAnimating, int i = 0 );
 void DrawBlinkingNode(Vector2 pos, int val, float &blinkTime);
 void DrawNode(Vector2 pos, const std::string& text);
-bool compareVector2(Vector2 &a, Vector2 &b);
+void clearState(std::stack<State> &a, std::stack<State> &b);
