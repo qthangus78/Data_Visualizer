@@ -207,7 +207,7 @@ void Trie::drawClearResult()
 	}
 	else {
 		if (frameCounter < 30 /* && !FindProcess*/) {
-			DrawTextEx(SSLFont, "Cleared", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
+			DrawTextEx(SSLFont, "Clearing", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
 		}
 	}
 }
@@ -632,8 +632,8 @@ void Trie::Handle()
 	speedTrie.Update();
 	if (minusButton.isPressed() or addButton.isPressed())
 	{
-	elapsedNode *= speedTrie.value;
-	elapsedTrie *= speedTrie.value;
+		elapsedNode *= speedTrie.value;
+		elapsedTrie *= speedTrie.value;
 	}
 
 	handleButtonsHover();
@@ -697,7 +697,9 @@ void Trie::Handle()
 		if (!root->children.empty() && steps.empty())
 		{
 			AddtoUndo();
-			Clear();
+			if (toggle.isStepByStep)
+				Clear();
+			else ClearTrieNoStep(root, 0);
 			Visualize(root);
 		}
 		break;
