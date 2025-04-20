@@ -630,6 +630,9 @@ void Trie::Handle()
 	//button
 	speedTrie.Init({ screenWidth / 2, screenHeight - 100 });
 	speedTrie.Update();
+	elapsedNode *= speedTrie.value;
+	elapsedTrie *= speedTrie.value;
+
 	handleButtonsHover();
 	HandleButtonClickTrie();
 	toggle.Update(mouse, *this);
