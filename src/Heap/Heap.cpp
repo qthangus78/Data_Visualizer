@@ -123,14 +123,7 @@ int MinHeap::search ( int val ){
         if ( tree[i] == val )
             return i;
     return -1;
-}
-
-void MinHeap::fileInput(std::ifstream& fin){
-    int temp;
-    while ( fin >> temp ){
-        push(temp);
-    }
-}   
+}  
 
 void MinHeap::setState(IStateHeap* state) { 
     if ( mCurrent )

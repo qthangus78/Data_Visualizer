@@ -162,11 +162,10 @@ public:
     void upHeap ( int idx );
     int search ( int val );
 
-    int size(); // Animation
+    int size(); 
     int top(); // Animation 
     void push ( int val ); // Animation 
     void remove ( int idx ); // Animation
-    void fileInput ( std::ifstream& fin ); // Animation 
     void clear(); // Animation
 
     // State
