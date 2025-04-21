@@ -14,6 +14,59 @@ using namespace std;
 
 class MinHeap;
 
+struct PseudoCode {
+    char titleC[16] = "CLEAR OPERATION";
+    std::vector<char*> contentC = { "A.clear" };
+
+    char titleP[15] = "PUSH OPERATION";
+    std::vector<char*> contentP = {
+        "i = A.heap_size",
+        "A[i] = value",
+        "while ( i > 0 )",
+        "   p = PARENT(i)", 
+        "   if A[p] > A[i]", 
+        "      swap ( A[i], A[p] )", 
+        "      i = p" ,
+        "   else", 
+        "      break"
+    };
+
+    char titleR[17] = "REMOVE OPERATION";
+    std::vector<char*> contentR = {
+        "swap ( A[i], A[A.heap_size - 1] )",
+        "while ( smallest < A.heap_size )",
+        "   l = LEFT(i), r = RIGHT(i), smallest = i",
+        "   if l < A.heap_size and A[l] < A[smallest]",
+        "      smallest = l",
+        "   if r < A.heap_size and A[r] < A[smallest]",
+        "      smallest = r",
+        "   if smallest != i",
+        "      swap ( A[i], A[smallest] )",
+        "      i = smallest",
+        "   else",
+        "      break"
+    };
+
+    char titleT[14] = "TOP OPERATION";
+    std::vector<char*> contentT = { "return A[0]" };
+
+    char titleI[21] = "INITIALIZE OPERATION";
+    std::vector<char*> contentI = {
+        "A.heap_size = A.length",
+        "for i = floor(A.length / 2) downto 1",
+        "   MinHeapify( A, i )",
+    };
+
+    char titleS[17] = "SEARCH OPERATION";
+    std::vector<char*> contentS = {
+        "for i = 0 up to A.heap_size - 1",
+        "   if A[i] == value",
+        "      return i",
+        "return -1"
+    };
+
+};
+
 struct HeapNode{
     int val;
     Vector2 pos;
@@ -28,6 +81,8 @@ struct Button {
 
 class ButtonManager{
     public:
+        Vector2 pos;
+        std::string txt;
         float fontSize = 30.0f;
         char name[4] = "\0";
         int letterCount = 0;
@@ -42,14 +97,17 @@ class ButtonManager{
         Rectangle loadFile = { 220, 385 + 60*5, 200, 50 };
         Button random;
 
-        void DrawButton(Button &button);
+        void Update();
         void DrawButtons();
+
+        void setInputBox ( float x, float y );
+        void setTxt ( std::string a );
+
+        void DrawButton(Button &button);
         void HandleButtonsClick(MinHeap* mHeap);
         void HandleButtonsHover();
-        void DrawInputBox(float x, float y);
-        void DrawBlinkingLine(float x, float y);
-        void DrawBlinkingText( string txt, float x, float y );
-        void DrawRandom(float x, float y);
+        void DrawInputBox();
+        void DrawBlinkingText();
         void DrawLoadFile();
         void DrawBackground();
 };
@@ -63,6 +121,7 @@ extern int offsetX;
 extern int offsetY;
 extern int nodeRadius;
 extern float duration;
+extern PseudoCode yes;
 extern AnnouncementBox pseudoCode;
 extern SpeedButtonSpinner speedButton;
 extern ButtonManager buttons;
@@ -152,18 +211,7 @@ public:
 
 class Push : public IStateHeap{
 public:
-    char title[15] = "PUSH OPERATION";
-    std::vector<char*> content = {
-        "i = A.heap_size",
-        "A[i] = value",
-        "while ( i > 0 )",
-        "   p = PARENT(i)", 
-        "   if A[p] > A[i]", 
-        "      swap ( A[i], A[p] )", 
-        "      i = p" ,
-        "   else", 
-        "      break"
-    };
+    int val = -1;
     int beginLine = -1;
     int endLine = -1;
     MinHeap *mHeap;
@@ -236,21 +284,7 @@ public:
 
 class Remove : public IStateHeap{
 private:
-    char title[17] = "REMOVE OPERATION";
-    std::vector<char*> content = {
-        "swap ( A[i], A[A.heap_size - 1] )",
-        "while ( smallest < A.heap_size )",
-        "   l = LEFT(i), r = RIGHT(i), smallest = i",
-        "   if l < A.heap_size and A[l] < A[smallest]",
-        "      smallest = l",
-        "   if r < A.heap_size and A[r] < A[smallest]",
-        "      smallest = r",
-        "   if smallest != i",
-        "      swap ( A[i], A[smallest] )",
-        "      i = smallest",
-        "   else",
-        "      break"
-    };
+    int val;
     int beginLine = -1;
     int endLine = -1;
     MinHeap *mHeap;
@@ -295,8 +329,6 @@ public:
 
 class ClearH : public IStateHeap{
 private:
-    char title[16] = "CLEAR OPERATION";
-    std::vector<char*> content = { "A.clear" };
     MinHeap *mHeap;
 public:
     ClearH(MinHeap* heap);
@@ -307,8 +339,6 @@ public:
 
 class Top : public IStateHeap{
 private:
-    char title[14] = "TOP OPERATION";
-    std::vector<char*> content = { "return A[0]" };
     MinHeap *mHeap;
 public:
     Top(MinHeap* heap);
@@ -319,12 +349,6 @@ public:
 
 class Initialize : public IStateHeap{
 private:
-    char title[21] = "INITIALIZE OPERATION";
-    std::vector<char*> content = {
-        "A.heap_size = A.length",
-        "for i = floor(A.length / 2) downto 1",
-        "   MinHeapify( A, i )",
-    };
     MinHeap *mHeap;
 public:
     Initialize(MinHeap* heap);
@@ -335,14 +359,7 @@ public:
 };
 
 class Search : public IStateHeap{
-private:
-    char title[17] = "SEARCH OPERATION";
-    std::vector<char*> content = {
-        "for i = 0 up to A.heap_size - 1",
-        "   if A[i] == value",
-        "      return i",
-        "return -1"
-    };
+public:
     MinHeap *mHeap;
     int currentStep = -1;
     int animatingIdx = -1;
@@ -350,6 +367,15 @@ private:
     float blinkTime = 0.0f;
     int beginLine = -1;
     int endLine = -1;
+
+    bool isUndoing = false;
+    bool isRedoing = false;
+    std::stack<State> undoStack;
+    std::stack<State> redoStack;
+    void saveState();
+    void handleUndo();
+    void handleRedo();
+    void getState(State &state);
 public:
     Search(MinHeap* heap);
     void draw() override;
@@ -378,4 +404,4 @@ void recalculateAllNodePos ( MinHeap* mHeap );
 void updateNodePos ( Vector2 &animatingPos, Vector2 targetPos, Vector2 originPos, float duration, bool &isAnimating, int i = 0 );
 void DrawBlinkingNode(Vector2 pos, int val, float &blinkTime);
 void DrawNode(Vector2 pos, const std::string& text);
-bool compareVector2(Vector2 &a, Vector2 &b);
+void clearState(std::stack<State> &a, std::stack<State> &b);
