@@ -3,7 +3,6 @@
 #include "settingScreen.h"
 #include "SLL_display.h"
 #include "Heap_display.h"
-#include "AVLTree_display.h"
 #include "Graph_Display.h"
 #include "Trie_display.h"
 
