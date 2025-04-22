@@ -8,7 +8,6 @@
 class Trie {
 private:
 	stack<TrieNode*> UndoStack, RedoStack;
-	Rectangle UndoButton, RedoButton;
 
 public:
 	//speed

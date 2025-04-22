@@ -38,9 +38,7 @@ Trie::Trie() {
 	root = new TrieNode();
 	root->isNewNode = false;
 	announce = AnnouncementBox({1050,350,300,350}, "");
-	speedTrie.Init({screenWidth/2, screenHeight - 100});
-	RedoButton = {screenWidth/2 + 100, screenHeight - 100 , 40, 40};
-	UndoButton = {screenWidth/2 - 100, screenHeight - 100 , 40, 40};
+
 }
 
 void Trie::Insert(const string& c)
@@ -209,7 +207,7 @@ void Trie::drawClearResult()
 	}
 	else {
 		if (frameCounter < 30 /* && !FindProcess*/) {
-			DrawTextEx(SSLFont, "Cleared", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
+			DrawTextEx(SSLFont, "Clearing", { inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
 		}
 	}
 }
@@ -289,7 +287,7 @@ void Trie::AddtoUndo()
 }
 
 void Trie::handleUndoRedo() {
-	if (CheckCollisionPointRec(mouse, UndoButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+	if (UndoButton.isPressed() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 		Undo();
 		while (!steps.empty()) steps.pop();
 		progressNode = progressTrie = 1;
@@ -297,7 +295,7 @@ void Trie::handleUndoRedo() {
 	}
 
 
-	if (CheckCollisionPointRec(mouse, RedoButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+	if (RedoButton.isPressed() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 		Redo();
 		while (!steps.empty()) steps.pop();
 		progressNode = progressTrie = 1;
@@ -306,7 +304,7 @@ void Trie::handleUndoRedo() {
 
 void Trie::drawUndoRedo()
 {
-	Color UndoColor;
+	/*Color UndoColor;
 	if (UndoStack.empty()) UndoColor = color::nodeNotInMode;
 	else
 	if (CheckCollisionPointRec(mouse, UndoButton))
@@ -328,7 +326,16 @@ void Trie::drawUndoRedo()
 	DrawTriangle({ RedoButton.x,  RedoButton.y },
 		{ RedoButton.x ,RedoButton.y + RedoButton.height },
 		{ RedoButton.x + RedoButton.width, RedoButton.y + RedoButton.height / 2 },
-		RedoColor);
+		RedoColor);*/
+
+	/*RedoButton = { screenWidth / 2 + 100, screenHeight - 100 , 40, 40 };
+	UndoButton = { screenWidth / 2 - 100, screenHeight - 100 , 40, 40 };*/
+
+	UndoButton.SetPosition(screenWidth / 2 + 100, screenHeight - 100);
+	RedoButton.SetPosition(screenWidth / 2 - 100, screenHeight - 100);
+
+	UndoButton.Drawtexture();
+	RedoButton.Drawtexture();
 }
 
 //Visualizer-----------------
@@ -621,7 +628,14 @@ void Trie::Handle()
 	}
 
 	//button
+	speedTrie.Init({ screenWidth / 2, screenHeight - 100 });
 	speedTrie.Update();
+	if (minusButton.isPressed() or addButton.isPressed())
+	{
+		elapsedNode *= speedTrie.value;
+		elapsedTrie *= speedTrie.value;
+	}
+
 	handleButtonsHover();
 	HandleButtonClickTrie();
 	toggle.Update(mouse, *this);
@@ -683,7 +697,9 @@ void Trie::Handle()
 		if (!root->children.empty() && steps.empty())
 		{
 			AddtoUndo();
-			Clear();
+			if (toggle.isStepByStep)
+				Clear();
+			else ClearTrieNoStep(root, 0);
 			Visualize(root);
 		}
 		break;
@@ -742,7 +758,6 @@ namespace Trie_Display {
 	void Display()
 	{
         display_title("Trie", ScreenID::StartMenuScreen);
-
 		if (TrieInstance)
 		{
 			TrieInstance->Handle();
