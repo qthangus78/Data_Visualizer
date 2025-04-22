@@ -10,9 +10,6 @@ private:
 	stack<TrieNode*> UndoStack, RedoStack;
 
 public:
-
-
-
 	//speed
 	SpeedButtonSpinner speedTrie;
 

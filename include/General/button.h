@@ -48,3 +48,5 @@ struct SpeedButtonSpinner {
 
 void display_title(const char *Title, ScreenID lastScreenID);
 bool IsResourcesLoaded(); // Add function to check if resources are loaded
+
+

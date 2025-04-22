@@ -9,7 +9,7 @@ struct TextBox {
     int numSegment = 10;
 
     Color textColor = WHITE; /// need input
-    const char* text = '\0'; /// need input
+    const char* text = "\0"; /// need input
     float fontSize = 25; /// need input
     float current_fontSize = 0;
     Vector2 textPos = {};
