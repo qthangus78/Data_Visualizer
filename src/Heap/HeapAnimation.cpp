@@ -23,6 +23,7 @@ void ButtonManager::Update(){
         else
             Stepbystep.color = BLUE;
 
+    speedButton.Init({500, 90});
     speedButton.Update();
     duration = 2 / speedButton.GetValue();
 
@@ -528,10 +529,7 @@ void Remove::saveState(){
     state.targetPos2 = targetPos2;
     state.originPos2 = originPos2;
     state.currentStep = currentStep;
-    if ( currentStep == 0 || currentStep == 1 || currentStep == 2 || currentStep == 4 )
-        state.isAnimating = true;
-    else 
-        state.isAnimating = false;
+    state.isAnimating = ( currentStep != -1 ); // 0 1 2 4 
     if ( currentStep == 4 )
         std::swap(state.animatingPos, state.animatingPos2);
     undoStack.push(state);
@@ -890,8 +888,8 @@ void Remove::drawBlinkingNode(float duration){
         }
     }
     else if ( blinkingStep == 2 ){
-        beginLine = 8;
-        endLine = 8;
+        beginLine = 7;
+        endLine = 7;
         DrawBlinkingNode(heapNode[animatingIdx].pos, heapNode[animatingIdx].val, blinkTime1);
         if ( blinkTime1 > duration ){
             if ( isStepbystep )

@@ -16,7 +16,6 @@ include_directories(
     include/SLL
     include/Heap
     include/Graph
-    include/AVL
     include/Trie
 )
 
