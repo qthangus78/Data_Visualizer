@@ -181,6 +181,35 @@ State::~State(){
     targetHeapNode.clear();
 }
 
+void Push::getState(State &state){
+    beginLine = state.beginLine;
+    endLine = state.endLine;
+
+    mHeap->tree = state.tree;
+    heapNode = state.heapNode;
+    originHeapNode = state.originHeapNode;
+    targetHeapNode = state.targetHeapNode;
+    animatingIdx = state.animatingIdx;
+    parentIdx = state.parentIdx;
+
+    animatingPos = state.animatingPos;
+    targetPos = state.targetPos;
+    originPos = state.originPos;
+
+    animatingPos2 = state.animatingPos2;
+    targetPos2 = state.targetPos2;
+    originPos2 = state.originPos2;
+
+    currentStep = state.currentStep;
+    isAnimating = state.isAnimating;
+
+    blinkTime1 = 0.0f;
+    blinkTime2 = 0.0f;
+    for ( int i = 0; i < elapsedTime.size(); i++ ){
+        elapsedTime[i] = 0.0f;
+    }
+}
+
 void Push::saveState(){
     State state;
     state.beginLine = beginLine;
@@ -338,13 +367,14 @@ void Push::update(){
 void Push::reset(){
     blinkTime = 0.0f;
     if ( !undoStack.empty() ){
-        getState(undoStack.top());
+        while ( undoStack.size() > 1 )
+            undoStack.pop();
+        State originState = undoStack.top();
+        getState(originState);
         mHeap->push(val);
         recalculateAllNodePos(mHeap);
     }
-
     clearState(undoStack, redoStack);
-
 }
 
 // Tiền xử lý cấu trúc cây, vị trí đưa nút từ vị trí ngẫu nhiên vào cây 
@@ -732,13 +762,14 @@ void Remove::reset(){
     buttons.notFound = false;
     blinkTime = 0.0f;
     txtBlinkTime = 0.0f;
-
     if ( !undoStack.empty() ){
-        getState(undoStack.top());
+        while ( undoStack.size() > 1 )
+            undoStack.pop();
+        State originState = undoStack.top();
+        getState(originState);
         mHeap->remove(val);
         recalculateAllNodePos(mHeap);
     }
-
     clearState(undoStack, redoStack);
 }
 

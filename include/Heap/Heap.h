@@ -223,10 +223,10 @@ public:
     bool isRedoing = false;
     std::stack<State> undoStack;
     std::stack<State> redoStack;
+    void getState(State &state);
     void saveState();
     void handleUndo();
     void handleRedo();
-
 
     Vector2 animatingPos;
     Vector2 targetPos;
@@ -250,35 +250,6 @@ public:
     void handleBubbleUp();
     void drawBlinkingNode(float duration);
     void updateBubbleUp();
-
-    void getState(State &state){
-        beginLine = state.beginLine;
-        endLine = state.endLine;
-
-        mHeap->tree = state.tree;
-        heapNode = state.heapNode;
-        originHeapNode = state.originHeapNode;
-        targetHeapNode = state.targetHeapNode;
-        animatingIdx = state.animatingIdx;
-        parentIdx = state.parentIdx;
-
-        animatingPos = state.animatingPos;
-        targetPos = state.targetPos;
-        originPos = state.originPos;
-
-        animatingPos2 = state.animatingPos2;
-        targetPos2 = state.targetPos2;
-        originPos2 = state.originPos2;
-
-        currentStep = state.currentStep;
-        isAnimating = state.isAnimating;
-
-        blinkTime1 = 0.0f;
-        blinkTime2 = 0.0f;
-        for ( int i = 0; i < elapsedTime.size(); i++ ){
-            elapsedTime[i] = 0.0f;
-        }
-    }
 };
 
 class Remove : public IStateHeap{
