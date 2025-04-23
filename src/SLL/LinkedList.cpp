@@ -524,6 +524,7 @@ void handleButtonsClick(SSL* SSL){
         SSL->setState((SSL->getCurrent() == SSL->getCreate()) ? SSL->getnotInMode() : SSL->getCreate());
         SSL->setExistVal(SSL->getRoot());
         SSL->clearStackUndo();
+        buttonVar::buttonGo    = {{buttonVar::buttonCreate.rect.x+250, buttonVar::buttonCreate.rect.y,60,button::sizeH}, color::buttonColor, "Go"};
     }
     if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         SSL->setState((SSL->getCurrent() == SSL->getInsert()) ? SSL->getnotInMode() : SSL->getInsert());
