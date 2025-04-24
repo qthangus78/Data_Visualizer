@@ -63,6 +63,7 @@ int main() {
 
     UnloadTexture(dice);
     UnloadTexture(customTexture);
+    UnloadTexture(logoDS);
     UnloadFontResource();
     CloseWindow();
     return 0;

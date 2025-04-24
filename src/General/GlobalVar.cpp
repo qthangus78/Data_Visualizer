@@ -31,6 +31,7 @@ myTexture repeatButton;
 
 Texture2D customTexture;
 Texture2D dice;
+Texture2D logoDS;
 
 ScreenID currentScreenID = ScreenID::StartScreen;
 
@@ -88,7 +89,7 @@ void LoadButtonsResources() {
                 "../resources/images/minus-circle-selected.png");
     customTexture = LoadTexture("../resources/images/back-normal.png");
     dice = LoadTexture("../resources/images/dice.png");
-    
+    logoDS = LoadTexture("../resources/images/LogoDS.png");
     repeatButton.LoadTextureResources("../resources/images/Repeat-normal.png",
         "../resources/images/Repeat-selected.png");
 }
