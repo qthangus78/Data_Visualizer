@@ -20,15 +20,15 @@ namespace startScreen {
         Settings.text = "Settings";
         Exit.text = "Exit";
 
-        Start.rect = {1.0f * screenWidth / 2 - 100, 1.0f * screenHeight / 4, 200, 100};
-        Settings.rect = {1.0f * screenWidth / 2 - 100, 1.0f * screenHeight / 4 * 2.0f, 200, 100};
-        Exit.rect = {1.0f * screenWidth / 2 - 100, 1.0f * screenHeight / 4 * 3.0f, 200, 100};
-
+        Start.rect = {1.0f * screenWidth / 2 - 100 - 250, 500, 200, 100};
+        Settings.rect = {1.0f * screenWidth / 2 - 100, 500, 200, 100};
+        // Exit.rect = {1.0f * screenWidth / 2 - 100, 1.0f * screenHeight / 4 * 3.0f, 200, 100};
+        Exit.rect = {1.0f * screenWidth / 2 - 100 + 250, 500, 200, 100};
 
         Start.Draw_TextBox();
         Settings.Draw_TextBox();
         Exit.Draw_TextBox();
-        
+        DrawTextureEx(logoDS, {1.0f * screenWidth / 2 - logoDS.width * 0.8f/ 2, 100}, 0.0f, 0.8f, WHITE);
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, Start.rect)) {
             currentScreenID = ScreenID::StartMenuScreen;

@@ -30,6 +30,7 @@ extern myTexture repeatButton;
 extern ScreenID currentScreenID;
 extern Texture2D customTexture;
 extern Texture2D dice;
+extern Texture2D logoDS;
 //--------------------------------
 // Cấu trúc button
 //--------------------------------
