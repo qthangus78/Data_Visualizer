@@ -105,7 +105,7 @@ bool FindTrieNoStep(TrieNode*& root, const string& key)
     return cur->isWord;
 }
 
-void deleteNode(TrieNode* root, bool isStepbyStep)
+void deleteNode(TrieNode*& root, bool isStepbyStep)
 {
     root->isDeleted = true;
     if (!isStepbyStep)
@@ -220,11 +220,22 @@ void ClearTrie(TrieNode*& root, int depth, queue<Step>& steps, bool isStepbyStep
 
         if(depth !=0)
         deleteNode(root, isStepbyStep);
-    }
-
-    
+    } 
 }
 
+void ClearTrieNoStep(TrieNode*& root, int depth)
+{
+    if (!root) return;
+    for (auto& [ch, child] : root->children) {
+        ClearTrieNoStep(child, depth + 1);
+    }
+    root->children.clear();
+    if (depth != 0)
+    {
+        delete root;
+        root = nullptr;
+    }
+}
 
 //=======================================
 //

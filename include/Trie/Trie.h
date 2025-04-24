@@ -60,7 +60,7 @@ void InsertTrie(TrieNode*& root, const string& key,queue<Step>& steps);
 bool FindTrie(TrieNode*& root, const string& key, queue<Step>& steps);
 bool FindTrieNoStep(TrieNode*& root, const string& key);
 
-void deleteNode(TrieNode* root, bool isStepbyStep);
+void deleteNode(TrieNode*& root, bool isStepbyStep);
 
 bool isEmpty(TrieNode* root);
 
@@ -69,6 +69,8 @@ TrieNode* DeleteTrieOrigin(TrieNode* root, const string& key, int depth, queue<S
 void InputFileTrie(const string& file_name, TrieNode*& root, queue<Step> steps);
 
 void ClearTrie(TrieNode*& root, int depth, queue<Step>& steps, bool isStepbyStep);
+
+void ClearTrieNoStep(TrieNode*& root, int depth);
 
 //Draw
 
