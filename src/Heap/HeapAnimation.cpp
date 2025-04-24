@@ -762,14 +762,14 @@ void Remove::reset(){
     buttons.notFound = false;
     blinkTime = 0.0f;
     txtBlinkTime = 0.0f;
-    if ( !undoStack.empty() ){
-        while ( undoStack.size() > 1 )
-            undoStack.pop();
-        State originState = undoStack.top();
-        getState(originState);
-        mHeap->remove(val);
-        recalculateAllNodePos(mHeap);
-    }
+    // if ( !undoStack.empty() ){
+    //     while ( undoStack.size() > 1 )
+    //         undoStack.pop();
+    //     State originState = undoStack.top();
+    //     getState(originState);
+    //     mHeap->remove(val);
+    //     recalculateAllNodePos(mHeap);
+    // }
     clearState(undoStack, redoStack);
 }
 
