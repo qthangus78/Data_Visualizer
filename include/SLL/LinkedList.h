@@ -21,6 +21,12 @@ struct ShadedData {
     Vector2 pos;
     ListNode* node;
 };
+struct Edge {
+    float length;     
+    float thickness;
+    float arrowsize;
+};
+extern Edge EArrow;
 // Các hàm thao tác LinkedList
 void insertTailAl(ListNode*& root, ListNode*& tail, int x);
 void insertHeadAl(ListNode*& root, ListNode*& tail, int x);

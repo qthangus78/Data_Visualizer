@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <random>
 #include <fstream>
+#include <iostream>
 
 float magnitude(Vector2 V) {
     return sqrtf(V.x * V.x + V.y * V.y);

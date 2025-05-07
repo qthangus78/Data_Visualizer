@@ -1,5 +1,5 @@
 #include "Heap.h"
-
+#include <cmath>
 std::vector<HeapNode> heapNode;
 
 MinHeap::MinHeap(){

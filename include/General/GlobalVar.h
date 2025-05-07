@@ -1,6 +1,6 @@
 #pragma once 
-#include <bits/stdc++.h>
 #include <raylib.h>
+#include <string>
 #include "button.h"
 // using namespace std;
 
@@ -65,15 +65,6 @@ namespace buttonVar {
     extern button buttonGo;
     extern button buttonCreate;
 }
-//--------------------------------
-// Cấu trúc Arrow
-//--------------------------------
-struct Edge {
-    float length;     
-    float thickness;
-    float arrowsize;
-};
-extern Edge EArrow;
 extern Vector2 startLinkedListPos;
 
 void LoadFontResource();

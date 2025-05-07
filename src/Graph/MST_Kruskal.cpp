@@ -1,4 +1,6 @@
 #include "graph.h"
+#include <algorithm>
+#include <vector>
 
 bool GraphVisualizer::isKruskalInited() const { 
     return kruskal_data.inited; 

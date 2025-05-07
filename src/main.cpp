@@ -21,6 +21,9 @@ int main() {
 
     MinHeap minHeap;
     Heap_display::heapInstance = &minHeap;
+
+    AVL AVL;
+    AVLTree_display::avlInstance = &AVL;
     
     while(!WindowShouldClose() && !WindowClose) {
         BeginDrawing();

@@ -1,4 +1,6 @@
 #include "Heap.h"
+#include <cmath>
+#include <cstring>
  
 //-----------------------
 //BUTTON MANAGER

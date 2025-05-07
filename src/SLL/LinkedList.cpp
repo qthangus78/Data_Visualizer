@@ -16,6 +16,7 @@ void initCodeButton(){
         code[i] = {{code[i-1].rect.x,code[i-1].rect.y+code[i-1].rect.height,code[i-1].rect.width,code[i-1].rect.height},{240,240,240,230},""};
     }
 }
+Edge EArrow = {100.0f, 3.0f, 20.0f};
 // ListNode
 ListNode::ListNode(int x) : data(x), next(nullptr) {}
 //Add cuối

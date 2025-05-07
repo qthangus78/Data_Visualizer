@@ -101,7 +101,7 @@ void Create::handleInit(){
         return;
     mSSL->delAllList();
     pos.clear();
-    randomProcess = true;
+    randomProcess = true;   
     progress = 0;
     //Xử lí random, nhập vào linked list  
     int nums = GetRandomValue(1, 28);

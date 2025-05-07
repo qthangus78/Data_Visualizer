@@ -33,6 +33,9 @@ add_executable(${PROJECT_NAME}
     src/Graph/Graph_Menu.cpp
     src/Graph/graph.cpp
     src/Graph/MST_Kruskal.cpp
+    src/AVL/AVLTree.cpp
+    src/AVL/AVLTreeAnimation.cpp
+    src/AVL/AVLTree_display.cpp
 )
 
 # Đường dẫn thư viện raylib

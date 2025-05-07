@@ -1,4 +1,7 @@
 #include "AnnouncementBox.h"
+#include <raylib.h>
+#include <iostream>
+#include <cmath>
 
 Table::Table()
     : lineHeight(25.0f)

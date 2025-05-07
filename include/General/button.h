@@ -1,8 +1,5 @@
 #pragma once 
 #include <raylib.h>
-#include <bits/stdc++.h>
-
-// using namespace std;
 
 enum class ScreenID {
     StartScreen,

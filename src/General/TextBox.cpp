@@ -1,4 +1,5 @@
 #include "TextBox.h"
+#include <cstring>
 
 void TextBox::ScaleProcess() {
     /// adjust :
@@ -73,7 +74,7 @@ void TextBox::Draw_TextBox2() {
 }
 
 void TextBox::Draw_BlinkingLine() {
-    if (strlen(text) == 0) {
+    if (std::strlen(text) == 0) {
         Vector2 textSize = MeasureTextEx(customFont, "a", current_fontSize, 1.5f);
         DrawLine(scaledRect.x + scaledRect.width / 2, scaledRect.y + scaledRect.height / 2 - textSize.y / 2, 
                  scaledRect.x + scaledRect.width / 2, scaledRect.y + scaledRect.height / 2 + textSize.y / 2, 

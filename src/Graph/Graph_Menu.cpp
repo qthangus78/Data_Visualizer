@@ -1,4 +1,7 @@
 #include "Graph_Menu.h"
+#include <random>
+#include <vector>
+#include <algorithm>
 
 void GraphMenu::ChooseGraphType(GraphVisualizer &GV) {
     if (CheckCollisionPointRec(mouse, undirectedBtn.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
