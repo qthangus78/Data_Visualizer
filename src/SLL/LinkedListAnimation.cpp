@@ -10,9 +10,9 @@
 void notInMode::draw(){
     drawTextCode(-1,-1);
     drawButtons();
-    drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
+    drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
 }
-void notInMode::handle(){
+void notInMode::handle() {
     bool mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     //Xử lí chuyển state
     handleButtonsHover();     
@@ -23,14 +23,14 @@ void notInMode::handle(){
     mSSL->setToggle(toggle);
 }
 //Create
-Create::Create(SSL *s) : mSSL(s), progress(0), randomProcess(false), fileProcess(false){
-    fileInput = {{ buttonVar::buttonCreate.rect.x + 115, buttonVar::buttonCreate.rect.y, 120, (float)button::sizeH }, color::buttonFile, "Load File"};
-    random = {{ buttonVar::buttonIns.rect.x + 115, buttonVar::buttonIns.rect.y, 120, (float)button::sizeH }, color::buttonFile, "Random"};
+Create::Create(SSL* s) : mSSL(s), progress(0), randomProcess(false), fileProcess(false) {
+    fileInput = { { buttonVar::buttonCreate.rect.x + 115, buttonVar::buttonCreate.rect.y, 120, (float)button::sizeH }, color::buttonFile, "Load File" };
+    random = { { buttonVar::buttonIns.rect.x + 115, buttonVar::buttonIns.rect.y, 120, (float)button::sizeH }, color::buttonFile, "Random" };
 }
-void Create::drawInputFile(){
+void Create::drawInputFile() {
     DrawButton(fileInput.rect, fileInput.text, fileInput.buCol, SSLFont, 18);
 }
-void Create::drawInitialize(){
+void Create::drawInitialize() {
     DrawButton(random.rect, random.text, random.buCol, SSLFont, 18);
 }
 IState::CreateType Create::DetectCurrentMode(){
@@ -110,7 +110,7 @@ void Create::handleInit(){
     mSSL->insertTailList(val);
     pos[0].node = mSSL->getRoot();
     pos[0].pos = startLinkedListPos;
-    for (int i = 1; i < nums; i++){
+    for (int i = 1; i < nums; i++) {
         int val = GetRandomValue(0, 100);
         mSSL->insertTailList(val);
         pos[i].node = mSSL->getTail();
@@ -153,7 +153,7 @@ void Create::handleInputFile() {
     }
     mSSL->setNumElement(pos.size());
 }
-void Create::randomAnimation(){
+void Create::randomAnimation() {
     float fraction = mSSL->getFraction();
     progress += fraction * deltaTime;
     float NodeRadiusRender = lerp(0, NODE_SIZE, progress);
@@ -188,10 +188,10 @@ void Create::draw(){
         randomAnimation();
     }
     else {
-        drawLinkedList(mSSL->getRoot(), startLinkedListPos,mSSL);
+        drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
     }
 }
-void Create::handle(){
+void Create::handle() {
     handleButtonsHover();
     handleInputFile();
     handleInit();
@@ -227,34 +227,34 @@ void Create::handle(){
 }
 // Insert
 Insert::Insert(SSL* s)
-:mSSL(s),InsertTailProcess(false),InsertHeadProcess(false),InsertIdxProcess(false),frameCounter(0),framecntInsert(0),currentAnimatingNode(nullptr),textIn(""),
-posTail({1200,70}),progressNode(0), progressArrow(0),textInIndex(""),valInsert(false),idxInsert(false), Font(0)
+    :mSSL(s), InsertTailProcess(false), InsertHeadProcess(false), InsertIdxProcess(false), frameCounter(0), framecntInsert(0), currentAnimatingNode(nullptr), textIn(""),
+    posTail({ 1200,70 }), progressNode(0), progressArrow(0), textInIndex(""), valInsert(false), idxInsert(false), Font(0)
 {
-InsertHead = {{ buttonVar::buttonIns.rect.x + 115,buttonVar::buttonIns.rect.y,120, static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Head"};
-InsertTail = {{ buttonVar::buttonDel.rect.x + 115,buttonVar::buttonDel.rect.y,120, static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Tail"};
-InsertIndex = {{buttonVar::buttonF.rect.x+115,buttonVar::buttonF.rect.y,120,static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Index"};
-inputRect = {buttonVar::buttonDel.rect.x + 115,buttonVar::buttonF.rect.y, 120, 0};
-Index = {{buttonVar::buttonClear.rect.x+155,buttonVar::buttonClear.rect.y,70,0}, color::buttonFile, "Index"};
-Value = {{buttonVar::buttonClear.rect.x+155,buttonVar::buttonClear.rect.y+static_cast<float>(button::sizeH)+10.0f,70,0}, color::buttonFile, "Value"};
-valRect = {buttonVar::buttonClear.rect.x+235, Value.rect.y,120,0};
-idxRect = {buttonVar::buttonClear.rect.x+235, buttonVar::buttonClear.rect.y,120,0};
+    InsertHead = { { buttonVar::buttonIns.rect.x + 115,buttonVar::buttonIns.rect.y,120, static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Head" };
+    InsertTail = { { buttonVar::buttonDel.rect.x + 115,buttonVar::buttonDel.rect.y,120, static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Tail" };
+    InsertIndex = { {buttonVar::buttonF.rect.x + 115,buttonVar::buttonF.rect.y,120,static_cast<float>(button::sizeH)}, color::buttonFile, "Insert Index" };
+    inputRect = { buttonVar::buttonDel.rect.x + 115,buttonVar::buttonF.rect.y, 120, 0 };
+    Index = { {buttonVar::buttonClear.rect.x + 155,buttonVar::buttonClear.rect.y,70,0}, color::buttonFile, "Index" };
+    Value = { {buttonVar::buttonClear.rect.x + 155,buttonVar::buttonClear.rect.y + static_cast<float>(button::sizeH) + 10.0f,70,0}, color::buttonFile, "Value" };
+    valRect = { buttonVar::buttonClear.rect.x + 235, Value.rect.y,120,0 };
+    idxRect = { buttonVar::buttonClear.rect.x + 235, buttonVar::buttonClear.rect.y,120,0 };
 }
-void Insert::drawHeadInsert(){
-    DrawButton(InsertHead.rect,InsertHead.text,InsertHead.buCol,SSLFont,18);
+void Insert::drawHeadInsert() {
+    DrawButton(InsertHead.rect, InsertHead.text, InsertHead.buCol, SSLFont, 18);
 }
-void Insert::drawTailInsert(){
-    DrawButton(InsertTail.rect,InsertTail.text,InsertTail.buCol,SSLFont,18);
+void Insert::drawTailInsert() {
+    DrawButton(InsertTail.rect, InsertTail.text, InsertTail.buCol, SSLFont, 18);
 }
-void Insert::drawIdxInsert(){
-    DrawButton(InsertIndex.rect, InsertIndex.text, InsertIndex.buCol,SSLFont,18); 
+void Insert::drawIdxInsert() {
+    DrawButton(InsertIndex.rect, InsertIndex.text, InsertIndex.buCol, SSLFont, 18);
 }
-Insert::InsertType Insert::DetectCurrentMode(){
+Insert::InsertType Insert::DetectCurrentMode() {
     if (CheckCollisionPointRec(mouse, InsertHead.rect)) return InsertType::Head;
     if (CheckCollisionPointRec(mouse, InsertTail.rect)) return InsertType::Tail;
     if (CheckCollisionPointRec(mouse, InsertIndex.rect)) return InsertType::Idx;
     return InsertType::None;
 }
-void Insert::handleModeTransitTion(InsertType newType){
+void Insert::handleModeTransitTion(InsertType newType) {
     prev = cur;
     cur = (cur == newType) ? InsertType::None : newType;
     curline = curlinetmp = -1;
@@ -262,8 +262,8 @@ void Insert::handleModeTransitTion(InsertType newType){
     progressAppear = 0.0f;
     inputRect.height = (cur == InsertType::None && prev != InsertType::Idx) ? button::sizeH : 0.0f;
 }
-void Insert::updateCommonAnimation(){
-    if(!inProcess) return;
+void Insert::updateCommonAnimation() {
+    if (!inProcess) return;
     progressAppear += GetFrameTime();
     switch (cur)
     {
@@ -290,7 +290,7 @@ void Insert::updateCommonAnimation(){
     default:
         break;
     }
-    if(progressAppear >= 1.0f){
+    if (progressAppear >= 1.0f) {
         inProcess = false;
         progressAppear = 0.0f;
     }
@@ -319,23 +319,23 @@ void Insert::handleHeadMode(){
     switch (prev)
     {
     case InsertType::None:
-        InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonF.rect.y,progressAppear);
-        InsertIndex.rect.y = lerp(InsertIndex.rect.y,buttonVar::buttonClear.rect.y,progressAppear);
+        InsertTail.rect.y = lerp(InsertTail.rect.y, buttonVar::buttonF.rect.y, progressAppear);
+        InsertIndex.rect.y = lerp(InsertIndex.rect.y, buttonVar::buttonClear.rect.y, progressAppear);
         buttonVar::buttonGo.rect.y = buttonVar::buttonIns.rect.y;
         break;
     case InsertType::Tail:
-        InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonF.rect.y,progressAppear);
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,buttonVar::buttonIns.rect.y,progressAppear);
+        InsertTail.rect.y = lerp(InsertTail.rect.y, buttonVar::buttonF.rect.y, progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, buttonVar::buttonIns.rect.y, progressAppear);
         break;
     case InsertType::Idx:
-        InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonF.rect.y,progressAppear);
-        InsertIndex.rect.y = lerp(InsertIndex.rect.y,buttonVar::buttonClear.rect.y,progressAppear);
-        valRect.height = lerp(valRect.height,0,progressAppear);
-        idxRect.height = lerp(idxRect.height,0,progressAppear);
-        Index.rect.height = lerp(Index.rect.height,0,progressAppear);
-        Value.rect.height = lerp(Value.rect.height,0,progressAppear);
-        Font = lerp(Font,0,progressAppear);
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,buttonVar::buttonIns.rect.y,progressAppear);
+        InsertTail.rect.y = lerp(InsertTail.rect.y, buttonVar::buttonF.rect.y, progressAppear);
+        InsertIndex.rect.y = lerp(InsertIndex.rect.y, buttonVar::buttonClear.rect.y, progressAppear);
+        valRect.height = lerp(valRect.height, 0, progressAppear);
+        idxRect.height = lerp(idxRect.height, 0, progressAppear);
+        Index.rect.height = lerp(Index.rect.height, 0, progressAppear);
+        Value.rect.height = lerp(Value.rect.height, 0, progressAppear);
+        Font = lerp(Font, 0, progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, buttonVar::buttonIns.rect.y, progressAppear);
         break;
     default:
         break;
@@ -350,27 +350,27 @@ void Insert::handleTailMode(){
     {
     case InsertType::None:
         inputRect.y = buttonVar::buttonF.rect.y;
-        inputRect.height = lerp(inputRect.height,button::sizeH,progressAppear);
-        InsertIndex.rect.y = lerp(InsertIndex.rect.y,buttonVar::buttonClear.rect.y,progressAppear);
+        inputRect.height = lerp(inputRect.height, button::sizeH, progressAppear);
+        InsertIndex.rect.y = lerp(InsertIndex.rect.y, buttonVar::buttonClear.rect.y, progressAppear);
         buttonVar::buttonGo.rect.y = buttonVar::buttonDel.rect.y;
         break;
-    case InsertType::Head:{
-        InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonDel.rect.y,progressAppear);
-        inputRect.height = lerp(inputRect.height,button::sizeH,progressAppear);
-        inputRect.y = buttonVar::buttonF.rect.y+button::sizeH-inputRect.height;
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,buttonVar::buttonDel.rect.y,progressAppear);
+    case InsertType::Head: {
+        InsertTail.rect.y = lerp(InsertTail.rect.y, buttonVar::buttonDel.rect.y, progressAppear);
+        inputRect.height = lerp(inputRect.height, button::sizeH, progressAppear);
+        inputRect.y = buttonVar::buttonF.rect.y + button::sizeH - inputRect.height;
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, buttonVar::buttonDel.rect.y, progressAppear);
         break;
     }
-    case InsertType::Idx:{
+    case InsertType::Idx: {
         inputRect.y = buttonVar::buttonF.rect.y;
-        inputRect.height = lerp(inputRect.height,button::sizeH,progressAppear);
-        InsertIndex.rect.y = lerp(InsertIndex.rect.y,buttonVar::buttonClear.rect.y,progressAppear);
-        valRect.height = lerp(valRect.height,0,progressAppear);
-        idxRect.height = lerp(idxRect.height,0,progressAppear);
-        Index.rect.height = lerp(Index.rect.height,0,progressAppear);
-        Value.rect.height = lerp(Value.rect.height,0,progressAppear);
-        Font = lerp(Font,0,progressAppear);
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,buttonVar::buttonDel.rect.y,progressAppear);
+        inputRect.height = lerp(inputRect.height, button::sizeH, progressAppear);
+        InsertIndex.rect.y = lerp(InsertIndex.rect.y, buttonVar::buttonClear.rect.y, progressAppear);
+        valRect.height = lerp(valRect.height, 0, progressAppear);
+        idxRect.height = lerp(idxRect.height, 0, progressAppear);
+        Index.rect.height = lerp(Index.rect.height, 0, progressAppear);
+        Value.rect.height = lerp(Value.rect.height, 0, progressAppear);
+        Font = lerp(Font, 0, progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, buttonVar::buttonDel.rect.y, progressAppear);
         break;
     }
     default:
@@ -392,10 +392,10 @@ void Insert::handleIdxMode(){
     {
     case InsertType::Head:
     case InsertType::Tail:
-        InsertTail.rect.y = lerp(InsertTail.rect.y,buttonVar::buttonDel.rect.y,progressAppear);
-        InsertIndex.rect.y = lerp(InsertIndex.rect.y,buttonVar::buttonF.rect.y,progressAppear);
-        Index.rect.y = buttonVar::buttonClear.rect.y+button::sizeH-Index.rect.height;
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,buttonVar::buttonF.rect.y,progressAppear);
+        InsertTail.rect.y = lerp(InsertTail.rect.y, buttonVar::buttonDel.rect.y, progressAppear);
+        InsertIndex.rect.y = lerp(InsertIndex.rect.y, buttonVar::buttonF.rect.y, progressAppear);
+        Index.rect.y = buttonVar::buttonClear.rect.y + button::sizeH - Index.rect.height;
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, buttonVar::buttonF.rect.y, progressAppear);
         break;
     case InsertType::None:
         Index.rect.y = buttonVar::buttonClear.rect.y;
@@ -405,49 +405,49 @@ void Insert::handleIdxMode(){
         break;
     }
 }
-void Insert::handleHeadCode(){
-    for(int i=0; i<codeHead.size(); i++){
+void Insert::handleHeadCode() {
+    for (int i = 0; i < codeHead.size(); i++) {
         code[i].text = codeHead[i];
     }
-    if(InsertHeadProcess && progressNode < 1.0f) curline = 0;
-    else if(InsertHeadProcess && progressArrow < 1.0f) curline = 1;
+    if (InsertHeadProcess && progressNode < 1.0f) curline = 0;
+    else if (InsertHeadProcess && progressArrow < 1.0f) curline = 1;
     float fraction = mSSL->getFraction();
-    if(curline == 1 && progressArrow >= 1.0f-fraction*deltaTime && progressNode >= 1.0f-fraction*deltaTime) curline = 2;
+    if (curline == 1 && progressArrow >= 1.0f - fraction * deltaTime && progressNode >= 1.0f - fraction * deltaTime) curline = 2;
 }
-void Insert::handleTailCode(){
-    for(int i=0; i<codeTail.size(); i++){
+void Insert::handleTailCode() {
+    for (int i = 0; i < codeTail.size(); i++) {
         code[i].text = codeTail[i];
     }
 }
-void Insert::handleIdxCode(){
-    if(modeCur == InsertType::Head){
+void Insert::handleIdxCode() {
+    if (modeCur == InsertType::Head) {
         handleHeadCode();
     }
-    else if(modeCur == InsertType::Tail){
+    else if (modeCur == InsertType::Tail) {
         handleTailCode();
     }
-    else{
-    for(int i=0; i<codeIdx.size(); i++){
-        code[i].text = codeIdx[i];
-    }
+    else {
+        for (int i = 0; i < codeIdx.size(); i++) {
+            code[i].text = codeIdx[i];
+        }
     }
 }
-void Insert::handleCodeLine(){
+void Insert::handleCodeLine() {
     switch (cur)
     {
     case InsertType::Head:
-    handleHeadCode();
-    break;
+        handleHeadCode();
+        break;
     case InsertType::Tail:
-    handleTailCode();
-    break;
+        handleTailCode();
+        break;
     case InsertType::Idx:
-    handleIdxCode();
+        handleIdxCode();
     default:
         break;
     }
 }
-void Insert::insertHeadAnimation(int x){
+void Insert::insertHeadAnimation(int x) {
     std::vector<ShadedData> pos;
     handlePos(mSSL->getRoot(), startLinkedListPos,pos);
     //Khi node xuất hiện thì vẽ arrow tới head hiện tại
@@ -467,16 +467,16 @@ void Insert::insertHeadAnimation(int x){
         InsertHeadProcess = InsertIdxProcess = false;
         progressNode = progressArrow = 0;
         mSSL->insertHeadList(x);
-        mSSL->setNumElement(mSSL->getNumElement()+1);;
+        mSSL->setNumElement(mSSL->getNumElement() + 1);;
         ListNode* cur = mSSL->getRoot();
     }
 }
 void Insert::insertTailAnimation(ListNode*& tmp, Vector2& posTail) {
     float fraction = mSSL->getFraction();
     std::string tailStr = std::to_string(mSSL->getTail()->data);
-    drawNode(posTail, tailStr, NODE_SIZE,color::nodeNotInMode);
-    drawTextUp("vtx",20,posTail);
-    if(tmp == mSSL->getRoot()) drawTextDown("pointer",22,startLinkedListPos);
+    drawNode(posTail, tailStr, NODE_SIZE, color::nodeNotInMode);
+    drawTextUp("vtx", 20, posTail);
+    if (tmp == mSSL->getRoot()) drawTextDown("pointer", 22, startLinkedListPos);
     drawPartofLinkedListNotColor(mSSL->getRoot(), mSSL->getTail(), mSSL);
     drawPartofLinkedList(mSSL->getRoot(), tmp, mSSL);
     if(!tmp->next) {
@@ -485,7 +485,7 @@ void Insert::insertTailAnimation(ListNode*& tmp, Vector2& posTail) {
         Vector2 startPos;
         int startPosVal;
         Vector2 endPos = posTail;
-        if(mSSL->getRoot()->next == tmp) {
+        if (mSSL->getRoot()->next == tmp) {
             startPos = startLinkedListPos;
             startPosVal = mSSL->getRoot()->data;
         }
@@ -494,47 +494,48 @@ void Insert::insertTailAnimation(ListNode*& tmp, Vector2& posTail) {
             startPosVal = mSSL->getprevTail()->data;
         }
         drawArrow2Node(startPos, endPos, color::edgeNotInMode);
-        drawNode(posTail, tailStr, NODE_SIZE,color::nodeNotInMode);
+        drawNode(posTail, tailStr, NODE_SIZE, color::nodeNotInMode);
         std::string startStr = std::to_string(startPosVal);
         drawNode(startPos, startStr, NODE_SIZE, color::nodeRendered);
         framecntInsert++;
         Vector2 targetPos = { startPos.x + EArrow.length + NODE_SIZE, startPos.y };
-        if(targetPos.x > GetScreenWidth() - SCREEN_MARGIN) {
+        if (targetPos.x > GetScreenWidth() - SCREEN_MARGIN) {
             targetPos = { startLinkedListPos.x, mSSL->getPosEnd().y + ROW_OFFSET };
         }
-        if(!mSSL->getPause()) {
-            progressNode += (fraction*deltaTime);
+        if (!mSSL->getPause()) {
+            progressNode += (fraction * deltaTime);
         }
-        posTail = lerp({1200,70},targetPos,progressNode);
-        if(fabs(posTail.x - targetPos.x) < 10 && fabs(posTail.y - targetPos.y) < 10) {
+        posTail = lerp({ 1200,70 }, targetPos, progressNode);
+        if (fabs(posTail.x - targetPos.x) < 10 && fabs(posTail.y - targetPos.y) < 10) {
             InsertTailProcess = InsertIdxProcess = false;
-            posTail = { 1200, 70 };  
+            posTail = { 1200, 70 };
             progressNode = 0;
             framecntInsert = 0;
         }
     }
     else {
-        if(!mSSL->getPause()) framecntInsert++;
-        if(mSSL->getRoot() && mSSL->getRoot()->next == mSSL->getTail()) curline = 0;
-        else if(tmp == mSSL->getRoot()){
+        if (!mSSL->getPause()) framecntInsert++;
+        if (mSSL->getRoot() && mSSL->getRoot()->next == mSSL->getTail()) curline = 0;
+        else if (tmp == mSSL->getRoot()) {
             curline = 1;
             curlinetmp = 2;
         }
-        else if(framecntInsert >= (int) speedNode/(2*fraction)){
+        else if (framecntInsert >= (int)speedNode / (2 * fraction)) {
             curline = 3;
             curlinetmp = -1;
         }
-        if(framecntInsert >= (int) speedNode/fraction) {
+        if (framecntInsert >= (int)speedNode / fraction) {
             framecntInsert = 0;
             st.push({tmp,{0,0}});
             tmp = tmp->next;
-        if(tmp != mSSL->getRoot()->next){
-            curline = 4;
-            curlinetmp = -1;}
+            if (tmp != mSSL->getRoot()->next) {
+                curline = 4;
+                curlinetmp = -1;
+            }
         }
     }
-} 
-void Insert::insertIdxAnimation(ListNode*& tmp){
+}
+void Insert::insertIdxAnimation(ListNode*& tmp) {
     float fraction = mSSL->getFraction();
     if(curindex == idx){
         mSSL->setPause(false);
@@ -544,27 +545,27 @@ void Insert::insertIdxAnimation(ListNode*& tmp){
         if(progressNode>=1.0f){
             curline = 5;
             curlinetmp = 6;
-            if(!mSSL->getPause()) progressArrow += fraction*deltaTime;
-            Vector2 direct = Vector2Subtract(pos,prevpos);
+            if (!mSSL->getPause()) progressArrow += fraction * deltaTime;
+            Vector2 direct = Vector2Subtract(pos, prevpos);
             float length = Vector2Length(direct);
-            float sin = direct.y/length, cos = direct.x/length;
+            float sin = direct.y / length, cos = direct.x / length;
             Vector2 endPos = { pos.x - (NODE_SIZE * cos),pos.y - (NODE_SIZE * sin) };
             float ArrowOri = Vector2Length(Vector2Subtract(prevpos,endPos));
             float ArrowLengthRender = lerp(0,ArrowOri,progressArrow);
             drawArrow(prevpos,{prevpos.x+ArrowLengthRender*cos,prevpos.y+ArrowLengthRender*sin},color::edgeRendered);
             Vector2 targetPos;
-            if(movePos.size()>1) targetPos = movePos[1].pos;
-            else{
-                if(pos.x+EArrow.length+NODE_SIZE>GetScreenWidth()-SCREEN_MARGIN) targetPos = {startLinkedListPos.x,pos.y+ROW_OFFSET};
-                else targetPos = {pos.x+EArrow.length+NODE_SIZE,pos.y};
+            if (movePos.size() > 1) targetPos = movePos[1].pos;
+            else {
+                if (pos.x + EArrow.length + NODE_SIZE > GetScreenWidth() - SCREEN_MARGIN) targetPos = { startLinkedListPos.x,pos.y + ROW_OFFSET };
+                else targetPos = { pos.x + EArrow.length + NODE_SIZE,pos.y };
             }
-            direct = Vector2Subtract(targetPos,pos);
+            direct = Vector2Subtract(targetPos, pos);
             length = Vector2Length(direct);
-            sin = direct.y/length, cos = direct.x/length;
-            endPos = {targetPos.x - (NODE_SIZE * cos),targetPos.y - (NODE_SIZE * sin) };
-            ArrowOri = Vector2Length(Vector2Subtract(pos,endPos));
-            ArrowLengthRender = lerp(0,ArrowOri,progressArrow);
-            drawArrow(pos,{pos.x+ArrowLengthRender*cos,pos.y+ArrowLengthRender*sin},color::edgeRendered);
+            sin = direct.y / length, cos = direct.x / length;
+            endPos = { targetPos.x - (NODE_SIZE * cos),targetPos.y - (NODE_SIZE * sin) };
+            ArrowOri = Vector2Length(Vector2Subtract(pos, endPos));
+            ArrowLengthRender = lerp(0, ArrowOri, progressArrow);
+            drawArrow(pos, { pos.x + ArrowLengthRender * cos,pos.y + ArrowLengthRender * sin }, color::edgeRendered);
         }
         drawPartofLinkedList(mSSL->getRoot(),tmp,mSSL);  
         float NodeRadiusRender,FontSize = 0; 
@@ -586,18 +587,18 @@ void Insert::insertIdxAnimation(ListNode*& tmp){
             std::cout << mSSL->getNumElement();
         }
     }
-    else{
-        drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
-        drawPartofLinkedList(mSSL->getRoot(),tmp,mSSL);
-        if(tmp == mSSL->getRoot()) {
-            drawTextDown("pointer",22,startLinkedListPos);
+    else {
+        drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
+        drawPartofLinkedList(mSSL->getRoot(), tmp, mSSL);
+        if (tmp == mSSL->getRoot()) {
+            drawTextDown("pointer", 22, startLinkedListPos);
             curline = 0;
         }
-        else if(framecntInsert >= (int)speedNode/(2*fraction)){
+        else if (framecntInsert >= (int)speedNode / (2 * fraction)) {
             curline = 1;
         }
-        if(!mSSL->getPause()) framecntInsert++;
-        if(framecntInsert >= speedNode/fraction) {
+        if (!mSSL->getPause()) framecntInsert++;
+        if (framecntInsert >= speedNode / fraction) {
             curindex++;
             prevpos = pos;
             nodeNext(tmp,pos,framecntInsert,st);
@@ -692,44 +693,44 @@ void Insert::draw() {
     drawTailInsert();
     drawHeadInsert();
     drawIdxInsert();
-    if(mSSL->getToggle().isStepByStep) drawTextCode(curline,curlinetmp);
-    else drawTextCode(-1,-1);
+    if (mSSL->getToggle().isStepByStep) drawTextCode(curline, curlinetmp);
+    else drawTextCode(-1, -1);
     DrawRectangleRounded(inputRect, 0.3f, 30, WHITE);
-    if(cur == InsertType::Head || cur == InsertType::Tail) {
+    if (cur == InsertType::Head || cur == InsertType::Tail) {
         drawTextIn(textIn, inputRect, frameCounter);
         if(mSSL->getNumElement() == 29 && !InsertHeadProcess && !InsertTailProcess && !InsertIdxProcess){
             std::string str = "Linked List reaches maximum elements";
-            DrawTextEx(SSLFont,str.c_str(),{inputRect.x+125.0f,inputRect.y+6.0f},21,1,RED);
-        }  
+            DrawTextEx(SSLFont, str.c_str(), { inputRect.x + 125.0f,inputRect.y + 6.0f }, 21, 1, RED);
+        }
     }
-    else if(cur == InsertType::Idx){
-        if(mSSL->getNumElement() == 29){
+    else if (cur == InsertType::Idx) {
+        if (mSSL->getNumElement() == 29) {
             std::string str = "Linked List reaches maximum elements";
-            DrawTextEx(SSLFont,str.c_str(),{idxRect.x+125.0f,idxRect.y+6.0f},21,1,RED);
-        } 
+            DrawTextEx(SSLFont, str.c_str(), { idxRect.x + 125.0f,idxRect.y + 6.0f }, 21, 1, RED);
+        }
     }
-    if(cur!=InsertType::None) DrawButton(buttonVar::buttonGo.rect,buttonVar::buttonGo.text,buttonVar::buttonGo.buCol,SSLFont,22);
-    if(Index.rect.height > 2.0f && Value.rect.height > 2.0f) {
-        DrawButton(Index.rect,Index.text,Index.buCol,SSLFont,Font);
-        DrawButton(Value.rect,Value.text,Value.buCol,SSLFont,Font);
+    if (cur != InsertType::None) DrawButton(buttonVar::buttonGo.rect, buttonVar::buttonGo.text, buttonVar::buttonGo.buCol, SSLFont, 22);
+    if (Index.rect.height > 2.0f && Value.rect.height > 2.0f) {
+        DrawButton(Index.rect, Index.text, Index.buCol, SSLFont, Font);
+        DrawButton(Value.rect, Value.text, Value.buCol, SSLFont, Font);
         DrawRectangleRounded(idxRect, 0.3f, 30, WHITE);
         DrawRectangleRounded(valRect, 0.3f, 30, WHITE);
     }
-    if(cur == InsertType::Idx && idxInsert){
-            drawTextInwithoutLine(textIn,valRect);
-            drawTextIn(textInIndex,idxRect,frameCounter);
-        }
-    else if(cur == InsertType::Idx && valInsert){
-            drawTextIn(textIn,valRect,frameCounter);
-            drawTextInwithoutLine(textInIndex,idxRect);
-        }
-    if(InsertTailProcess) {
+    if (cur == InsertType::Idx && idxInsert) {
+        drawTextInwithoutLine(textIn, valRect);
+        drawTextIn(textInIndex, idxRect, frameCounter);
+    }
+    else if (cur == InsertType::Idx && valInsert) {
+        drawTextIn(textIn, valRect, frameCounter);
+        drawTextInwithoutLine(textInIndex, idxRect);
+    }
+    if (InsertTailProcess) {
         insertTailAnimation(currentAnimatingNode, posTail);
     }
-    else if(InsertHeadProcess){
+    else if (InsertHeadProcess) {
         insertHeadAnimation(nums);
     }
-    else if(InsertIdxProcess && idx < mSSL->getNumElement()){
+    else if (InsertIdxProcess && idx < mSSL->getNumElement()) {
         insertIdxAnimation(currentAnimatingNode);
     }
     else if(idx > mSSL->getNumElement() && cur == InsertType::Idx && mSSL->getNumElement()<29){
@@ -760,7 +761,7 @@ void Insert::ResetInsertState() {
     overValue = false, inIndex = true;
     while(!st.empty()) st.pop();
 }
-void Insert::handle(){
+void Insert::handle() {
     IState::ToggleSwitch toggle = mSSL->getToggle();
     bool step = toggle.isStepByStep;
     static bool prevStep = toggle.isStepByStep;
@@ -781,16 +782,16 @@ void Insert::handle(){
         handleModeTransitTion(detectedMode);
     }
     updateCommonAnimation();
-    if(CheckCollisionPointRec(mouse, InsertHead.rect)){
+    if (CheckCollisionPointRec(mouse, InsertHead.rect)) {
         InsertHead.buCol = color::buttonFileHovered;
     }
-    else if(CheckCollisionPointRec(mouse, InsertTail.rect)){
+    else if (CheckCollisionPointRec(mouse, InsertTail.rect)) {
         InsertTail.buCol = color::buttonFileHovered;
     }
-    else if(CheckCollisionPointRec(mouse, InsertIndex.rect)){
+    else if (CheckCollisionPointRec(mouse, InsertIndex.rect)) {
         InsertIndex.buCol = color::buttonFileHovered;
     }
-    else{
+    else {
         InsertHead.buCol = color::buttonFile;
         InsertTail.buCol = color::buttonFile;
         InsertIndex.buCol = color::buttonFile;
@@ -1023,55 +1024,55 @@ Delete::Delete(SSL* s)
 : mSSL(s), frameCounter(0), textIn(""), existVal(true), currentAnimatingNode(nullptr), progressNode(0), progressArrow(0),DeleteValProcess(false),
 DeleteHeadProcess(false), DeleteTailProcess(false), framecntDel(0), ArrowLengthRender(EArrow.length),shadedPos({startLinkedListPos}),progressAppear(0)
 {
-    DeleteHead = {{buttonVar::buttonDel.rect.x+115,buttonVar::buttonDel.rect.y,120,button::sizeH},color::buttonFile, "Delete Head"};
-    DeleteTail = {{buttonVar::buttonF.rect.x+115,buttonVar::buttonF.rect.y,120,button::sizeH},color::buttonFile, "Delete Tail"};
-    DeleteVal = {{buttonVar::buttonClear.rect.x+115,buttonVar::buttonClear.rect.y,120,button::sizeH},color::buttonFile, "Delete Val"};
-    inputRect = { buttonVar::buttonClear.rect.x + 115, buttonVar::buttonClear.rect.y+button::sizeH+10.0f, 120, 0 };
+    DeleteHead = { {buttonVar::buttonDel.rect.x + 115,buttonVar::buttonDel.rect.y,120,button::sizeH},color::buttonFile, "Delete Head" };
+    DeleteTail = { {buttonVar::buttonF.rect.x + 115,buttonVar::buttonF.rect.y,120,button::sizeH},color::buttonFile, "Delete Tail" };
+    DeleteVal = { {buttonVar::buttonClear.rect.x + 115,buttonVar::buttonClear.rect.y,120,button::sizeH},color::buttonFile, "Delete Val" };
+    inputRect = { buttonVar::buttonClear.rect.x + 115, buttonVar::buttonClear.rect.y + button::sizeH + 10.0f, 120, 0 };
 }
-Delete::DeleteType Delete::DetectCurrentMode(){
+Delete::DeleteType Delete::DetectCurrentMode() {
     if (CheckCollisionPointRec(mouse, DeleteHead.rect)) return DeleteType::Head;
     if (CheckCollisionPointRec(mouse, DeleteTail.rect)) return DeleteType::Tail;
     if (CheckCollisionPointRec(mouse, DeleteVal.rect)) return DeleteType::Val;
     return DeleteType::None;
 }
-void Delete::handleHeadCode(){
+void Delete::handleHeadCode() {
     float fraction = mSSL->getFraction();
-    for(int i=0; i<delHeadCode.size(); i++){
+    for (int i = 0; i < delHeadCode.size(); i++) {
         code[i].text = delHeadCode[i];
     }
-    if(DeleteHeadProcess && mSSL->getRoot() && !mSSL->getRoot()->next){
+    if (DeleteHeadProcess && mSSL->getRoot() && !mSSL->getRoot()->next) {
         curline = 1;
         curlinetmp = 2;
         return;
     }
-    if(!mSSL->getRoot()){
+    if (!mSSL->getRoot()) {
         curline = 0;
         curlinetmp = -1;
         return;
     }
-    if(DeleteHeadProcess && progressArrow < 0.3f) curline = 3;
-    else if(DeleteHeadProcess && progressArrow < 1.0f) curline = 4;
-    if(curline == 4 && progressArrow >= 1.0f-fraction*deltaTime) curline = 5;
+    if (DeleteHeadProcess && progressArrow < 0.3f) curline = 3;
+    else if (DeleteHeadProcess && progressArrow < 1.0f) curline = 4;
+    if (curline == 4 && progressArrow >= 1.0f - fraction * deltaTime) curline = 5;
 }
-void Delete::handleTailCode(){
-    for(int i=0; i<delTailCode.size(); i++) code[i].text = delTailCode[i];
-    if(!mSSL->getRoot()){
+void Delete::handleTailCode() {
+    for (int i = 0; i < delTailCode.size(); i++) code[i].text = delTailCode[i];
+    if (!mSSL->getRoot()) {
         curline = 0;
         return;
     }
 }
-void Delete::handleValCode(){
-    if(modeCur == DeleteType::Head) handleHeadCode();
-    else if(modeCur == DeleteType::Tail) handleTailCode();
-    else{
-        for(int i=0; i<delValCode.size(); i++) code[i].text = delValCode[i];
-        if(!mSSL->getRoot()){
+void Delete::handleValCode() {
+    if (modeCur == DeleteType::Head) handleHeadCode();
+    else if (modeCur == DeleteType::Tail) handleTailCode();
+    else {
+        for (int i = 0; i < delValCode.size(); i++) code[i].text = delValCode[i];
+        if (!mSSL->getRoot()) {
             curline = 0;
             return;
         }
     }
 }
-void Delete::handleModeTransitTion(DeleteType newType){
+void Delete::handleModeTransitTion(DeleteType newType) {
     prev = cur;
     cur = (cur == newType) ? DeleteType::None : newType;
     curline = -1;
@@ -1081,8 +1082,8 @@ void Delete::handleModeTransitTion(DeleteType newType){
     inputRect.height = (prev == DeleteType::Val) ? button::sizeH : 0.0f;
     mSSL->clearStackUndo();
 }
-void Delete::updateCommonAnimation(){
-    if(!inProcess) return;
+void Delete::updateCommonAnimation() {
+    if (!inProcess) return;
     progressAppear += GetFrameTime();
     switch (cur)
     {
@@ -1105,7 +1106,7 @@ void Delete::updateCommonAnimation(){
     default:
         break;
     }
-    if(progressAppear >= 1.0f){
+    if (progressAppear >= 1.0f) {
         inProcess = false;
         progressAppear = 0.0f;
     }
@@ -1124,11 +1125,11 @@ void Delete::handleHeadMode(){
         buttonVar::buttonGo.rect.y = DeleteHead.rect.y;
         break;
     case DeleteType::Tail:
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,DeleteHead.rect.y,progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, DeleteHead.rect.y, progressAppear);
         break;
     case DeleteType::Val:
-        inputRect.height = lerp(inputRect.height,0,progressAppear);
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,DeleteHead.rect.y,progressAppear);
+        inputRect.height = lerp(inputRect.height, 0, progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, DeleteHead.rect.y, progressAppear);
         break;
     default:
         break;
@@ -1142,13 +1143,13 @@ void Delete::handleTailMode(){
     case DeleteType::None:
         buttonVar::buttonGo.rect.y = DeleteTail.rect.y;
         break;
-    case DeleteType::Head:{
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,DeleteTail.rect.y,progressAppear);
+    case DeleteType::Head: {
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, DeleteTail.rect.y, progressAppear);
         break;
     }
-    case DeleteType::Val:{
-        inputRect.height = lerp(inputRect.height,0,progressAppear);
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,DeleteTail.rect.y,progressAppear);
+    case DeleteType::Val: {
+        inputRect.height = lerp(inputRect.height, 0, progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, DeleteTail.rect.y, progressAppear);
         break;
     }
     default:
@@ -1163,7 +1164,7 @@ void Delete::handleValMode(){
     {
     case DeleteType::Head:
     case DeleteType::Tail:
-        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y,DeleteVal.rect.y,progressAppear);
+        buttonVar::buttonGo.rect.y = lerp(buttonVar::buttonGo.rect.y, DeleteVal.rect.y, progressAppear);
         break;
     case DeleteType::None:
         buttonVar::buttonGo.rect.y = DeleteVal.rect.y;
@@ -1232,15 +1233,15 @@ void Delete::delHeadAnimation(){
     }
     drawPos(movePos,NODE_SIZE,FontNode);
     }
-    if(progressArrow >= 1.0f && progressNode>=1.0f){
-        mSSL->setNumElement(mSSL->getNumElement()-1);
+    if (progressArrow >= 1.0f && progressNode >= 1.0f) {
+        mSSL->setNumElement(mSSL->getNumElement() - 1);
         mSSL->delHeadList();
         progressArrow = progressNode = 0.0f;
         DeleteHeadProcess = false;
         textIn.clear();
     }
 }
-void Delete::delTailAnimation(ListNode*& cur){
+void Delete::delTailAnimation(ListNode*& cur) {
     float fraction = mSSL->getFraction();
     const int ARROW_LENGTH = EArrow.length;
     if(!mSSL->getPause()) framecntDel++;
@@ -1254,8 +1255,8 @@ void Delete::delTailAnimation(ListNode*& cur){
         curline = 3;
     }
     shadedPos.node = cur;
-    if(!cur->next && prevpos.x!=0 && prevpos.y!=0) {
-        drawArrow2Node(prevpos,shadedPos.pos,color::edgeNotInMode);
+    if (!cur->next && prevpos.x != 0 && prevpos.y != 0) {
+        drawArrow2Node(prevpos, shadedPos.pos, color::edgeNotInMode);
     }
     if(!cur->next){
         mSSL->setPause(false);
@@ -1268,39 +1269,40 @@ void Delete::delTailAnimation(ListNode*& cur){
         float length = Vector2Length(direct);
         Vector2 endPos = { targetPos.x - (NODE_SIZE * direct.x / length),targetPos.y - (NODE_SIZE * direct.y / length) };
         float ArrowOri = Vector2Length(Vector2Subtract(shadedPos.pos, endPos));
-        float sin = direct.y/length; 
-        float cos = direct.x/length;
+        float sin = direct.y / length;
+        float cos = direct.x / length;
         ArrowLengthRender = lerp(ArrowOri, 0, progressNode);
         //Xóa arrow và node
         drawArrow(shadedPos.pos,{shadedPos.pos.x+ArrowLengthRender*cos,shadedPos.pos.y+ArrowLengthRender*sin},color::edgeRendered);
         float NodeRadiusRender,FontSize = 0;
         removeNode(NodeRadiusRender,FontSize,std::to_string(shadedPos.node->data),shadedPos.pos,progressNode,mSSL);
     }
-    if(progressNode>=1.0f){
-        mSSL->setNumElement(mSSL->getNumElement()-1);
+    if (progressNode >= 1.0f) {
+        mSSL->setNumElement(mSSL->getNumElement() - 1);
         mSSL->delTailList();
         textIn.clear();
         progressArrow = progressNode = framecntDel = 0;
         shadedPos = { {0, 0}, nullptr };
-        prevpos = {0,0};
+        prevpos = { 0,0 };
         DeleteTailProcess = false;
     }
-    else if (cur && cur->next && framecntDel >= (int)speedNode/(2*fraction) && framecntDel < (int)speedNode/fraction) {
+    else if (cur && cur->next && framecntDel >= (int)speedNode / (2 * fraction) && framecntDel < (int)speedNode / fraction) {
         if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth() - SCREEN_MARGIN) {
             drawArrow2Node(shadedPos.pos, { startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, color::edgeRendered);
             drawNode({ startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, std::to_string(cur->next->data), NODE_SIZE, color::nodeNotInMode);
-        } else {
+        }
+        else {
             drawArrow(shadedPos.pos, { shadedPos.pos.x + ARROW_LENGTH, shadedPos.pos.y }, color::edgeRendered);
         }
     }
 }
 void Delete::delAnimation(ListNode*& currentNode, int targetData) {
     float fraction = mSSL->getFraction();
-    if(!mSSL->getPause()) framecntDel++;
-    if(currentNode->data!=targetData) drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
-    const int ARROW_LENGTH = EArrow.length; 
-    if(currentNode == mSSL->getRoot() && framecntDel < (int)speedNode/(2*fraction)) curline = 1;
-    else if(framecntDel >= (int)speedNode/fraction){
+    if (!mSSL->getPause()) framecntDel++;
+    if (currentNode->data != targetData) drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
+    const int ARROW_LENGTH = EArrow.length;
+    if (currentNode == mSSL->getRoot() && framecntDel < (int)speedNode / (2 * fraction)) curline = 1;
+    else if (framecntDel >= (int)speedNode / fraction) {
         curline = 2;
         curlinetmp = -1;
     }
@@ -1311,35 +1313,35 @@ void Delete::delAnimation(ListNode*& currentNode, int targetData) {
         curlinetmp = 4;
     }
     shadedPos.node = currentNode;
-    if(!shadedPos.node) return;
+    if (!shadedPos.node) return;
     if (currentNode && currentNode->data == targetData) {
         mSSL->setPause(false);
         curline = 5;
         curlinetmp = 6;
-        drawTextDown("prev",20,prevpos);
-        if(prevpos.x!=0) drawArrow2Node(prevpos,shadedPos.pos,color::edgeNotInMode);
-        drawPartofLinkedListNotColor(mSSL->getRoot(),currentNode,mSSL);
+        drawTextDown("prev", 20, prevpos);
+        if (prevpos.x != 0) drawArrow2Node(prevpos, shadedPos.pos, color::edgeNotInMode);
+        drawPartofLinkedListNotColor(mSSL->getRoot(), currentNode, mSSL);
         std::vector<ShadedData>  movePos, copy;
-        handlePos(currentNode,shadedPos.pos,movePos);
+        handlePos(currentNode, shadedPos.pos, movePos);
         copy = movePos;
-        Vector2 targetPos = (shadedPos.pos.x+ARROW_LENGTH+NODE_SIZE < GetScreenWidth()-SCREEN_MARGIN) ? Vector2{shadedPos.pos.x+ARROW_LENGTH+NODE_SIZE,shadedPos.pos.y} :Vector2{startLinkedListPos.x,shadedPos.pos.y+ROW_OFFSET};
+        Vector2 targetPos = (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE < GetScreenWidth() - SCREEN_MARGIN) ? Vector2{ shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE,shadedPos.pos.y } : Vector2{ startLinkedListPos.x,shadedPos.pos.y + ROW_OFFSET };
         Vector2 direct = Vector2Subtract(targetPos, shadedPos.pos);
         float length = Vector2Length(direct);
         Vector2 endPos = { targetPos.x - (NODE_SIZE * direct.x / length),targetPos.y - (NODE_SIZE * direct.y / length) };
         float ArrowOri = Vector2Length(Vector2Subtract(shadedPos.pos, endPos));
-        float sin = direct.y/length; 
-        float cos = direct.x/length;
-        ArrowLengthRender = lerp(ArrowOri,0,progressNode);
-        for(int i=1; i<movePos.size(); i++){
-                movePos[i].pos = lerp(movePos[i].pos,copy[i-1].pos,progressNode);
+        float sin = direct.y / length;
+        float cos = direct.x / length;
+        ArrowLengthRender = lerp(ArrowOri, 0, progressNode);
+        for (int i = 1; i < movePos.size(); i++) {
+            movePos[i].pos = lerp(movePos[i].pos, copy[i - 1].pos, progressNode);
         }
-        drawTextDown("aft",20,movePos[1].pos);
-        for(int i=1; i<movePos.size()-1;i++){
-            drawArrow2Node(movePos[i].pos,movePos[i+1].pos,color::edgeNotInMode);
+        drawTextDown("aft", 20, movePos[1].pos);
+        for (int i = 1; i < movePos.size() - 1;i++) {
+            drawArrow2Node(movePos[i].pos, movePos[i + 1].pos, color::edgeNotInMode);
         }
         if (progressNode >= 1.0f) {
             existVal = mSSL->delList(targetData);
-            mSSL->setNumElement(mSSL->getNumElement()-1);
+            mSSL->setNumElement(mSSL->getNumElement() - 1);
             textIn.clear();
             DeleteValProcess = DeleteHeadProcess = DeleteTailProcess = false;
             framecntDel = 0;
@@ -1458,36 +1460,37 @@ void Delete::draw(){
     if(mSSL->getToggle().isStepByStep) drawTextCode(curline,curlinetmp);
     else drawTextCode(-1,-1);
     drawButtons();
-    DrawButton(DeleteHead.rect,DeleteHead.text,DeleteHead.buCol,SSLFont,19);
-    DrawButton(DeleteTail.rect,DeleteTail.text,DeleteTail.buCol,SSLFont,20);
-    DrawButton(DeleteVal.rect,DeleteVal.text,DeleteVal.buCol,SSLFont,20);
+    DrawButton(DeleteHead.rect, DeleteHead.text, DeleteHead.buCol, SSLFont, 19);
+    DrawButton(DeleteTail.rect, DeleteTail.text, DeleteTail.buCol, SSLFont, 20);
+    DrawButton(DeleteVal.rect, DeleteVal.text, DeleteVal.buCol, SSLFont, 20);
     DrawRectangleRounded(inputRect, 0.3f, 30, WHITE);
-    if(inputRect.height == button::sizeH) drawTextIn(textIn, inputRect, frameCounter);
-    if(cur!=DeleteType::None) DrawButton(buttonVar::buttonGo.rect,buttonVar::buttonGo.text,buttonVar::buttonGo.buCol,SSLFont,22);
+    if (inputRect.height == button::sizeH) drawTextIn(textIn, inputRect, frameCounter);
+    if (cur != DeleteType::None) DrawButton(buttonVar::buttonGo.rect, buttonVar::buttonGo.text, buttonVar::buttonGo.buCol, SSLFont, 22);
     if (!mSSL->getRoot() && frameCounter < 30 && cur == DeleteType::Val) {
-        DrawTextEx(SSLFont, "Empty List", {inputRect.x + 125, inputRect.y+7.0f}, 22, 2, RED);
-    } else {
+        DrawTextEx(SSLFont, "Empty List", { inputRect.x + 125, inputRect.y + 7.0f }, 22, 2, RED);
+    }
+    else {
         if (DeleteValProcess) {
-                int x = std::stoi(textIn);
-                delAnimation(currentAnimatingNode, x);
+            int x = std::stoi(textIn);
+            delAnimation(currentAnimatingNode, x);
         }
         if (shadedPos.node && shadedPos.node->next && shadedPos.pos.x != 0 && shadedPos.pos.y != 0 && !textIn.empty() && shadedPos.node->data != std::stoi(textIn) && !DeleteTailProcess) {
             std::string str = std::to_string(shadedPos.node->data);
             drawNode(shadedPos.pos, str, NODE_SIZE, color::nodeRendered);
-            drawTextDown("pointer",20,shadedPos.pos);
+            drawTextDown("pointer", 20, shadedPos.pos);
         }
-        else if(shadedPos.node && shadedPos.pos.x != 0 && shadedPos.pos.y != 0 && DeleteTailProcess && shadedPos.node!=mSSL->getTail()){
+        else if (shadedPos.node && shadedPos.pos.x != 0 && shadedPos.pos.y != 0 && DeleteTailProcess && shadedPos.node != mSSL->getTail()) {
             std::string str = std::to_string(shadedPos.node->data);
             drawNode(shadedPos.pos, str, NODE_SIZE, color::nodeRendered);
-            drawTextDown("pointer",20,shadedPos.pos);
+            drawTextDown("pointer", 20, shadedPos.pos);
         }
         if (!existVal && frameCounter < 30 && !DeleteHeadProcess && !DeleteTailProcess && !DeleteValProcess && cur == DeleteType::Val) {
             DrawTextEx(SSLFont, "Value Not Found", {inputRect.x +125.0f, inputRect.y + 7.0f}, 20, 2, RED);
         }
-        if(DeleteHeadProcess){
+        if (DeleteHeadProcess) {
             delHeadAnimation();
         }
-        if(DeleteTailProcess){
+        if (DeleteTailProcess) {
             delTailAnimation(currentAnimatingNode);
         }
         if (shadedPos.node && shadedPos.node->next && shadedPos.pos.x != 0 && shadedPos.pos.y != 0 && DeleteTailProcess) {
@@ -1495,11 +1498,11 @@ void Delete::draw(){
             drawNode(shadedPos.pos, str, NODE_SIZE, color::nodeRendered);
         }
         if (!DeleteValProcess && !DeleteHeadProcess && !DeleteTailProcess) {
-            drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
+            drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
         }
     }
 }
-void Delete::ResetDeleteState(){
+void Delete::ResetDeleteState() {
     textIn.clear();
     DeleteValProcess = DeleteHeadProcess = DeleteTailProcess = false;
     progressNode = framecntDel = 0;
@@ -1510,7 +1513,7 @@ void Delete::ResetDeleteState(){
     while(!st.empty()) st.pop();
     mSSL->clearStackUndo();
 }
-void Delete::handle(){
+void Delete::handle() {
     handleButtonsHover();
     IState::ToggleSwitch toggle = mSSL->getToggle();
     bool step = toggle.isStepByStep;
@@ -1526,16 +1529,16 @@ void Delete::handle(){
     if(CheckCollisionPointRec(mouse, DeleteHead.rect)){
         DeleteHead.buCol = color::buttonFileHovered;
     }
-    else if(CheckCollisionPointRec(mouse, DeleteTail.rect)){
+    else if (CheckCollisionPointRec(mouse, DeleteTail.rect)) {
         DeleteTail.buCol = color::buttonFileHovered;
     }
-    else if(CheckCollisionPointRec(mouse, DeleteVal.rect)){
+    else if (CheckCollisionPointRec(mouse, DeleteVal.rect)) {
         DeleteVal.buCol = color::buttonFileHovered;
     }
-    else{
+    else {
         DeleteHead.buCol = color::buttonFile;
         DeleteTail.buCol = color::buttonFile;
-        DeleteVal.buCol = color::buttonFile;     
+        DeleteVal.buCol = color::buttonFile;
     }
     //Chuyển state
     if ((CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) || 
@@ -1691,7 +1694,7 @@ void Delete::handle(){
 }
 // Find
 Find::Find(SSL* s)
-: mSSL(s), frameCounter(0), textIn(""), framecntFind(0), FindProcess(false), shadedPos({0,0}) {}
+    : mSSL(s), frameCounter(0), textIn(""), framecntFind(0), FindProcess(false), shadedPos({ 0,0 }) {}
 void Find::findAnimation(ListNode*& root) {
     float fraction = mSSL->getFraction();
     if (!root) {
@@ -1701,15 +1704,16 @@ void Find::findAnimation(ListNode*& root) {
         curline = 4, curlinetmp = 5;
         return;
     }
-    if(!mSSL->getPause()) framecntFind++;
-    drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL);
-    const int ARROW_LENGTH = EArrow.length; 
-    if(root == mSSL->getRoot() && framecntFind < (int)speedNode/(2*fraction)) curline = 1;
-    if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth()-SCREEN_MARGIN && framecntFind >= (int)speedNode/(2*fraction) && framecntFind < (int)speedNode/fraction && root->next) {
-        drawArrow2Node(shadedPos.pos,{ startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET },color::edgeRendered);
+    if (!mSSL->getPause()) framecntFind++;
+    drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
+    const int ARROW_LENGTH = EArrow.length;
+    if (root == mSSL->getRoot() && framecntFind < (int)speedNode / (2 * fraction)) curline = 1;
+    if (shadedPos.pos.x + ARROW_LENGTH + NODE_SIZE > GetScreenWidth() - SCREEN_MARGIN && framecntFind >= (int)speedNode / (2 * fraction) && framecntFind < (int)speedNode / fraction && root->next) {
+        drawArrow2Node(shadedPos.pos, { startLinkedListPos.x, shadedPos.pos.y + ROW_OFFSET }, color::edgeRendered);
         curline = 2;
-    } else if(shadedPos.pos.x + EArrow.length + NODE_SIZE < GetScreenWidth()-SCREEN_MARGIN && framecntFind >= (int)speedNode/(2*fraction) && framecntFind < (int)speedNode/fraction && root->next) {
-        drawArrow(shadedPos.pos,{ shadedPos.pos.x+EArrow.length, shadedPos.pos.y},color::edgeRendered);
+    }
+    else if (shadedPos.pos.x + EArrow.length + NODE_SIZE < GetScreenWidth() - SCREEN_MARGIN && framecntFind >= (int)speedNode / (2 * fraction) && framecntFind < (int)speedNode / fraction && root->next) {
+        drawArrow(shadedPos.pos, { shadedPos.pos.x + EArrow.length, shadedPos.pos.y }, color::edgeRendered);
         curline = 2;
     }
     if (framecntFind >= (int)speedNode/fraction) {
@@ -1717,30 +1721,30 @@ void Find::findAnimation(ListNode*& root) {
         curline = 3;
     }
     shadedPos.node = root;
-    if(!shadedPos.node) return;
+    if (!shadedPos.node) return;
     if (root == mSSL->getExistVal()) {
         curline = 6;
         curlinetmp = -1;
         FindProcess = false;
-        textIn.clear(); 
+        textIn.clear();
         return;
     }
 }
-void Find::handleCodeLine(){
+void Find::handleCodeLine() {
     float fraction = mSSL->getFraction();
-    for(int i=0; i<codeLines.size(); i++){
+    for (int i = 0; i < codeLines.size(); i++) {
         code[i].text = codeLines[i];
     }
-    if(!mSSL->getRoot()) {
+    if (!mSSL->getRoot()) {
         curline = 0;
         curlinetmp = -1;
         return;
     }
-    if(currentAnimatingNode && !currentAnimatingNode->next && framecntFind>0 && framecntFind<=(int)speedNode/(2*fraction)) {
+    if (currentAnimatingNode && !currentAnimatingNode->next && framecntFind > 0 && framecntFind <= (int)speedNode / (2 * fraction)) {
         curline = 4;
         curlinetmp = 2;
     }
-    if(curline == 4 && !currentAnimatingNode){
+    if (curline == 4 && !currentAnimatingNode) {
         curline = 5;
         curlinetmp = -1;
     }
@@ -1784,17 +1788,17 @@ void Find::draw() {
     Rectangle inputRect = { buttonVar::buttonF.rect.x + 115,buttonVar::buttonF.rect.y,120, (float)button::sizeH };
     DrawRectangleRounded(inputRect, 0.3f, 30, WHITE);
     drawTextIn(textIn, inputRect, frameCounter);
-    DrawButton(buttonVar::buttonGo.rect,buttonVar::buttonGo.text,buttonVar::buttonGo.buCol,SSLFont,22);
+    DrawButton(buttonVar::buttonGo.rect, buttonVar::buttonGo.text, buttonVar::buttonGo.buCol, SSLFont, 22);
     if (!mSSL->getRoot() && frameCounter < 30) {
         DrawTextEx(SSLFont, "Empty List", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);
     }
-    else {  
+    else {
         if (FindProcess) findAnimation(currentAnimatingNode);
         else if (mSSL->getRoot() && !mSSL->getExistVal() && frameCounter < 30 && !FindProcess) {
             DrawTextEx(SSLFont, "Value Not Found",{ inputRect.x - 3, inputRect.y - 20 }, 22, 2, RED);
             shadedPos.pos = {0,0};
         }
-        if(!FindProcess) drawLinkedList(mSSL->getRoot(),startLinkedListPos,mSSL); 
+        if (!FindProcess) drawLinkedList(mSSL->getRoot(), startLinkedListPos, mSSL);
         if (shadedPos.node && shadedPos.pos.x != 0 && shadedPos.pos.y != 0) {
             std::string str = std::to_string(shadedPos.node->data);
             drawNode(shadedPos.pos, str, NODE_SIZE,color::nodeRendered);
@@ -1802,9 +1806,9 @@ void Find::draw() {
             if(frameCounter < 30 && !FindProcess && mSSL->getExistVal()){
                 DrawTextEx(SSLFont, "Value Found", { inputRect.x - 3, inputRect.y - 20 }, 20, 2, RED);}
         }
-    }  
+    }
 }
-void Find::ResetFindState(){
+void Find::ResetFindState() {
     textIn.clear();
     mSSL->setExistVal(mSSL->getRoot());
     FindProcess = false;

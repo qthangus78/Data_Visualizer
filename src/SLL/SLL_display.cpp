@@ -6,5 +6,5 @@ void SLL_display::Display() {
         sslInstance->handle();
         sslInstance->draw();
     }
-    ClearBackground({192, 245, 242, 100});
+    ClearBackground(theme.getTheme());
 }

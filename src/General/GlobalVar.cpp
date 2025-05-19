@@ -11,7 +11,9 @@ Rectangle GraphDisplayScreen = {450,
                                 float(screenHeight) - GraphDisplayScreenSize.y - 60, //padding
                                 GraphDisplayScreenSize.x, 
                                 GraphDisplayScreenSize.y};
-
+const Color lightMode = {192, 245, 242, 100};
+const Color darkMode = {24, 59, 78, 255};
+bool isMusic = false;
 
 const int FPS = 60;
 Vector2 mouse;
@@ -28,9 +30,12 @@ myTexture RedoButton;
 myTexture addButton;
 myTexture minusButton;
 myTexture repeatButton;
+MusicTexture music;
+ThemeTexture theme;
 
 Texture2D customTexture;
 Texture2D dice;
+Texture2D logoDS;
 
 ScreenID currentScreenID = ScreenID::StartScreen;
 
@@ -81,13 +86,13 @@ void LoadButtonsResources() {
 
     RedoButton.LoadTextureResources("../resources/images/Rotate-Right.png",
         "../resources/images/Rotate-Right-Select.png");
-    customTexture = LoadTexture("../resources/images/back-normal.png");
     addButton.LoadTextureResources("../resources/images/add-circle.png",
-        "../resources/images/add-circle-selected.png");
+            "../resources/images/add-circle-selected.png");
     minusButton.LoadTextureResources("../resources/images/minus-circle.png",
-        "../resources/images/minus-circle-selected.png");
-    dice = LoadTexture("../src/Heap/dice.png");
-    
+                "../resources/images/minus-circle-selected.png");
+    customTexture = LoadTexture("../resources/images/back-normal.png");
+    dice = LoadTexture("../resources/images/dice.png");
+    logoDS = LoadTexture("../resources/images/LogoDS.png");
     repeatButton.LoadTextureResources("../resources/images/Repeat-normal.png",
         "../resources/images/Repeat-selected.png");
 }

@@ -8,16 +8,14 @@ extern const float screenWidth;
 extern const float screenHeight;
 extern const Vector2 GraphDisplayScreenSize;
 extern Rectangle GraphDisplayScreen;
-
 extern const int FPS;
-
 extern Vector2 mouse;
 extern bool WindowClose;
-
 extern Font customFont;
 extern Font SSLFont;
 extern Font textCodeFont;
-extern Font customFont;
+extern const Color lightMode;
+extern const Color darkMode;
 
 extern myTexture BackButton; 
 extern myTexture PlayButton;
@@ -31,6 +29,9 @@ extern myTexture repeatButton;
 extern ScreenID currentScreenID;
 extern Texture2D customTexture;
 extern Texture2D dice;
+extern Texture2D logoDS;
+extern MusicTexture music;
+extern ThemeTexture theme;
 //--------------------------------
 // Cấu trúc button
 //--------------------------------
@@ -66,10 +67,8 @@ namespace buttonVar {
     extern button buttonCreate;
 }
 extern Vector2 startLinkedListPos;
-
 void LoadFontResource();
 void LoadButtonsResources();
-
 void UnloadFontResource();
 
 

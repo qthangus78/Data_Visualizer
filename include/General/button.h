@@ -1,5 +1,6 @@
 #pragma once 
 #include <raylib.h>
+#include <string>
 
 enum class ScreenID {
     StartScreen,
@@ -7,8 +8,9 @@ enum class ScreenID {
     SettingScreen,
     SLLScreen,
     HeapScreen,
-    AVLTreeScreen,
-    GraphScreen
+    TrieScreen,
+    GraphScreen,
+    AVLScreen
 };
 class myTexture {
 public:
@@ -38,11 +40,44 @@ struct SpeedButtonSpinner {
     const float step = 0.5f;
     Vector2 position;
 
-    void Init(Vector2 pos);   
+    void Init(Vector2 pos);
     void Update();
     void Draw() const;
     float GetValue() const;
 };
 
+class MusicTexture {
+private:
+    Music music;
+    bool isMusic;
+    Rectangle recSound;
+    myTexture checkMusic_button;
+    myTexture checkMusic_activated;
+    std::string str;
+public:
+    void init();
+    void unload();
+    void draw();
+    void update();
+};
+
+class ThemeTexture {
+private:
+    Color theme;
+    bool lightOrdark;
+    Rectangle recTheme;
+    myTexture checkTheme_button;
+    myTexture checkTheme_activated;
+    std::string str;
+public:
+    void init();
+    void draw();
+    void update();
+    Color getTheme() const { return theme; } 
+};
+    
+
 void display_title(const char *Title, ScreenID lastScreenID);
 bool IsResourcesLoaded(); // Add function to check if resources are loaded
+
+

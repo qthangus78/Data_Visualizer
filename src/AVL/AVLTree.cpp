@@ -122,9 +122,14 @@ Node* insertNode(Node* pRoot, int x) {
     return pRoot;
 }
 Node* minValueNode(Node* node) {
-    Node* current = node;
-    while (current->left) current = current->left;
-    return current;
+    while (node && node->left)
+        node = node->left;
+    return node;
+}
+Node* maxValueNode(Node* node) {
+    while (node && node->right)
+        node = node->right;
+    return node;
 }
 Node* deleteNode(Node* root, int key) {
     if (!root) return nullptr;
@@ -138,9 +143,16 @@ Node* deleteNode(Node* root, int key) {
             delete root;
             return temp;
         } else {
-            Node* temp = minValueNode(root->right);
-            root->data = temp->data;
-            root->right = deleteNode(root->right, temp->data);
+            Node* replace = nullptr;
+            if (root->right)
+                replace = minValueNode(root->right);  
+            else if (root->left)
+                replace = maxValueNode(root->left);
+            root->data = replace->data;
+            if (root->right)
+                root->right = deleteNode(root->right, replace->data);
+            else
+                root->left = deleteNode(root->left, replace->data);
         }
     }
     root->height = 1 + std::max(getHeight(root->left), getHeight(root->right));
@@ -157,8 +169,15 @@ Node* deleteNode(Node* root, int key) {
         root->right = rightRotate(root->right);
         return leftRotate(root);
     }
-
     return root;
+}
+Node* findNode(Node* pRoot, int key) {
+    if (!pRoot) return nullptr;
+    Node* walk = pRoot;
+    while (walk && walk->data != key) {
+        walk = (walk->data < key) ? walk->right : walk->left;
+    }
+    return walk;
 }
 void clearAVL(Node*& pRoot) {
     if (pRoot == nullptr) {
@@ -175,6 +194,34 @@ void FileInput(std::ifstream& fin, Node*& pRoot) {
         pRoot = insertNode(pRoot, t);
     }
 }
+//Interface 
+IStateAVL::ToggleSwitch::ToggleSwitch() {
+    bounds = {40,20,140,40};
+    isStepByStep = true;
+    toggleRadius = 40 * 0.8f;
+    toggleX = bounds.x + 5;
+    labelAlpha = 1.0f;
+    labelAlphaReverse = 0.0f;
+}
+void IStateAVL::ToggleSwitch::Update(Vector2 mouse) {
+    if (CheckCollisionPointRec(mouse, bounds) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        isStepByStep = !isStepByStep;
+    }
+    float targetX = isStepByStep ? bounds.x + 5 : bounds.x + bounds.width - toggleRadius - 5;
+    toggleX += (targetX - toggleX) * 0.15f;
+    float targetAlpha = isStepByStep ? 1.0f : 0.0f;
+    float targetAlphaReverse = isStepByStep ? 0.0f : 1.0f;
+    labelAlpha += (targetAlpha - labelAlpha) * 0.1f;
+    labelAlphaReverse += (targetAlphaReverse - labelAlphaReverse) * 0.1f;
+}
+
+void IStateAVL::ToggleSwitch::Draw() {
+    DrawRectangleRoundedLinesEx(bounds, 0.5f, 20, 4, DARKGRAY);
+    DrawCircleV({ toggleX + toggleRadius / 2, bounds.y + bounds.height / 2 }, toggleRadius / 2 + 3.0f, DARKBLUE);
+    DrawCircleV({ toggleX + toggleRadius / 2, bounds.y + bounds.height / 2 }, toggleRadius / 2, WHITE);
+    DrawTextEx(SSLFont, "Step by step", {bounds.x + 40, bounds.y + 10}, 17, 1, Fade(BLACK, labelAlpha));
+    DrawTextEx(SSLFont, "Run at once", {bounds.x + bounds.width - 135, bounds.y + 15}, 17, 1, Fade(BLACK, labelAlphaReverse));
+}
 //AVL 
 AVL::AVL() : pRoot(nullptr) {
     mNotInMode = new notInModeAVL(this);
@@ -183,7 +230,9 @@ AVL::AVL() : pRoot(nullptr) {
     mDelete = new DeleteAVL(this);
     mFind = new FindAVL(this);
     mClear = new ClearAVL(this);
-    mCurrent = mNotInMode;    
+    mCurrent = mNotInMode;
+    mPRev = mNotInMode;    
+    isPause = false;
 }
 AVL::~AVL() {
     delete mNotInMode;
@@ -192,11 +241,13 @@ AVL::~AVL() {
     delete mDelete;
     delete mFind;
     delete mClear;
+    delete mPRev;
     clearAVL(pRoot);
     mCurrent = nullptr;   
 }
 Node*& AVL::getRoot() {return pRoot;}
 IStateAVL* AVL::getCurrent() {return mCurrent;}
+IStateAVL* AVL::getPrev() {return mPRev;}
 IStateAVL* AVL::getNotInMode() {return mNotInMode;}
 IStateAVL* AVL::getCreate() {return mCreate;}
 IStateAVL* AVL::getInsert() {return mInsert;}
@@ -204,6 +255,7 @@ IStateAVL* AVL::getDelete() {return mDelete;}
 IStateAVL* AVL::getFind() {return mFind;}
 IStateAVL* AVL::getClear() {return mClear;}
 void AVL::setState(IStateAVL* state) {mCurrent = state;}
+void AVL::setPrev(IStateAVL* prev) {mPRev = prev;}
 std::vector<EdgeAVL>& AVL::getEdge() {return edge;}
 void AVL::pushEdge(EdgeAVL newEdge) {edge.push_back(newEdge);}
 std::vector<Node*> AVL::BFSOrder(){
@@ -219,8 +271,33 @@ std::vector<Node*> AVL::BFSOrder(){
     }  
     return order;
 }
-void AVL::draw() {mCurrent->draw();}
-void AVL::handle() {mCurrent->handle();}
+IStateAVL::ToggleSwitch AVL::getToggle() {return toggle;}
+void AVL::setToggle(IStateAVL::ToggleSwitch toggle) {toggle = toggle;}
+bool AVL::getPause() {return isPause;}
+void AVL::setPause(bool Pause) {isPause = Pause;} 
+void AVL::drawPause(){
+    UndoButton.SetPosition(560,650);
+    RedoButton.SetPosition(730,650);
+    PlayButton.SetPosition(640,640);
+    PauseButton.SetPosition(640,640);
+    UndoButton.Drawtexture();
+    RedoButton.Drawtexture();
+    if(!isPause) PauseButton.Drawtexture();
+    else PlayButton.Drawtexture();
+    if(PlayButton.isPressed()) {isPause = !isPause;}
+}
+void AVL::draw() {
+    mCurrent->draw();
+    drawPause();
+    toggle.Draw();
+}
+void AVL::handle() {
+    mCurrent->handle();
+    toggle.Update(GetMousePosition());
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && BackButton.CheckMouseCollision()) {
+        mCurrent = mNotInMode;
+    }
+}
 //Reuseable utility
 //DrawNode
 void DrawNodeAVL(Node* node){
@@ -306,25 +383,43 @@ void handleButtonsHoverAVL(){
         buttonVar::buttonF.buCol     = color::buttonColorHovered;
     else if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect))
         buttonVar::buttonClear.buCol     = color::buttonColorHovered;
+    else if(CheckCollisionPointRec(mouse, buttonVar::buttonGo.rect))
+        buttonVar::buttonGo.buCol     = color::buttonFileHovered;
     else {
         buttonVar::buttonCreate.buCol    = color::buttonColor;
         buttonVar::buttonIns.buCol    = color::buttonColor;
         buttonVar::buttonDel.buCol = color::buttonColor;
         buttonVar::buttonF.buCol = color::buttonColor;
         buttonVar::buttonClear.buCol = color::buttonColor;
+        buttonVar::buttonGo.buCol     = color::buttonFile;
     }
 }
 void handleButtonsClickAVL(AVL* AVL){
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonCreate.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         AVL->setState((AVL->getCurrent() == AVL->getCreate()) ? AVL->getNotInMode() : AVL->getCreate());
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        buttonVar::buttonGo.rect.x = buttonVar::buttonCreate.rect.x+250, buttonVar::buttonGo.rect.y = buttonVar::buttonCreate.rect.y;
+        AVL->setPrev(AVL->getNotInMode());
+    }
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonIns.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         AVL->setState((AVL->getCurrent() == AVL->getInsert()) ? AVL->getNotInMode() : AVL->getInsert());
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        buttonVar::buttonGo.rect.x = buttonVar::buttonIns.rect.x+230, buttonVar::buttonGo.rect.y = buttonVar::buttonIns.rect.y;
+        AVL->setPrev(AVL->getNotInMode());
+    }
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonDel.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         AVL->setState((AVL->getCurrent() == AVL->getDelete()) ? AVL->getNotInMode() : AVL->getDelete());
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        buttonVar::buttonGo.rect.x = buttonVar::buttonDel.rect.x+230, buttonVar::buttonGo.rect.y = buttonVar::buttonDel.rect.y;
+        AVL->setPrev(AVL->getNotInMode());
+    }
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonF.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         AVL->setState((AVL->getCurrent() == AVL->getFind()) ? AVL->getNotInMode() : AVL->getFind());
-    if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        buttonVar::buttonGo.rect.x = buttonVar::buttonF.rect.x+230, buttonVar::buttonGo.rect.y = buttonVar::buttonF.rect.y;
+        AVL->setPrev(AVL->getNotInMode());
+    }
+    if(CheckCollisionPointRec(mouse, buttonVar::buttonClear.rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         AVL->setState((AVL->getCurrent() == AVL->getClear()) ? AVL->getNotInMode() : AVL->getClear());
+        buttonVar::buttonGo.rect.x = buttonVar::buttonClear.rect.x+120, buttonVar::buttonGo.rect.y = buttonVar::buttonClear.rect.y;
+        AVL->setPrev(AVL->getNotInMode());
+    }
 }
 void drawBlinkingLinesAVL(const std::string& text, Rectangle rect, int& frameCounter){
     frameCounter++;
@@ -400,8 +495,8 @@ Color lerpAVL(Color start, Color end, float progress) {
     unsigned char a = static_cast<unsigned char>(start.a + t * (end.a - start.a));
     return {r, g, b, a};
 }
-void newNodeAVL(Node*& node, float& progress){
-    progress += deltaTimeAVL;
+void newNodeAVL(AVL* AVL, Node*& node, float& progress){
+    if(!AVL->getPause()) progress += deltaTimeAVL;
     node->radius = lerpAVL(0,NodeSizeAVL,progress);
     node->font = lerpAVL(0,FontNodeAVL,progress);
 }
@@ -417,4 +512,7 @@ Vector2 Vector2AddAVL(Vector2 v1, Vector2 v2) {
 }
 Vector2 Vector2ScaleAVL(Vector2 v, float scale) {
     return (Vector2){ v.x * scale, v.y * scale };
+}
+bool isSameColor(Color a, Color b) {
+    return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include "AnnouncementBox.h"
 //Struct of AVL
 struct Node{
     int data;
@@ -36,12 +37,25 @@ Node* leftRotate(Node* y);
 Node* insertNode(Node* pRoot, int x);
 void FileInput(std::ifstream& fin, Node*& pRoot);
 Node* minValueNode(Node* node);
+Node* maxValueNode(Node* node);
 Node* deleteNode(Node* root, int key);
+Node* findNode(Node* pRoot, int key);
 void clearAVL(Node*& pRoot);
 //Interface
 class IStateAVL{
 public:
     enum RotateType {RightRight, RightLeft, LeftLeft, LeftRight, None};
+    struct ToggleSwitch {
+        Rectangle bounds;
+        bool isStepByStep;
+        float toggleX;
+        float toggleRadius;
+        float labelAlpha;
+        float labelAlphaReverse;
+        ToggleSwitch();
+        void Update(Vector2 mouse);
+        void Draw();
+    };
     virtual void draw() = 0;
     virtual void handle() = 0;
 };
@@ -50,6 +64,7 @@ class AVL{
 private: 
     Node* pRoot;
     IStateAVL* mCurrent;
+    IStateAVL* mPRev;
     IStateAVL* mNotInMode;
     IStateAVL* mCreate;
     IStateAVL* mInsert;
@@ -57,12 +72,15 @@ private:
     IStateAVL* mFind;
     IStateAVL* mClear;
     std::vector<EdgeAVL> edge;
+    IStateAVL::ToggleSwitch toggle;
+    bool isPause;
 public: 
     AVL();
     ~AVL();
     //getter/setter
     Node*& getRoot();
     IStateAVL* getCurrent();
+    IStateAVL* getPrev();
     IStateAVL* getNotInMode();
     IStateAVL* getCreate();
     IStateAVL* getInsert();
@@ -70,9 +88,15 @@ public:
     IStateAVL* getFind();
     IStateAVL* getClear();
     void setState(IStateAVL* state);
+    void setPrev(IStateAVL* prev);
     std::vector<EdgeAVL>& getEdge();
     void pushEdge(EdgeAVL newEdge);
     std::vector<Node*> BFSOrder();
+    IStateAVL::ToggleSwitch getToggle();
+    void setToggle(IStateAVL::ToggleSwitch toggle);
+    bool getPause();
+    void setPause(bool Pause);
+    void drawPause();   
     void draw();
     void handle();
 };
@@ -91,11 +115,16 @@ public:
 private: 
     AVL* mAVL;
     float progress;
-    Type type;
+    Type type, prevtype;
     button fileInput, random;
-    bool fileProcess, initProcess, inProcess;
+    bool fileProcess, initProcess, inProcess, slideProcess;
 public:
     CreateAVL(AVL* AVL);
+    Type DetectCurrentMode();
+    void handleModeTransitTion(Type newType);
+    void updateCommonAnimation();
+    void handleFileMode();
+    void handleRandomMode();
     void handle() override;
     void draw() override;
     void drawFile();
@@ -104,6 +133,13 @@ public:
     void handleInit();
     void CreateAnimation();
 }; 
+//Undo and redo
+class InsertState{
+public:
+    Node* node;
+    IStateAVL::RotateType type;
+    InsertState(Node* node,IStateAVL::RotateType type) : node(node), type(type) {}
+};
 //Insert
 class InsertAVL : public IStateAVL{  
 private: 
@@ -115,15 +151,23 @@ private:
     std::vector<Vector2> oldPos;
     std::vector<Vector2> newPos;
     std::vector<Node*> path;
-    bool inProcess, insertRoot, insertNode, returnNode;
+    std::vector<InsertState> rotate;
+    std::vector<Node*> undoPath;
+    bool inProcess, insertRoot, InsertNodeFlag, returnNode, runAtOnce, undoFlag, redoFlag, undoRotateFlag, deleteUndoFlag;
     Node* prev, *tmp;
     RotateType type, prevType;
+    AnnouncementBox avlBox;
 public: 
     InsertAVL(AVL* AVL);
+    void handleUndo();
+    void deleteUndo();
+    void undoRotate();
+    void handleRedo();
     void InsertNode(Node*& pRoot, int x);
     void InsertRoot(Node*& pRoot, int x);
     void InsertAnimation(int x);
     void returnAnimation();
+    void InsertAtOnce(Node* pRoot, int x);
     void updatePos(Node*& pRoot);
     void draw() override;
     void handle() override;
@@ -138,7 +182,7 @@ private:
     std::vector<Vector2> oldPos;
     std::vector<Vector2> newPos;
     std::vector<Node*> path;
-    bool inProcess, deleteNode, returnNode, deleteLeaf, firstDelete;
+    bool inProcess, DeleteNodeFlag, returnNode, deleteLeaf, firstDelete, runAtOnce;
     Node* prev,* tmp;
     RotateType type, prevType;
 public:
@@ -152,6 +196,7 @@ public:
     void DeleteNode(Node*& pRoot, int x);
     void DeleteLeaf(Node*& pRoot);
     void DeleteAnimation(Node*& pRoot, int x);
+    void DeleteAtOnce(Node*& pRoot, int x);
 };
 class FindAVL : public IStateAVL{
 private:
@@ -160,13 +205,16 @@ private:
     std::string textIn;
     float progress;
     Rectangle inputRect;
-    bool findNode;
+    bool FindNodeFlag, undoFlag, redoFlag;
     Node* prev,* tmp;
+    AnnouncementBox avlBox;
 public:
     FindAVL(AVL* AVL);
     void handle() override;
     void draw() override;
     void FindAnimation(Node*& pRoot, int x);
+    void handleUndo();
+    void handleRedo();
 };
 class ClearAVL : public IStateAVL{
 private:
@@ -200,5 +248,6 @@ float smoothstepAVL(float t);
 Vector2 lerpAVL(Vector2 start, Vector2 end, float progress);
 float lerpAVL(float start, float end, float progress);
 Color lerpAVL(Color start, Color end, float progress);
-void newNodeAVL(Node*& node, float& progress);
+void newNodeAVL(AVL* AVL, Node*& node, float& progress);
 void handlePos(AVL*& AVL, std::vector<Vector2>& oldPos, std::vector<Vector2>& newPos);
+bool isSameColor(Color a, Color b);

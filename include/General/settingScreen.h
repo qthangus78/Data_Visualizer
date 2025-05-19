@@ -1,11 +1,15 @@
 #pragma once
 #include "GlobalVar.h"
 #include "TextBox.h"
+#include <string.h>
 
 
 namespace settingScreen {
     void Display() {
-        ClearBackground({192, 245, 242, 100});
+        ClearBackground(theme.getTheme());
         display_title("Settings" , ScreenID::StartScreen);
+        music.draw();  
+        theme.draw();
+        theme.update();
     }
 }

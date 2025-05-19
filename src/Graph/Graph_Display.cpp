@@ -104,7 +104,7 @@ namespace Graph_display {
     }
 
     void Display() {
-        ClearBackground({192, 245, 242, 100});
+        ClearBackground(theme.getTheme());
         display_title("Graphs", ScreenID::StartMenuScreen);
         DrawRectangleRec(GraphDisplayScreen, {238, 241, 218, 255}); // rgb(51, 145, 154)
 
