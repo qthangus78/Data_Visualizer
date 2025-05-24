@@ -47,13 +47,13 @@ public:
     enum RotateType {RightRight, RightLeft, LeftLeft, LeftRight, None};
     struct ToggleSwitch {
         Rectangle bounds;
-        bool isStepByStep;
+        bool isStepByStep, transfer;
         float toggleX;
         float toggleRadius;
         float labelAlpha;
         float labelAlphaReverse;
         ToggleSwitch();
-        void Update(Vector2 mouse);
+        void Update(Vector2 mouse, bool check);
         void Draw();
     };
     virtual void draw() = 0;
@@ -92,7 +92,7 @@ public:
     std::vector<EdgeAVL>& getEdge();
     void pushEdge(EdgeAVL newEdge);
     std::vector<Node*> BFSOrder();
-    IStateAVL::ToggleSwitch getToggle();
+    IStateAVL::ToggleSwitch& getToggle();
     void setToggle(IStateAVL::ToggleSwitch toggle);
     bool getPause();
     void setPause(bool Pause);
@@ -134,11 +134,11 @@ public:
     void CreateAnimation();
 }; 
 //Undo and redo
-class InsertState{
+class UndoState{
 public:
     Node* node;
     IStateAVL::RotateType type;
-    InsertState(Node* node,IStateAVL::RotateType type) : node(node), type(type) {}
+    UndoState(Node* node,IStateAVL::RotateType type) : node(node), type(type) {}
 };
 //Insert
 class InsertAVL : public IStateAVL{  
@@ -151,7 +151,7 @@ private:
     std::vector<Vector2> oldPos;
     std::vector<Vector2> newPos;
     std::vector<Node*> path;
-    std::vector<InsertState> rotate;
+    std::vector<UndoState> rotate;
     std::vector<Node*> undoPath;
     bool inProcess, insertRoot, InsertNodeFlag, returnNode, runAtOnce, undoFlag, redoFlag, undoRotateFlag, deleteUndoFlag;
     Node* prev, *tmp;
@@ -175,24 +175,34 @@ public:
 class DeleteAVL : public IStateAVL{
 private: 
     AVL* mAVL;
-    int frameCounter, framecntDel, value;
+    int frameCounter, framecntDel, value, undoValue;
     std::string textIn;
     float progress;
     Rectangle inputRect;
     std::vector<Vector2> oldPos;
     std::vector<Vector2> newPos;
+    std::vector<Node*> undoPath;
     std::vector<Node*> path;
-    bool inProcess, DeleteNodeFlag, returnNode, deleteLeaf, firstDelete, runAtOnce;
-    Node* prev,* tmp;
+    std::vector<UndoState> rotate;
+    bool inProcess, DeleteNodeFlag, returnNode, deleteLeaf, firstDelete, runAtOnce, undoFlag, redoFlag, undoRotateFlag, deleteUndoFlag;
+    Node* prev,* tmp,* undoRoot;
+    std::vector<EdgeAVL> undoEdge;
     RotateType type, prevType;
+    AnnouncementBox avlBox;
 public:
     DeleteAVL(AVL* AVL);
+    ~DeleteAVL();
     void handle() override;
     void draw() override;
     void DeleteAl(Node*& pRoot, Node*& x, Node*& y, std::vector<EdgeAVL>& edge, float& progress);
     void updatePos(Node*& pRoot);
     void rotateAVL();
     void returnAnimation();
+    void replicateTree(Node*& ori, Node*& rep, std::vector<EdgeAVL>& edge);
+    void handleUndo();
+    void handleRedo();
+    void deleteUndo();
+    void rotateUndo();
     void DeleteNode(Node*& pRoot, int x);
     void DeleteLeaf(Node*& pRoot);
     void DeleteAnimation(Node*& pRoot, int x);

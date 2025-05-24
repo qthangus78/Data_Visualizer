@@ -198,13 +198,15 @@ void FileInput(std::ifstream& fin, Node*& pRoot) {
 IStateAVL::ToggleSwitch::ToggleSwitch() {
     bounds = {40,20,140,40};
     isStepByStep = true;
+    transfer = true;
     toggleRadius = 40 * 0.8f;
     toggleX = bounds.x + 5;
     labelAlpha = 1.0f;
     labelAlphaReverse = 0.0f;
 }
-void IStateAVL::ToggleSwitch::Update(Vector2 mouse) {
-    if (CheckCollisionPointRec(mouse, bounds) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+void IStateAVL::ToggleSwitch::Update(Vector2 mouse, bool check) {
+    if(!transfer) return;
+    if (CheckCollisionPointRec(mouse, bounds) && (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || check)) {
         isStepByStep = !isStepByStep;
     }
     float targetX = isStepByStep ? bounds.x + 5 : bounds.x + bounds.width - toggleRadius - 5;
@@ -271,7 +273,7 @@ std::vector<Node*> AVL::BFSOrder(){
     }  
     return order;
 }
-IStateAVL::ToggleSwitch AVL::getToggle() {return toggle;}
+IStateAVL::ToggleSwitch& AVL::getToggle() {return toggle;}
 void AVL::setToggle(IStateAVL::ToggleSwitch toggle) {toggle = toggle;}
 bool AVL::getPause() {return isPause;}
 void AVL::setPause(bool Pause) {isPause = Pause;} 
@@ -293,7 +295,7 @@ void AVL::draw() {
 }
 void AVL::handle() {
     mCurrent->handle();
-    toggle.Update(GetMousePosition());
+    toggle.Update(GetMousePosition(),false);
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && BackButton.CheckMouseCollision()) {
         mCurrent = mNotInMode;
     }
